@@ -49,7 +49,7 @@ Before attempting to build the gcc4mbed samples, you first need to download the 
     make install_mbed
 Windows:
     cd c:\gcc4mbed
-    make install_mbed
+    cs-make install_mbed
 }}}
 Now you will have mbed headers in external/mbed and libraries (mbed.ar and capi.ar) in external/mbed/LPC1768.  You shouldn't need to do this again unless you delete the gcc4mbed project from your machine or gcc4mbed is updated to use a newer build of the mbed libraries.
 
@@ -62,7 +62,7 @@ You are now ready to try building and deploying GCC built mbed samples.
     make
 Windows:
     cd c:\gcc4mbed
-    make
+    cs-make
 }}}
 This will have built various programs in the samples directory off of the root of the gcc4mbed project.
 {{{
@@ -102,13 +102,13 @@ After all of the that work, wouldn't it be great to see something actually run o
     make clean all deploy
 Windows:
     cd c:\gcc4mbed\samples\HelloWorld
-    make clean all deploy
+    cs-make clean all deploy
 }}}
 Those build rules (clean all deploy) will force all of the output files to be deleted, then rebuilt from a clean start, and then copied up to your mbed device.  Pressing the reset button on the mbed device should result in the blinking LED.
 
 If you just want to deploy a binary that has already been built, you can just run "make deploy"
 
 ==Thanks
-The author want to thank Arthur Wolf for the [[http://mbed.org/forum/mbed/topic/2336/|posting]] he made back in May which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
+The author wants to thank Arthur Wolf for the [[http://mbed.org/forum/mbed/topic/2336/|posting]] he made back in May which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
 
 ==Have fun!!
