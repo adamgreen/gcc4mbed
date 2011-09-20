@@ -54,7 +54,7 @@ Windows:
 Now you will have mbed headers in external/mbed and libraries (mbed.ar and capi.ar) in external/mbed/LPC1768.  You shouldn't need to do this again unless you delete the gcc4mbed project from your machine or gcc4mbed is updated to use a newer build of the mbed libraries.
 
 ==Build and deploy
-You are now ready to try building and deploying GCC built bed samples.
+You are now ready to try building and deploying GCC built mbed samples.
 ===Build
 {{{
 *nix:
@@ -111,4 +111,4 @@ If you just want to deploy a binary that has already been built, you can just ru
 ==Thanks
 The author want to thank Arthur Wolf for the [[http://mbed.org/forum/mbed/topic/2336/|posting]] he made back in May which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
 
-==**Have fun!!**
+==Have fun!!
