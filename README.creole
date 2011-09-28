@@ -20,7 +20,7 @@ If using the mbed libraries with GCC had been easy, people would have been doing
 ===Code Sourcery 2011.03-42
 You need to first install the GCC based Code Sourcery Lite tool chain.
 ====Windows and Linux
-The installers for the Code Sourcery tools can be found at [[https://sourcery.mentor.com/sgpp/lite/arm/portal/release1802]]
+The installers for the Code Sourcery tools can be found at [[https://sourcery.mentor.com/sgpp/lite/arm/portal/release1802]].  Use the appropriate "IA32 GNU/Linux Installer" or "IA32 Windows Installer" from the Recommended Packages section of this page.  From within this GUI installer pick the Typical installation and allow it to update the PATH environment variable.
 ====Mac OS X
 There is no automated installer to get the Code Sourcery tools onto a Mac computer.  You can check out this github project: [[https://github.com/hugovincent/arm-eabi-toolchain]] and this mbed forum thread: [[http://mbed.org/forum/mbed/topic/1091/?page=1#comment-5299]].  Both of these point to steps that Hugo Vincent has put together to get the Code Sourcery tool chain to build on the Mac.  Once you download the gcc4mbed project, you can also check out the external/gcc/prep.sh script to see the steps that the author used to build it on his Mac.  He used Snow Leopard with XCode 4.0 to run this script.  The size reduced C/C++ libraries for GCC included in the gcc4mbed project were actually built on his Mac using this script.
 ===Other pre-requisites

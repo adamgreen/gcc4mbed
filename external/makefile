@@ -18,7 +18,7 @@ ifeq "$(MAKE)" "cs-make"
 SVN=win32\svn
 MOVE=@echo Skipping move
 DELTREE=-rd /s /q
-PATCH=win32\patch --binary
+PATCH=win32\applydiff --binary
 else
 SVN=svn
 MOVE=mv
