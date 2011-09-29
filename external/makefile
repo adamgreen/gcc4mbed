@@ -19,11 +19,13 @@ SVN=win32\svn
 MOVE=@echo Skipping move
 DELTREE=-rd /s /q
 PATCH=win32\applydiff --binary
+QUIET=>nul 2>nul & exit 0
 else
 SVN=svn
 MOVE=mv
 DELTREE=rm -f -r
 PATCH=patch
+QUIET=> /dev/null 2>&1 ; exit 0
 endif
 
 .PHONY: install install_mbed install_fat patch_mbed patch_fat strip_libs
@@ -31,11 +33,11 @@ endif
 install: install_mbed install_fat patch_mbed patch_fat strip_libs
 
 install_mbed:
-	$(DELTREE) mbed
+	$(DELTREE) mbed $(QUIET)
 	$(SVN) checkout --revision 28  http://mbed.org/projects/libraries/svn/mbed/trunk mbed
 
 install_fat:
-	$(DELTREE) FATFileSystem
+	$(DELTREE) FATFileSystem $(QUIET)
 	$(SVN) checkout --revision 28  http://mbed.org/projects/libraries/svn/FATFileSystem/trunk FATFileSystem
 
 patch_mbed:
