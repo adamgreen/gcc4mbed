@@ -18,7 +18,7 @@ If using the mbed libraries with GCC had been easy, people would have been doing
 
 ==Installation
 ===Code Sourcery 2011.03-42
-You need to first install the GCC based Code Sourcery Lite tool chain.
+You need to first install the latest GCC based Code Sourcery Lite tool chain.  Earlier versions don't appear to support the mbed libraries.
 ====Windows and Linux
 The installers for the Code Sourcery tools can be found at [[https://sourcery.mentor.com/sgpp/lite/arm/portal/release1802]].  Use the appropriate "IA32 GNU/Linux Installer" or "IA32 Windows Installer" from the Recommended Packages section of this page.  From within this GUI installer pick the Typical installation and allow it to update the PATH environment variable.
 ====Mac OS X
