@@ -7,3 +7,5 @@
 *.o
 *.ar
 .svn/
+external/FATFileSystem/
+external/mbed/
