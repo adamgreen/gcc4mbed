@@ -30,6 +30,10 @@
 #                of the build directory which contains this gcc4mbed.mk file.
 #   LIBS_PREFIX: List of library/object files to prepend to mbed.ar capi.ar libs.
 #   LIBS_SUFFIX: List of library/object files to append to mbed.ar capi.ar libs.
+#   GCC4MBED_DELAYED_STDIO_INIT: Set to non-zero value to have intialization of
+#                                stdin/stdout/stderr delayed which will
+#                                shrink the size of the resulting binary if
+#                                APIs like printf(), scanf(), etc. aren't used.
 # Example makefile:
 #       PROJECT=HelloWorld
 #       SRC=.
@@ -44,6 +48,11 @@
 # Default project source to be located in current directory.
 ifndef SRC
 SRC=.
+endif
+
+# Default the init of stdio/stdout/stderr to occur before global constructors.
+ifndef GCC4MBED_DELAYED_STDIO_INIT
+GCC4MBED_DELAYED_STDIO_INIT=0
 endif
 
 # List of sources to be compiled/assembled
@@ -67,7 +76,7 @@ PROJINCS = $(sort $(dir $(SUBDIRS)))
 INCDIRS += $(PROJINCS) $(EXTERNAL_DIR)/mbed $(EXTERNAL_DIR)/mbed/LPC1768 $(EXTERNAL_DIR)/FATFileSystem
 
 # DEFINEs to be used when building C/C++ code
-DEFINES = -DTARGET_LPC1768
+DEFINES = -DTARGET_LPC1768 -DGCC4MBED_DELAYED_STDIO_INIT=$(GCC4MBED_DELAYED_STDIO_INIT)
 
 # Libraries to be linked into final binary
 LIBS = $(LIBS_PREFIX) $(EXTERNAL_DIR)/mbed/LPC1768/mbed.ar $(EXTERNAL_DIR)/mbed/LPC1768/capi.ar $(EXTERNAL_DIR)/FATFileSystem/LPC1768/FATFileSystem.ar $(LIBS_SUFFIX)
