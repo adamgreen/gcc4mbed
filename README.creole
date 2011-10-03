@@ -10,6 +10,7 @@ These are the quick steps to get gcc4mbed installed on your Windows or Mac OS X 
 ===Important Notes:
 * Files will fail to install to a FAT based file system.  Extract to a more appropriate file system (ie. NTFS on Windows) first and then copy to a FAT drive after installation.
 * If the installation should fail, please refer to win_install.log or mac_install.log.  It will contain the details of the installation process and any errors that were encountered.
+* To run the install script on Mac OS X, you will need to first have the make utility installed.  The author had previously installed Apple's XCode which provides this tool.
 
 ==Overview
 The gcc4mbed project was created to give mbed users the flexibility to develop code even when it isn't convenient to be connected to the Internet.  While there have been [[http://mbed.org/cookbook/Using-mbed-with-gcc-and-eclipse|documented steps]] for quite some time on how to use GCC for building CMSIS based programs for the mbed processor, they have sacrificed the convenience of the mbed libraries.  The gcc4mbed project gives you the flexibility of offline compilation through the **free** GCC based [[http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/lite-edition|Code Sourcery Lite tool chain]] without sacrificing the convenience of these libraries.
