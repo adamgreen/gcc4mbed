@@ -23,7 +23,8 @@ set CODE_SOURCERY_FILENAME=arm-2011.03-42-arm-none-eabi-i686-mingw32.tar.bz2
 set CODE_SOURCERY_URL=https://sourcery.mentor.com/sgpp/lite/arm/portal/package8735/public/arm-none-eabi/%CODE_SOURCERY_FILENAME%
 set CODE_SOURCERY_TAR=%ROOTDIR%%CODE_SOURCERY_FILENAME%
 set CODE_SOURCERY_MD5=%ROOTDIR%external\win32\%CODE_SOURCERY_FILENAME%.md5
-set CODE_SOURCERY_BINDIR=%ROOTDIR%arm-2011.03\bin
+set CODE_SOURCERY_VERSION=arm-2011.03
+set CODE_SOURCERY_BINDIR=%ROOTDIR%%CODE_SOURCERY_VERSION%\bin
 set BUILDENV_CMD=%CODE_SOURCERY_BINDIR%\buildenv.cmd
 set MAKE_CMD=%CODE_SOURCERY_BINDIR%\make.cmd
 set BUILDSHELL_CMD=%ROOTDIR%BuildShell.cmd
@@ -55,11 +56,11 @@ echo @echo off>%BUILDENV_CMD%
 echo REM Uncomment next line and set destination drive to match mbed device>>%BUILDENV_CMD%
 echo REM SET LPC_DEPLOY=copy PROJECT.bin f:\>>%BUILDENV_CMD%
 echo.>>%BUILDENV_CMD%
-echo SET PATH=%CODE_SOURCERY_BINDIR%;%%PATH%%>>%BUILDENV_CMD%
+echo SET PATH=%%~dp0;%%PATH%%>>%BUILDENV_CMD%
 rem
 echo @cs-make %%*>%MAKE_CMD%
 rem
-echo @cmd.exe /K %BUILDENV_CMD%>%BUILDSHELL_CMD%
+echo @cmd.exe /K %%~dp0\%CODE_SOURCERY_VERSION%\bin\buildenv.cmd>>%BUILDSHELL_CMD%
 
 rem Place Code Sourcery G++ Lite tools in the path before building gcc4mbed code.
 set path=%CODE_SOURCERY_BINDIR%;%PATH%
