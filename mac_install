@@ -102,7 +102,7 @@ RunAndLog cp $MACBIN_DIR/arm-none-eabi-* $CODE_SOURCERY_BINDIR/
 files_to_link=(as g++ ld objcopy ranlib ar c++ gcc nm objdump strip)
 for file_item in ${files_to_link[*]} ; do
     RunAndLog rm -f $CODE_SOURCERY_DIR/arm-none-eabi/bin/$file_item
-    RunAndLog ln -s $CODE_SOURCERY_BINDIR/arm-none-eabi-$file_item $CODE_SOURCERY_DIR/arm-none-eabi/bin/$file_item
+    RunAndLog cp $CODE_SOURCERY_BINDIR/arm-none-eabi-$file_item $CODE_SOURCERY_DIR/arm-none-eabi/bin/$file_item
 done
 RunAndLog rm -rf $CODE_SOURCERY_LIBEXEC/
 RunAndLog mkdir $CODE_SOURCERY_LIBEXEC/
