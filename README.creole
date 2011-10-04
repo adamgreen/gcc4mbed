@@ -32,9 +32,9 @@ If you are the adventurous sort and want to try out the offline gcc4mbed project
 If using the mbed libraries with GCC had been easy, people would have been doing it since the mbed was first launched.  Many of the difficulties comes about from the fact that these libraries are written in C++.  There are things like name mangling, RunTime Type Information, and debug symbol formats which could easily be different between the two compilers.  If they are different and you combine object files from the two then pure mayhem could ensue.  In the simplest case, the link just fails due to missing external references but in the worst case, the code builds but then crashes or hangs because of differences in formats.  The fact that this could be made to work at all is mostly due to the work of the developers at ARM, the RealView developers who built a compiler with such good compatibility with GCC and the mbed team for selecting build flags in the cloud compiler which took advantage of these compatibilities.  There will no doubt be more challenges to be faced in this area.  We are certainly playing with fire here so we should expect to be burned a few more times yet.
 
 ==More Information
-For more information about how to install and use the gcc4mbed project, please refer to [[https://github.com/adamgreen/gcc4mbed/blob/master/notes/install.creole]].
+For more information about how to install and use the gcc4mbed project, please refer to [[https://github.com/adamgreen/gcc4mbed/blob/master/notes/install.creole#readme]].
 
-For notes about porting your applications from the cloud compiler to gcc4mbed, check out [[http://mbed.org/forum/mbed/topic/2701/|this mbed forum thread]] and [[https://github.com/adamgreen/gcc4mbed/blob/master/notes/porting.creole|these summary porting notes.]]
+For notes about porting your applications from the cloud compiler to gcc4mbed, check out [[http://mbed.org/forum/mbed/topic/2701/|this mbed forum thread]] and [[https://github.com/adamgreen/gcc4mbed/blob/master/notes/porting.creole#readme|these summary porting notes.]]
 
 ==Thanks
 The author wants to thank Arthur Wolf for the [[http://mbed.org/forum/mbed/topic/2336/|posting]] he made back in May which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
