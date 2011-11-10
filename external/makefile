@@ -20,6 +20,7 @@ MOVE=@echo Skipping move
 DELTREE=-rd /s /q
 PATCH=win32\applydiff --binary
 QUIET=>nul 2>nul & exit 0
+SHELL=cmd.exe
 else
 SVN=svn
 MOVE=mv

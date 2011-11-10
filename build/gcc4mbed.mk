@@ -103,9 +103,10 @@ OBJDUMP = arm-none-eabi-objdump
 SIZE = arm-none-eabi-size
 REMOVE = rm
 
-# Switch to cs-rm on Windows.
+# Switch to cs-rm on Windows and make sure that cmd.exe is used as shell.
 ifeq "$(MAKE)" "cs-make"
 REMOVE = cs-rm
+SHELL=cmd.exe
 endif
 
 #########################################################################
