@@ -9,6 +9,7 @@ These are the quick steps to get gcc4mbed installed on your computer:
 * You can then run the BuildShell script which will be created during the install to properly configure the PATH environment variable.  You may want to edit this script to further customize your development environment.
 
 ===Important Notes:
+* During install, you may be prompted for an Authentication realm password for the mbed SVN.  You can just press ENTER at this prompt as a blank password response is enough.
 * Files will fail to install to a FAT based file system.  Extract to a more appropriate file system (ie. NTFS on Windows) first and then copy to a FAT drive after installation.
 * If the installation should fail, please refer to win_install.log, linux_install.log, or mac_install.log.  It will contain the details of the installation process and any errors that were encountered.
 * To run the install script on Mac OS X, you will need to first have the make utility installed.  The author had previously installed Apple's XCode which provides this tool.
