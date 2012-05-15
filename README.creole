@@ -1,3 +1,6 @@
+==Archive Version
+Original version of gcc4mbed which utilizes Code Sourcery Lite 2011.03-42 and mbed SDK revision 28.
+
 ==Quick Start
 These are the quick steps to get gcc4mbed installed on your computer:
 * Download the gcc4mbed compressed archive from [[https://github.com/adamgreen/gcc4mbed/zipball/master]]
