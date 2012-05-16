@@ -11,17 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Directories to be built
-DIRS=HelloWorld CTest Ticker StdIO LocalFileSystem HTTPServer
+PROJECT=HTTPServer
+GCC4MBED_DIR=../..
+INCDIRS=
+LIBS_PREFIX=
+LIBS_SUFFIX=
 
-.PHONY: subdirs $(DIRS)
-
-subdirs: $(DIRS)
-
-clean: $(DIRS)
-
-# Recurse into each of the specified directories and perform a make
-$(DIRS):
-	$(MAKE) $(MAKECMDGOALS) -C $@
-
+include ../../build/gcc4mbed.mk

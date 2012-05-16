@@ -122,6 +122,7 @@ SHELL=cmd.exe
 endif
 
 #########################################################################
+.PHONY: all clean deploy
 
 all:: $(PROJECT).hex $(PROJECT).bin $(PROJECT).disasm
 
