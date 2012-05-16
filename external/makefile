@@ -29,28 +29,19 @@ PATCH=patch
 QUIET=> /dev/null 2>&1 ; exit 0
 endif
 
-.PHONY: install install_mbed install_fat patch_mbed patch_fat strip_libs
+.PHONY: install install_mbed patch_mbed
 
-install: install_mbed install_fat patch_mbed patch_fat strip_libs
+install: install_mbed patch_mbed
 
 install_mbed:
 	$(DELTREE) mbed $(QUIET)
-	$(SVN) checkout --revision 28  http://mbed.org/projects/libraries/svn/mbed/trunk mbed
-
-install_fat:
-	$(DELTREE) FATFileSystem $(QUIET)
-	$(SVN) checkout --revision 28  http://mbed.org/projects/libraries/svn/FATFileSystem/trunk FATFileSystem
+	$(SVN) checkout --revision 43  http://mbed.org/projects/libraries/svn/mbed/export/trunk mbed
 
 patch_mbed:
-	$(MOVE) mbed/LPC1768/LPC1768.sct  mbed/LPC1768/LPC1768.scatter
-	$(MOVE) mbed/LPC2368/LPC2368.sct  mbed/LPC2368/LPC2368.scatter
-	$(PATCH) -p1 <mbed.patch
-
-patch_fat:
-	$(PATCH) -p1 <FATFileSystem.patch
-
-strip_libs:
-	arm-none-eabi-objcopy -g mbed/LPC1768/mbed.ar
-	arm-none-eabi-objcopy -g mbed/LPC1768/capi.ar
-	arm-none-eabi-objcopy -g FATFileSystem/LPC1768/FATFileSystem.ar
+	$(DELTREE) mbed/LPC2368 $(QUIET)
+	$(DELTREE) mbed/LPC11U24 $(QUIET)
+	$(DELTREE) mbed/LPC1768/ARM $(QUIET)
+	$(DELTREE) mbed/LPC1768/GCC_CR $(QUIET)
+	$(DELTREE) mbed/LPC1768/GCC_CS $(QUIET)
+	$(DELTREE) mbed/LPC1768/uARM $(QUIET)
 	
