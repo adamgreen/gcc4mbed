@@ -133,7 +133,7 @@ $(PROJECT).hex: $(PROJECT).elf
 	$(OBJCOPY) -R .stack -O ihex $(PROJECT).elf $(PROJECT).hex
 	
 $(PROJECT).disasm: $(PROJECT).elf
-	$(OBJDUMP) -d $(PROJECT).elf >$(PROJECT).disasm
+	$(OBJDUMP) -d -f -M reg-names-std $(PROJECT).elf >$(PROJECT).disasm
 	
 $(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
 	$(LD) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(PROJECT).elf
