@@ -132,17 +132,17 @@ DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_S
 
 # Libraries to be linked into final binary
 MBED_LIBS = $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libmbed.a $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libcapi.a
-SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lnosys -lgcc
+SYS_LIBS = -lstdc++ -lsupc++ -lm -lgcc -lc -lgcc -lc -lnosys
 LIBS = $(LIBS_PREFIX) 
+
 ifeq "$(MRI_ENABLE)" "1"
 LIBS += $(GCC4MBED_DIR)/mri/mri.ar
 endif
+
 LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/startup_LPC17xx.o
 LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/cmsis_nvic.o
 LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/core_cm3.o
 LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/system_LPC17xx.o
-LIBS += $(MBED_LIBS)
-LIBS += $(SYS_LIBS)
 LIBS += $(MBED_LIBS)
 LIBS += $(SYS_LIBS)
 LIBS += $(LIBS_SUFFIX)
