@@ -30,10 +30,27 @@
 #                of the build directory which contains this gcc4mbed.mk file.
 #   LIBS_PREFIX: List of library/object files to prepend to mbed.ar capi.ar libs.
 #   LIBS_SUFFIX: List of library/object files to append to mbed.ar capi.ar libs.
-#   GCC4MBED_DELAYED_STDIO_INIT: Set to non-zero value to have intialization of
-#                                stdin/stdout/stderr delayed which will
-#                                shrink the size of the resulting binary if
-#                                APIs like printf(), scanf(), etc. aren't used.
+#   GCC4MBED_TYPE: Type of build to produce.  Allowed values are:
+#                  Debug - Build for debugging.  Disables optimizations and
+#                          links in debug MRI runtime.  Best debugging 
+#                          experience.
+#                  Release - Build for release with no debug support.
+#                  Checked - Release build with debug support.  Due to
+#                            optimizations, debug experience won't be as good
+#                            as Debug but might be needed when bugs don't
+#                            reproduce in Debug builds.
+#                  default: Release
+#   MRI_BREAK_ON_INIT: Should the program halt before calling into main(),
+#                      allowing the developer time to set breakpoints in main()
+#                      or in code run from within global constructors.
+#                      default: 1 - break on init.
+#   MRI_SEMIHOST_STDIO: Set to non-zero value to allow debug monitor to use
+#                       semi-host calls to redirect stdin/stdout/stderr to the
+#                       gdb console.
+#                       default: 1 for Debug/Checked builds and 0 for Release.
+#   MRI_UART: Select the UART to be used by the debugger.  See mri.h for
+#             allowed values.
+#             default: MRI_UART_MBED_USB - Use USB based UART on the mbed.
 # Example makefile:
 #       PROJECT=HelloWorld
 #       SRC=.
@@ -45,20 +62,54 @@
 #      
 ###############################################################################
 
-# Default project source to be located in current directory.
-ifndef SRC
-SRC=.
+# Check for undefined variables.
+ifndef PROJECT
+$(error makefile must set PROJECT variable.)
 endif
 
-# Default the init of stdio/stdout/stderr to occur before global constructors.
-ifndef GCC4MBED_DELAYED_STDIO_INIT
-GCC4MBED_DELAYED_STDIO_INIT=0
+ifndef GCC4MBED_DIR
+$(error makefile must set GCC4MBED_DIR.)
 endif
+
+
+# Default variables.
+SRC ?= .
+GCC4MBED_TYPE ?= Release
+MRI_BREAK_ON_INIT ?= 1
+MRI_UART ?= MRI_UART_MBED_USB
+
+
+# Configure MRI variables based on GCC4MBED_TYPE build type variable.
+ifeq "$(GCC4MBED_TYPE)" "Release"
+OPTIMIZATION = 2
+MRI_ENABLE = 0
+MRI_SEMIHOST_STDIO ?= 0
+endif
+
+
+ifeq "$(GCC4MBED_TYPE)" "Debug"
+OPTIMIZATION = 0
+MRI_ENABLE = 1
+MRI_SEMIHOST_STDIO ?= 1
+endif
+
+
+ifeq "$(GCC4MBED_TYPE)" "Checked"
+OPTIMIZATION = 2
+MRI_ENABLE = 1
+MRI_SEMIHOST_STDIO ?= 1
+endif
+
+MRI_INIT_PARAMETERS=$(MRI_UART)
+
 
 # List of sources to be compiled/assembled
 CSRCS = $(wildcard $(SRC)/*.c $(SRC)/*/*.c $(SRC)/*/*/*.c $(SRC)/*/*/*/*.c $(SRC)/*/*/*/*/*.c)
 ASRCS =  $(wildcard $(SRC)/*.S $(SRC)/*/*.S $(SRC)/*/*/*.S $(SRC)/*/*/*/*.S $(SRC)/*/*/*/*/*.S)
 CPPSRCS = $(wildcard $(SRC)/*.cpp $(SRC)/*/*.cpp $(SRC)/*/*/*.cpp $(SRC)/*/*/*/*.cpp $(SRC)/*/*/*/*/*.cpp)
+
+# Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
+CSRCS += $(GCC4MBED_DIR)/src/gcc4mbed.c
 
 # List of the objects files to be compiled/assembled
 OBJECTS= $(CSRCS:.c=.o) $(ASRCS:.S=.o) $(CPPSRCS:.cpp=.o)
@@ -72,15 +123,20 @@ EXTERNAL_DIR = $(GCC4MBED_DIR)/external
 # Include path which points to external library headers and to subdirectories of this project which contain headers.
 SUBDIRS = $(wildcard $(SRC)/* $(SRC)/*/* $(SRC)/*/*/* $(SRC)/*/*/*/* $(SRC)/*/*/*/*/*)
 PROJINCS = $(sort $(dir $(SUBDIRS)))
-INCDIRS += $(PROJINCS) $(EXTERNAL_DIR)/mbed $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM $(EXTERNAL_DIR)/FATFileSystem
+INCDIRS += $(PROJINCS) $(GCC4MBED_DIR)/mri $(EXTERNAL_DIR)/mbed $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM
 
 # DEFINEs to be used when building C/C++ code
-DEFINES = -DTARGET_LPC1768 -DGCC4MBED_DELAYED_STDIO_INIT=$(GCC4MBED_DELAYED_STDIO_INIT)
+DEFINES = -DTARGET_LPC1768
+DEFINES += -DMRI_ENABLE=$(MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"' 
+DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
 
 # Libraries to be linked into final binary
 MBED_LIBS = $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libmbed.a $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libcapi.a
 SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lnosys -lgcc
 LIBS = $(LIBS_PREFIX) 
+ifeq "$(MRI_ENABLE)" "1"
+LIBS += $(GCC4MBED_DIR)/mri/mri.ar
+endif
 LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/startup_LPC17xx.o
 LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/cmsis_nvic.o
 LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/core_cm3.o
@@ -91,17 +147,22 @@ LIBS += $(MBED_LIBS)
 LIBS += $(SYS_LIBS)
 LIBS += $(LIBS_SUFFIX)
 
-# Optimization level
-OPTIMIZATION = 2
-
-#  Compiler Options
+# Compiler Options
 GPFLAGS = -O$(OPTIMIZATION) -g -mcpu=cortex-m3 -mthumb -mthumb-interwork 
 GPFLAGS += -ffunction-sections -fdata-sections  -fno-exceptions 
 GPFLAGS += -Wall -Wextra -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wredundant-decls -Wcast-qual -Wcast-align
 GPFLAGS += $(patsubst %,-I%,$(INCDIRS))
 GPFLAGS += $(DEFINES)
 
-LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -Wl,-Map=$(PROJECT).map,--cref,--gc-sections -T$(LSCRIPT)
+# Setup wraps for newlib read/writes to redirect to MRI debugger. 
+ifeq "$(MRI_ENABLE)" "1"
+MRI_WRAPS=,--wrap=_read,--wrap=_write,--wrap=_isatty
+else
+MRI_WRAP=
+endif
+
+# Linker Options.
+LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -Wl,-Map=$(PROJECT).map,--cref,--gc-sections$(MRI_WRAPS) -T$(LSCRIPT)
 
 ASFLAGS = $(LISTING) -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
 ASFLAGS += $(patsubst %,-I%,$(INCDIRS))

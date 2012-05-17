@@ -6,6 +6,9 @@
 *.map
 *.o
 *.ar
+mri.log
+deploy
+debug
 .svn/
 external/FATFileSystem/
 external/mbed/
