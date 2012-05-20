@@ -5,6 +5,7 @@
 *.hex
 *.map
 *.o
+*.d
 *.ar
 mri.log
 deploy

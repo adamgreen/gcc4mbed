@@ -117,6 +117,9 @@ OBJECTS = $(patsubst %.c,$(OUTDIR)/%.o,$(CSRCS)) $(patsubst %.S,$(OUTDIR)/%.o,$(
 # Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
 OBJECTS += $(OUTDIR)/gcc4mbed.o
 
+# List of the header dependency files, one per object file.
+DEPFILES = $(patsubst %.o,%.d,$(OBJECTS))
+
 # Linker script to be used.  Indicates what code should be placed where in memory.
 LSCRIPT=$(GCC4MBED_DIR)/build/mbed.ld
 
@@ -150,12 +153,16 @@ LIBS += $(MBED_LIBS)
 LIBS += $(SYS_LIBS)
 LIBS += $(LIBS_SUFFIX)
 
+# Compiler flags used to enable creation of header dependencies.
+DEPFLAGS = -MMD -MP
+
 # Compiler Options
 GPFLAGS = -O$(OPTIMIZATION) -g -mcpu=cortex-m3 -mthumb -mthumb-interwork 
 GPFLAGS += -ffunction-sections -fdata-sections  -fno-exceptions 
 GPFLAGS += -Wall -Wextra -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wredundant-decls -Wcast-qual -Wcast-align
 GPFLAGS += $(patsubst %,-I%,$(INCDIRS))
 GPFLAGS += $(DEFINES)
+GPFLAGS += $(DEPFLAGS)
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
 ifeq "$(MRI_ENABLE)" "1"
@@ -207,12 +214,15 @@ $(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
 
 clean:
 	$(REMOVE) -f $(OBJECTS)
+	$(REMOVE) -f $(DEPFILES)
 	$(REMOVE_DIR) $(OUTDIR)
 	$(REMOVE) -f $(OUTDIR)/$(PROJECT).map
 	$(REMOVE) -f $(OUTDIR)/$(PROJECT).disasm
 	$(REMOVE) -f $(PROJECT).bin
 	$(REMOVE) -f $(PROJECT).hex
 	$(REMOVE) -f $(PROJECT).elf
+
+-include $(DEPFILES)
 
 ifdef LPC_DEPLOY
 DEPLOY_COMMAND = $(subst PROJECT,$(PROJECT),$(LPC_DEPLOY))
