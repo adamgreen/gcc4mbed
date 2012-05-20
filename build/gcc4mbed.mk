@@ -103,16 +103,19 @@ endif
 MRI_INIT_PARAMETERS=$(MRI_UART)
 
 
+# Output Object Directory
+OUTDIR=LPC176x
+
 # List of sources to be compiled/assembled
 CSRCS = $(wildcard $(SRC)/*.c $(SRC)/*/*.c $(SRC)/*/*/*.c $(SRC)/*/*/*/*.c $(SRC)/*/*/*/*/*.c)
 ASRCS =  $(wildcard $(SRC)/*.S $(SRC)/*/*.S $(SRC)/*/*/*.S $(SRC)/*/*/*/*.S $(SRC)/*/*/*/*/*.S)
 CPPSRCS = $(wildcard $(SRC)/*.cpp $(SRC)/*/*.cpp $(SRC)/*/*/*.cpp $(SRC)/*/*/*/*.cpp $(SRC)/*/*/*/*/*.cpp)
 
-# Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
-CSRCS += $(GCC4MBED_DIR)/src/gcc4mbed.c
-
 # List of the objects files to be compiled/assembled
-OBJECTS= $(CSRCS:.c=.o) $(ASRCS:.S=.o) $(CPPSRCS:.cpp=.o)
+OBJECTS = $(patsubst %.c,$(OUTDIR)/%.o,$(CSRCS)) $(patsubst %.S,$(OUTDIR)/%.o,$(ASRCS)) $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPPSRCS))
+
+# Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
+OBJECTS += $(OUTDIR)/gcc4mbed.o
 
 # Linker script to be used.  Indicates what code should be placed where in memory.
 LSCRIPT=$(GCC4MBED_DIR)/build/mbed.ld
@@ -162,7 +165,7 @@ MRI_WRAP=
 endif
 
 # Linker Options.
-LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -Wl,-Map=$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty$(MRI_WRAPS) -T$(LSCRIPT)
+LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty$(MRI_WRAPS) -T$(LSCRIPT)
 
 ASFLAGS = $(LISTING) -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
 ASFLAGS += $(patsubst %,-I%,$(INCDIRS))
@@ -175,17 +178,19 @@ OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 SIZE = arm-none-eabi-size
 REMOVE = rm
+REMOVE_DIR = rm -r -f
 
 # Switch to cs-rm on Windows and make sure that cmd.exe is used as shell.
 ifeq "$(MAKE)" "cs-make"
 REMOVE = cs-rm
 SHELL=cmd.exe
+REMOVE_DIR = rd /s /q
 endif
 
 #########################################################################
 .PHONY: all clean deploy
 
-all:: $(PROJECT).hex $(PROJECT).bin $(PROJECT).disasm
+all:: $(PROJECT).hex $(PROJECT).bin $(OUTDIR)/$(PROJECT).disasm
 
 $(PROJECT).bin: $(PROJECT).elf
 	$(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
@@ -193,8 +198,8 @@ $(PROJECT).bin: $(PROJECT).elf
 $(PROJECT).hex: $(PROJECT).elf
 	$(OBJCOPY) -R .stack -O ihex $(PROJECT).elf $(PROJECT).hex
 	
-$(PROJECT).disasm: $(PROJECT).elf
-	$(OBJDUMP) -d -f -M reg-names-std $(PROJECT).elf >$(PROJECT).disasm
+$(OUTDIR)/$(PROJECT).disasm: $(PROJECT).elf
+	$(OBJDUMP) -d -f -M reg-names-std $(PROJECT).elf >$(OUTDIR)/$(PROJECT).disasm
 	
 $(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
 	$(LD) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(PROJECT).elf
@@ -202,11 +207,12 @@ $(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
 
 clean:
 	$(REMOVE) -f $(OBJECTS)
+	$(REMOVE_DIR) $(OUTDIR)
+	$(REMOVE) -f $(OUTDIR)/$(PROJECT).map
+	$(REMOVE) -f $(OUTDIR)/$(PROJECT).disasm
+	$(REMOVE) -f $(PROJECT).bin
 	$(REMOVE) -f $(PROJECT).hex
 	$(REMOVE) -f $(PROJECT).elf
-	$(REMOVE) -f $(PROJECT).map
-	$(REMOVE) -f $(PROJECT).bin
-	$(REMOVE) -f $(PROJECT).disasm
 
 ifdef LPC_DEPLOY
 DEPLOY_COMMAND = $(subst PROJECT,$(PROJECT),$(LPC_DEPLOY))
@@ -218,13 +224,20 @@ endif
 #  Default rules to compile .c and .cpp file to .o
 #  and assemble .s files to .o
 
-.c.o :
-	$(GPP) $(GPFLAGS) -c $< -o $(<:.c=.o)
+$(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c
+	mkdir -p $(dir $@)
+	$(GPP) $(GPFLAGS) -c $< -o $@
 
-.cpp.o :
-	$(GPP) $(GPFLAGS) -c $< -o $(<:.cpp=.o)
+$(OUTDIR)/%.o : %.cpp
+	mkdir -p $(dir $@)
+	$(GPP) $(GPFLAGS) -c $< -o $@
 
-.S.o :
-	$(AS) $(ASFLAGS) -c $< -o $(<:.S=.o)
+$(OUTDIR)/%.o : %.c
+	mkdir -p $(dir $@)
+	$(GPP) $(GPFLAGS) -c $< -o $@
+
+$(OUTDIR)/%.o : %.S
+	mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS) -c $< -o $@
 
 #########################################################################
