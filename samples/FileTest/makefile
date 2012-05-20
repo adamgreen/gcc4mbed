@@ -1,4 +1,4 @@
-# Copyright 2011 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2012 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Directories to be built
-DIRS=HelloWorld CTest Ticker StdIO LocalFileSystem FileTest HTTPServer
+PROJECT=FileTest
+GCC4MBED_DIR=../..
+LIBS_PREFIX=
+LIBS_SUFFIX=
 
-.PHONY: subdirs $(DIRS)
-
-subdirs: $(DIRS)
-
-clean: $(DIRS)
-
-# Recurse into each of the specified directories and perform a make
-$(DIRS):
-	$(MAKE) $(MAKECMDGOALS) -C $@
-
+include ../../build/gcc4mbed.mk
