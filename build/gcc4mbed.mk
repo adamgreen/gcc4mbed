@@ -81,7 +81,7 @@ MRI_UART ?= MRI_UART_MBED_USB
 
 # Configure MRI variables based on GCC4MBED_TYPE build type variable.
 ifeq "$(GCC4MBED_TYPE)" "Release"
-OPTIMIZATION = 2
+OPTIMIZATION ?= 2
 MRI_ENABLE = 0
 MRI_SEMIHOST_STDIO ?= 0
 endif
@@ -95,7 +95,7 @@ endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Checked"
-OPTIMIZATION = 2
+OPTIMIZATION ?= 2
 MRI_ENABLE = 1
 MRI_SEMIHOST_STDIO ?= 1
 endif
@@ -172,7 +172,7 @@ MRI_WRAP=
 endif
 
 # Linker Options.
-LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty$(MRI_WRAPS) -T$(LSCRIPT)
+LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty$(MRI_WRAPS) -T$(LSCRIPT)
 
 ASFLAGS = $(LISTING) -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
 ASFLAGS += $(patsubst %,-I%,$(INCDIRS))

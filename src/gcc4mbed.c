@@ -14,19 +14,32 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.   
 */
 /* Provide routines which hook the MRI debug monitor into GCC4MBED projects. */
+#include <string.h>
 #include <mri.h>
 
 
-extern "C" void software_init_hook(void)
+extern unsigned int __bss_start__;
+extern unsigned int __bss_end__;
+extern "C" int  main(void);
+extern "C" void __libc_init_array(void);
+extern "C" void exit(int ErrorCode);
+extern "C" void _start(void)
 {
+    int bssSize = (int)&__bss_end__ - (int)&__bss_start__;
+    int mainReturnValue;
+    
+    memset(&__bss_start__, 0, bssSize);
+    
     if (MRI_ENABLE)
     {
         __mriInit(MRI_INIT_PARAMETERS);
         if (MRI_BREAK_ON_INIT)
-        {
             __debugbreak();
-        }
     }
+    
+    __libc_init_array();
+    mainReturnValue = main();
+    exit(mainReturnValue);
 }
 
 
