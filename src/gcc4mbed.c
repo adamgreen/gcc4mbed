@@ -69,3 +69,36 @@ extern "C" int __wrap__isatty(int file)
         return 1;
     return __real__isatty(file);
 }
+
+
+extern "C" void abort(void)
+{
+    if (MRI_ENABLE)
+        __debugbreak();
+        
+    exit(1);
+}
+
+
+extern "C" void __cxa_pure_virtual(void)
+{
+    abort();
+}
+
+
+extern "C" int __aeabi_unwind_cpp_pr0(int state, void* controlBlock, void* context)
+{
+    abort();
+}
+
+
+extern "C" int __aeabi_unwind_cpp_pr1(int state, void* controlBlock, void* context)
+{
+    abort();
+}
+
+
+extern "C" int __aeabi_unwind_cpp_pr2(int state, void* controlBlock, void* context)
+{
+    abort();
+}
