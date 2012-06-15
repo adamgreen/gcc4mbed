@@ -184,14 +184,30 @@ LD = arm-none-eabi-g++
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 SIZE = arm-none-eabi-size
-REMOVE = rm
-REMOVE_DIR = rm -r -f
 
-# Switch to cs-rm on Windows and make sure that cmd.exe is used as shell.
-ifeq "$(MAKE)" "cs-make"
-REMOVE = cs-rm
+# Some tools are different on Windows in comparison to Unix.
+ifeq "$(OS)" "Windows_NT"
+REMOVE = del
 SHELL=cmd.exe
 REMOVE_DIR = rd /s /q
+MKDIR = mkdir
+QUIET=>nul 2>nul & exit 0
+else
+REMOVE = rm
+REMOVE_DIR = rm -r -f
+MKDIR = mkdir -p
+QUIET=> /dev/null 2>&1 ; exit 0
+endif
+
+# Create macro which will convert / to \ on Windows.
+ifeq "$(OS)" "Windows_NT"
+define convert-slash
+$(subst /,\,$1)
+endef
+else
+define convert-slash
+$1
+endef
 endif
 
 #########################################################################
@@ -213,14 +229,14 @@ $(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
 	$(SIZE) $(PROJECT).elf
 
 clean:
-	$(REMOVE) -f $(OBJECTS)
-	$(REMOVE) -f $(DEPFILES)
-	$(REMOVE_DIR) $(OUTDIR)
-	$(REMOVE) -f $(OUTDIR)/$(PROJECT).map
-	$(REMOVE) -f $(OUTDIR)/$(PROJECT).disasm
-	$(REMOVE) -f $(PROJECT).bin
-	$(REMOVE) -f $(PROJECT).hex
-	$(REMOVE) -f $(PROJECT).elf
+	$(REMOVE) -f $(call convert-slash,$(OBJECTS)) $(QUIET)
+	$(REMOVE) -f $(call convert-slash,$(DEPFILES)) $(QUIET)
+	$(REMOVE_DIR) $(OUTDIR) $(QUIET)
+	$(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).map) $(QUIET)
+	$(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).disasm) $(QUIET)
+	$(REMOVE) -f $(PROJECT).bin $(QUIET)
+	$(REMOVE) -f $(PROJECT).hex $(QUIET)
+	$(REMOVE) -f $(PROJECT).elf $(QUIET)
 
 -include $(DEPFILES)
 
@@ -235,19 +251,19 @@ endif
 #  and assemble .s files to .o
 
 $(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c
-	mkdir -p $(dir $@)
+	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(GPP) $(GPFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.cpp
-	mkdir -p $(dir $@)
+	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(GPP) $(GPFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.c
-	mkdir -p $(dir $@)
+	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(GPP) $(GPFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.S
-	mkdir -p $(dir $@)
+	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(AS) $(ASFLAGS) -c $< -o $@
 
 #########################################################################

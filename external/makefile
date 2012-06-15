@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Makefile to install external dependencies like mbed and FATFileSystem
-# libraries from mbed.
-ifeq "$(MAKE)" "cs-make"
+# Makefile to install external dependencies like mbed libraries.
+ifeq "$(OS)" "Windows_NT"
 SVN=win32\svn
 MOVE=@echo Skipping move
 DELTREE=-rd /s /q
@@ -29,6 +28,17 @@ PATCH=patch
 QUIET=> /dev/null 2>&1 ; exit 0
 endif
 
+# Create macro which will convert / to \ on Windows.
+ifeq "$(OS)" "Windows_NT"
+define convert-slash
+$(subst /,\,$1)
+endef
+else
+define convert-slash
+$1
+endef
+endif
+
 .PHONY: install install_mbed patch_mbed
 
 install: install_mbed patch_mbed
@@ -38,10 +48,9 @@ install_mbed:
 	$(SVN) checkout --revision 43  http://mbed.org/projects/libraries/svn/mbed/export/trunk mbed
 
 patch_mbed:
-	$(DELTREE) mbed/LPC2368 $(QUIET)
-	$(DELTREE) mbed/LPC11U24 $(QUIET)
-	$(DELTREE) mbed/LPC1768/ARM $(QUIET)
-	$(DELTREE) mbed/LPC1768/GCC_CR $(QUIET)
-	$(DELTREE) mbed/LPC1768/GCC_CS $(QUIET)
-	$(DELTREE) mbed/LPC1768/uARM $(QUIET)
-	
+	$(DELTREE) $(call convert-slash,mbed/LPC2368) $(QUIET)
+	$(DELTREE) $(call convert-slash,mbed/LPC11U24) $(QUIET)
+	$(DELTREE) $(call convert-slash,mbed/LPC1768/ARM) $(QUIET)
+	$(DELTREE) $(call convert-slash,mbed/LPC1768/GCC_CR) $(QUIET)
+	$(DELTREE) $(call convert-slash,mbed/LPC1768/GCC_CS) $(QUIET)
+	$(DELTREE) $(call convert-slash,mbed/LPC1768/uARM) $(QUIET)
