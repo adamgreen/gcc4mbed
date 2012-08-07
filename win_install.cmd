@@ -1,5 +1,5 @@
 @echo off
-rem Copyright 2011 Adam Green (http://mbed.org/users/AdamGreen/)
+rem Copyright 2012 Adam Green (http://mbed.org/users/AdamGreen/)
 rem
 rem Licensed under the Apache License, Version 2.0 (the "License");
 rem you may not use this file except in compliance with the License.
