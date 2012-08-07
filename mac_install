@@ -79,7 +79,7 @@ echo Downloading Mac OS X GCC binaries from github...
 echo `date` Executing curl -L0 $MACBIN_URL>>$LOGFILE
 curl -L0 $MACBIN_URL >$MACBIN_TAR
 
-echo Validating md5 signature of csgcc4mac project...
+echo Validating md5 signature of Mac OS X GCC binaries...
 echo `date` Validating md5 signature of csgcc4mac project>>$LOGFILE
 archive_match=`md5 -q $MACBIN_TAR | grep -c $MACBIN_MD5`
 if [ "$archive_match" != "1" ] ; then
@@ -129,7 +129,10 @@ chmod +x $BUILDSHELL_CMD
 PATH=$GCC4ARM_BINDIR:$PATH
 
 echo Installing mbed libs and headers...
+echo NOTE: If this stage takes over a minute, you should try pressing the Enter key
+echo       to see if that allows Subversion to continue!
 RunAndLog $OUR_MAKE install_mbed
+echo DONE: mbed libs and headers were successfully installed!
 
 echo Performing a clean build of the gcc4mbed samples...
 RunAndLog $OUR_MAKE clean

@@ -104,8 +104,8 @@ echo Installing mbed libs and headers...
 echo NOTE: If this stage takes over a minute, you should try pressing the Enter key
 echo       to see if that allows Subversion to continue!
 call :RunAndLog %OUR_MAKE% install_mbed
-echo DONE: mbed libs and headers were successfully installed!
 if errorlevel 1 goto ExitOnError
+echo DONE: mbed libs and headers were successfully installed!
 
 echo Performing a clean build of the gcc4mbed samples...
 call :RunAndLog %OUR_MAKE% clean
