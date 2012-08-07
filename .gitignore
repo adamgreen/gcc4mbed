@@ -11,5 +11,7 @@ mri.log
 deploy
 debug
 .svn/
-external/FATFileSystem/
 external/mbed/
+/BuildShell
+/gcc-arm-none-eabi/
+/mac_install.log
