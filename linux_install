@@ -60,12 +60,13 @@ echo Logging install results to $LOGFILE
 echo `date` Starting $0 $*>$LOGFILE
 
 echo Downloading GNU Tools for ARM Embedded Processors...
-echo `date` Executing curl -L0 $GCC4ARM_URL>>$LOGFILE
-curl -L0 $GCC4ARM_URL >$GCC4ARM_FILENAME
+echo `date` Executing wget $GCC4ARM_URL>>$LOGFILE
+rm $GCC4ARM_FILENAME >/dev/null 2>/dev/null
+wget $GCC4ARM_URL
 
 echo Validating md5 signature of GNU Tools for ARM Embedded Processors...
 echo `date` Validating md5 signature of GNU Tools for ARM Embedded Processors>>$LOGFILE
-archive_match=`md5sum -q $GCC4ARM_FILENAME | grep -c $GCC4ARM_MD5`
+archive_match=`md5sum $GCC4ARM_FILENAME | grep -c $GCC4ARM_MD5`
 if [ "$archive_match" != "1" ] ; then
     echo $GCC4ARM_FILENAME failed MD5 signature check.>>$LOGFILE
     echo `date` Failure forced early exit>>$LOGFILE
@@ -77,12 +78,13 @@ if [ "$archive_match" != "1" ] ; then
 fi
 
 echo Downloading updated GCC binaries from github...
-echo `date` Executing curl -L0 $NEWBIN_URL>>$LOGFILE
-curl -L0 $NEWBIN_URL >$NEWBIN_TAR
+echo `date` Executing wget -O $NEWBIN_TAR $NEWBIN_URL>>$LOGFILE
+rm $NEWBIN_TAR >/dev/null 2>/dev/null
+wget -O $NEWBIN_TAR $NEWBIN_URL
 
 echo Validating md5 signature of updated GCC binaries...
 echo `date` Validating md5 signature of csgcc4mac project>>$LOGFILE
-archive_match=`md5sum -q $NEWBIN_TAR | grep -c $NEWBIN_MD5`
+archive_match=`md5sum  $NEWBIN_TAR | grep -c $NEWBIN_MD5`
 if [ "$archive_match" != "1" ] ; then
     echo $NEWBIN_TAR failed MD5 signature check.>>$LOGFILE
     echo `date` Failure forced early exit>>$LOGFILE
@@ -99,20 +101,10 @@ RunAndLog tar xf $GCC4ARM_TAR
 RunAndLog mv $GCC4ARM_EXTRACT $GCC4ARM_DIR
 
 echo Extracting updated GCC binaries...
-RunAndLog tar -x -s /adamgreen-GCC-ARM-Embedded-[0-9]*-[a-f0-9]*/GCC-ARM-Embedded/ -f $NEWBIN_TAR
+RunAndLog tar -x --xform s/adamgreen-GCC-ARM-Embedded-[0-9]*-[a-f0-9]*/GCC-ARM-Embedded/ -f $NEWBIN_TAR
 
 echo Installing updated GCC binaries...
-# UNDONE: Clean this section up
-#RunAndLog rm -f $GCC4ARM_BINDIR/*
 RunAndLog cp $NEWBIN_DIR/arm-none-eabi-gdb $GCC4ARM_BINDIR/
-#files_to_link=(as g++ ld objcopy ranlib ar c++ gcc nm objdump strip)
-#for file_item in ${files_to_link[*]} ; do
-#    RunAndLog rm -f $GCC4ARM_DIR/arm-none-eabi/bin/$file_item
-#    RunAndLog cp $GCC4ARM_BINDIR/arm-none-eabi-$file_item $GCC4ARM_DIR/arm-none-eabi/bin/$file_item
-#done
-#RunAndLog rm -rf $GCC4ARM_LIBEXEC/
-#RunAndLog mkdir $GCC4ARM_LIBEXEC/
-#RunAndLog cp -R $NEWBIN_DIR/libexec/ $GCC4ARM_LIBEXEC/
 
 echo Creating helper scripts...
 echo "#! /usr/bin/env bash">$BUILDSHELL_CMD
