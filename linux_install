@@ -60,8 +60,8 @@ echo Logging install results to $LOGFILE
 echo `date` Starting $0 $*>$LOGFILE
 
 echo Downloading GNU Tools for ARM Embedded Processors...
-echo `date` Executing wget $GCC4ARM_URL>>$LOGFILE
 rm $GCC4ARM_FILENAME >/dev/null 2>/dev/null
+echo `date` Executing wget $GCC4ARM_URL>>$LOGFILE
 wget $GCC4ARM_URL
 
 echo Validating md5 signature of GNU Tools for ARM Embedded Processors...
@@ -78,8 +78,8 @@ if [ "$archive_match" != "1" ] ; then
 fi
 
 echo Downloading updated GCC binaries from github...
-echo `date` Executing wget -O $NEWBIN_TAR $NEWBIN_URL>>$LOGFILE
 rm $NEWBIN_TAR >/dev/null 2>/dev/null
+echo `date` Executing wget -O $NEWBIN_TAR $NEWBIN_URL>>$LOGFILE
 wget -O $NEWBIN_TAR $NEWBIN_URL
 
 echo Validating md5 signature of updated GCC binaries...
