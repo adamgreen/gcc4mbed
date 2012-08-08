@@ -36,6 +36,7 @@ set WINBIN_DIR=%WINBIN_BASEDIR%\win32
 set OUR_MAKE=%ROOTDIR%external\win32\make.exe
 set BUILDENV_CMD=%GCC4ARM_BINDIR%\buildenv.cmd
 set BUILDSHELL_CMD=%ROOTDIR%BuildShell.cmd
+set BUILDSHELL_DEBUG_CMD=%ROOTDIR%BuildShellDebug.cmd
 set ERROR_ENCOUNTERED=0
 
 
@@ -96,6 +97,8 @@ echo.>>%BUILDENV_CMD%
 echo SET PATH=%%~dp0;%%~dp0..\..\external\win32;%%PATH%%>>%BUILDENV_CMD%
 rem
 echo @cmd.exe /K %%~dp0\gcc-arm-none-eabi\bin\buildenv.cmd>%BUILDSHELL_CMD%
+rem
+echo @cmd.exe /K "set GCC4MBED_TYPE=Debug& %%~dp0\gcc-arm-none-eabi\bin\buildenv.cmd">%BUILDSHELL_DEBUG_CMD%
 
 rem Place GNU Tool for ARM Embedded Processors in the path before building gcc4mbed code.
 set path=%GCC4ARM_BINDIR%;%ROOTDIR%external\win32;%PATH%

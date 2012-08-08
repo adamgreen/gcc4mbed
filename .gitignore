@@ -15,6 +15,7 @@ external/mbed/
 /BuildShell
 /BuildShellDebug
 /BuildShell.cmd
+/BuildShellDebug.cmd
 /gcc-arm-none-eabi/
 /mac_install.log
 /win_install.log
