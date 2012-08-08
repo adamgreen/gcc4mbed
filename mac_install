@@ -53,6 +53,7 @@ MACBIN_BASEDIR=$ROOTDIR/GCC-ARM-Embedded
 MACBIN_DIR=$MACBIN_BASEDIR/osx64
 OUR_MAKE=$ROOTDIR/external/osx64/make
 BUILDSHELL_CMD=$ROOTDIR/BuildShell
+BUILDSHELL_DEBUG_CMD=$ROOTDIR/BuildShellDebug
 
 
 echo Logging install results to $LOGFILE
@@ -124,6 +125,19 @@ echo "SCRIPT_PATH=\$PWD">>$BUILDSHELL_CMD
 echo "export PATH=\$SCRIPT_PATH/gcc-arm-none-eabi/bin:\$SCRIPT_PATH/external/osx64:\$PATH">>$BUILDSHELL_CMD
 echo "exec bash">>$BUILDSHELL_CMD
 chmod +x $BUILDSHELL_CMD
+
+echo "#! /usr/bin/env bash">$BUILDSHELL_DEBUG_CMD
+echo "# Modify next line and set destination drive to match mbed device">>$BUILDSHELL_DEBUG_CMD
+echo "export LPC_DEPLOY='cp PROJECT.bin /media/MBED/'">>$BUILDSHELL_DEBUG_CMD
+echo>>$BUILDSHELL_DEBUG_CMD
+echo "SCRIPT_PATH=\$0">>$BUILDSHELL_DEBUG_CMD
+echo "SCRIPT_PATH=\${SCRIPT_PATH%/*}">>$BUILDSHELL_DEBUG_CMD
+echo "cd \$SCRIPT_PATH">>$BUILDSHELL_DEBUG_CMD
+echo "SCRIPT_PATH=\$PWD">>$BUILDSHELL_DEBUG_CMD
+echo "export PATH=\$SCRIPT_PATH/gcc-arm-none-eabi/bin:\$PATH">>$BUILDSHELL_DEBUG_CMD
+echo "export GCC4MBED_TYPE=Debug">>$BUILDSHELL_DEBUG_CMD
+echo "exec bash">>$BUILDSHELL_DEBUG_CMD
+chmod +x $BUILDSHELL_DEBUG_CMD
 
 # Place arm-none-eabi-* tools in the path before building gcc4mbed code.
 PATH=$GCC4ARM_BINDIR:$PATH

@@ -13,6 +13,7 @@ debug
 .svn/
 external/mbed/
 /BuildShell
+/BuildShellDebug
 /BuildShell.cmd
 /gcc-arm-none-eabi/
 /mac_install.log
