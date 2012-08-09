@@ -71,6 +71,16 @@ extern "C" int __wrap__isatty(int file)
 }
 
 
+extern "C" int __wrap_semihost_connected(void)
+{
+    /* MRI makes it look like there is no mbed interface attached since it disables the JTAG portion but MRI does
+       support some of the mbed semihost calls when it is running so force it to return -1, indicating that the
+       interface is attached. */
+    return -1;
+}
+
+
+
 extern "C" void abort(void)
 {
     if (MRI_ENABLE)

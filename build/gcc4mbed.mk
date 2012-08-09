@@ -166,7 +166,7 @@ GPFLAGS += $(DEPFLAGS)
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
 ifeq "$(MRI_ENABLE)" "1"
-MRI_WRAPS=,--wrap=_read,--wrap=_write
+MRI_WRAPS=,--wrap=_read,--wrap=_write,--wrap=semihost_connected
 else
 MRI_WRAP=
 endif
