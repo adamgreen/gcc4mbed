@@ -25,7 +25,9 @@ These are the quick steps to get gcc4mbed installed on your computer:
 \\
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/overview.creole#overview|Overview]]:**  Overview and a bit of history related to this GCC4MBED project.\\
 \\
-**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/install.creole#installation|Installation]]:**  For more information about how to install and use the gcc4mbed project.\\
+**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/install.creole#installation|Installation]]:**  For more information about how to install and use the GCC4MBED project.\\
+\\
+**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/makefile.creole#make-variables|Makefile Configuration]]:**  Information about makefile options to customize your project's binary.\\
 \\
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/porting.creole#readme|Porting]]:**  Notes on porting applications from mbed cloud compiler to offline GCC4MBED project.\\
 
