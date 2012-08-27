@@ -103,13 +103,6 @@ echo @cmd.exe /K "set GCC4MBED_TYPE=Debug& %%~dp0\gcc-arm-none-eabi\bin\buildenv
 rem Place GNU Tool for ARM Embedded Processors in the path before building gcc4mbed code.
 set path=%GCC4ARM_BINDIR%;%ROOTDIR%external\win32;%PATH%
 
-echo Installing mbed libs and headers...
-echo NOTE: If this stage takes over a minute, you should try pressing the Enter key
-echo       to see if that allows Subversion to continue!
-call :RunAndLog %OUR_MAKE% install_mbed
-if errorlevel 1 goto ExitOnError
-echo DONE: mbed libs and headers were successfully installed!
-
 echo Performing a clean build of the gcc4mbed samples...
 call :RunAndLog %OUR_MAKE% clean
 if errorlevel 1 goto ExitOnError

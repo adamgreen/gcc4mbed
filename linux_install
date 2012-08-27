@@ -135,12 +135,6 @@ chmod +x $BUILDSHELL_DEBUG_CMD
 # Place arm-none-eabi-* tools in the path before building gcc4mbed code.
 PATH=$GCC4ARM_BINDIR:$PATH
 
-echo Installing mbed libs and headers...
-echo NOTE: If this stage takes over a minute, you should try pressing the Enter key
-echo       to see if that allows Subversion to continue!
-RunAndLog $OUR_MAKE install_mbed
-echo DONE: mbed libs and headers were successfully installed!
-
 echo Performing a clean build of the gcc4mbed samples...
 RunAndLog $OUR_MAKE clean
 RunAndLog $OUR_MAKE
