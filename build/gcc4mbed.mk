@@ -159,10 +159,11 @@ DEPFLAGS = -MMD -MP
 # Compiler Options
 GPFLAGS = -O$(OPTIMIZATION) -g -mcpu=cortex-m3 -mthumb -mthumb-interwork 
 GPFLAGS += -ffunction-sections -fdata-sections  -fno-exceptions 
-GPFLAGS += -Wall -Wextra -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wredundant-decls -Wcast-qual -Wcast-align
 GPFLAGS += $(patsubst %,-I%,$(INCDIRS))
 GPFLAGS += $(DEFINES)
 GPFLAGS += $(DEPFLAGS)
+GPFLAGS += -Wall -Wextra -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wredundant-decls -Wcast-qual -Wcast-align
+GCFLAGS = $(GPFLAGS)
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
 ifeq "$(MRI_ENABLE)" "1"
@@ -178,6 +179,7 @@ ASFLAGS = $(LISTING) -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
 ASFLAGS += $(patsubst %,-I%,$(INCDIRS))
 
 #  Compiler/Assembler/Linker Paths
+GCC = arm-none-eabi-gcc
 GPP = arm-none-eabi-g++
 AS = arm-none-eabi-gcc
 LD = arm-none-eabi-g++
@@ -260,7 +262,7 @@ $(OUTDIR)/%.o : %.cpp
 
 $(OUTDIR)/%.o : %.c
 	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(GPP) $(GPFLAGS) -c $< -o $@
+	$(GCC) $(GCFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.S
 	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)

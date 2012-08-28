@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 # Directories to be built
-DIRS=HelloWorld CTest Blink Ticker StdIO LocalFileSystem FileTest HTTPServer
+DIRS=HelloWorld Blink Ticker StdIO LocalFileSystem FileTest
 
 .PHONY: subdirs $(DIRS)
 

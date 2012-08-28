@@ -22,8 +22,10 @@ int main()
     LPC_GPIO1->FIODIR |= 1 << 18; // P1.18 connected to LED1
     while(1)
     {
+        int i;
+        
         LPC_GPIO1->FIOPIN ^= 1 << 18; // Toggle P1.18
-        for (int i = 0 ; i < 5000000 && !g_LoopDummy ; i++)
+        for (i = 0 ; i < 5000000 && !g_LoopDummy ; i++)
         {
         }
     }
