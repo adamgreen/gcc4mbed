@@ -169,7 +169,7 @@ GCFLAGS = $(GPFLAGS)
 ifeq "$(MRI_ENABLE)" "1"
 MRI_WRAPS=,--wrap=_read,--wrap=_write,--wrap=semihost_connected
 else
-MRI_WRAP=
+MRI_WRAPS=
 endif
 
 # Linker Options.
