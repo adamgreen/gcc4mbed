@@ -22,6 +22,7 @@ extern unsigned int __bss_start__;
 extern unsigned int __bss_end__;
 extern "C" int  main(void);
 extern "C" void __libc_init_array(void);
+extern "C" void software_init_hook(void) __attribute((weak));
 extern "C" void exit(int ErrorCode);
 extern "C" void _start(void)
 {
@@ -37,6 +38,7 @@ extern "C" void _start(void)
             __debugbreak();
     }
     
+    software_init_hook();
     __libc_init_array();
     mainReturnValue = main();
     exit(mainReturnValue);

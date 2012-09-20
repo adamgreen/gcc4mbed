@@ -109,10 +109,11 @@ OUTDIR=LPC176x
 # List of sources to be compiled/assembled
 CSRCS = $(wildcard $(SRC)/*.c $(SRC)/*/*.c $(SRC)/*/*/*.c $(SRC)/*/*/*/*.c $(SRC)/*/*/*/*/*.c)
 ASRCS =  $(wildcard $(SRC)/*.S $(SRC)/*/*.S $(SRC)/*/*/*.S $(SRC)/*/*/*/*.S $(SRC)/*/*/*/*/*.S)
+ASMSRCS =  $(wildcard $(SRC)/*.s $(SRC)/*/*.s $(SRC)/*/*/*.s $(SRC)/*/*/*/*.s $(SRC)/*/*/*/*/*.s)
 CPPSRCS = $(wildcard $(SRC)/*.cpp $(SRC)/*/*.cpp $(SRC)/*/*/*.cpp $(SRC)/*/*/*/*.cpp $(SRC)/*/*/*/*/*.cpp)
 
 # List of the objects files to be compiled/assembled
-OBJECTS = $(patsubst %.c,$(OUTDIR)/%.o,$(CSRCS)) $(patsubst %.S,$(OUTDIR)/%.o,$(ASRCS)) $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPPSRCS))
+OBJECTS = $(patsubst %.c,$(OUTDIR)/%.o,$(CSRCS)) $(patsubst %.S,$(OUTDIR)/%.o,$(ASRCS)) $(patsubst %.s,$(OUTDIR)/%.o,$(ASMSRCS)) $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPPSRCS))
 
 # Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
 OBJECTS += $(OUTDIR)/gcc4mbed.o
@@ -132,7 +133,7 @@ PROJINCS = $(sort $(dir $(SUBDIRS)))
 INCDIRS += $(PROJINCS) $(GCC4MBED_DIR)/mri $(EXTERNAL_DIR)/mbed $(EXTERNAL_DIR)/mbed/LPC1768
 
 # DEFINEs to be used when building C/C++ code
-DEFINES = -DTARGET_LPC1768
+DEFINES += -DTARGET_LPC1768
 DEFINES += -DMRI_ENABLE=$(MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"' 
 DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
 
@@ -158,12 +159,18 @@ DEPFLAGS = -MMD -MP
 
 # Compiler Options
 GPFLAGS = -O$(OPTIMIZATION) -g -mcpu=cortex-m3 -mthumb -mthumb-interwork 
-GPFLAGS += -ffunction-sections -fdata-sections  -fno-exceptions 
+GPFLAGS += -ffunction-sections -fdata-sections  -fno-exceptions -fno-delete-null-pointer-checks
 GPFLAGS += $(patsubst %,-I%,$(INCDIRS))
 GPFLAGS += $(DEFINES)
 GPFLAGS += $(DEPFLAGS)
 GPFLAGS += -Wall -Wextra -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wredundant-decls -Wcast-qual -Wcast-align
+
 GCFLAGS = $(GPFLAGS)
+
+AS_GCFLAGS = -g -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
+AS_GCFLAGS += $(patsubst %,-I%,$(INCDIRS))
+AS_FLAGS = -g -mcpu=cortex-m3 -mthumb
+
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
 ifeq "$(MRI_ENABLE)" "1"
@@ -175,13 +182,11 @@ endif
 # Linker Options.
 LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty$(MRI_WRAPS) -T$(LSCRIPT)  -L $(EXTERNAL_DIR)/gcc/LPC1768
 
-ASFLAGS = $(LISTING) -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
-ASFLAGS += $(patsubst %,-I%,$(INCDIRS))
 
 #  Compiler/Assembler/Linker Paths
 GCC = arm-none-eabi-gcc
 GPP = arm-none-eabi-g++
-AS = arm-none-eabi-gcc
+AS = arm-none-eabi-as
 LD = arm-none-eabi-g++
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
@@ -266,6 +271,10 @@ $(OUTDIR)/%.o : %.c
 
 $(OUTDIR)/%.o : %.S
 	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(AS) $(ASFLAGS) -c $< -o $@
+	$(GCC) $(AS_GCFLAGS) -c $< -o $@
+
+$(OUTDIR)/%.o : %.s
+	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(AS) $(AS_FLAGS) -o $@ $<
 
 #########################################################################
