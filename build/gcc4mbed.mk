@@ -25,7 +25,7 @@
 # Variables that must be defined in including makefile.
 #   PROJECT: Name to be given to the output binary for this project.
 #   SRC: The root directory for the sources of your project.
-#   GCC4MED_DIR: The root directory for where the gcc4mbed sources are located
+#   GCC4MBED_DIR: The root directory for where the gcc4mbed sources are located
 #                in your project.  This should point to the parent directory
 #                of the build directory which contains this gcc4mbed.mk file.
 #   LIBS_PREFIX: List of library/object files to prepend to mbed.ar capi.ar libs.
