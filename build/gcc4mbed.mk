@@ -26,8 +26,8 @@
 #   PROJECT: Name to be given to the output binary for this project.
 #   SRC: The root directory for the sources of your project.
 #   GCC4MBED_DIR: The root directory for where the gcc4mbed sources are located
-#                in your project.  This should point to the parent directory
-#                of the build directory which contains this gcc4mbed.mk file.
+#                 in your project.  This should point to the parent directory
+#                 of the build directory which contains this gcc4mbed.mk file.
 #   LIBS_PREFIX: List of library/object files to prepend to mbed.ar capi.ar libs.
 #   LIBS_SUFFIX: List of library/object files to append to mbed.ar capi.ar libs.
 #   GCC4MBED_TYPE: Type of build to produce.  Allowed values are:
@@ -109,11 +109,13 @@ OUTDIR=LPC176x
 # List of sources to be compiled/assembled
 CSRCS = $(wildcard $(SRC)/*.c $(SRC)/*/*.c $(SRC)/*/*/*.c $(SRC)/*/*/*/*.c $(SRC)/*/*/*/*/*.c)
 ASRCS =  $(wildcard $(SRC)/*.S $(SRC)/*/*.S $(SRC)/*/*/*.S $(SRC)/*/*/*/*.S $(SRC)/*/*/*/*/*.S)
-ASMSRCS =  $(wildcard $(SRC)/*.s $(SRC)/*/*.s $(SRC)/*/*/*.s $(SRC)/*/*/*/*.s $(SRC)/*/*/*/*/*.s)
+ifneq "$(OS)" "Windows_NT"
+ASRCS +=  $(wildcard $(SRC)/*.s $(SRC)/*/*.s $(SRC)/*/*/*.s $(SRC)/*/*/*/*.s $(SRC)/*/*/*/*/*.s)
+endif
 CPPSRCS = $(wildcard $(SRC)/*.cpp $(SRC)/*/*.cpp $(SRC)/*/*/*.cpp $(SRC)/*/*/*/*.cpp $(SRC)/*/*/*/*/*.cpp)
 
 # List of the objects files to be compiled/assembled
-OBJECTS = $(patsubst %.c,$(OUTDIR)/%.o,$(CSRCS)) $(patsubst %.S,$(OUTDIR)/%.o,$(ASRCS)) $(patsubst %.s,$(OUTDIR)/%.o,$(ASMSRCS)) $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPPSRCS))
+OBJECTS = $(patsubst %.c,$(OUTDIR)/%.o,$(CSRCS)) $(patsubst %.s,$(OUTDIR)/%.o,$(patsubst %.S,$(OUTDIR)/%.o,$(ASRCS))) $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPPSRCS))
 
 # Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
 OBJECTS += $(OUTDIR)/gcc4mbed.o
