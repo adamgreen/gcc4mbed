@@ -101,7 +101,7 @@ RunAndLog tar xf $GCC4ARM_TAR
 RunAndLog mv $GCC4ARM_EXTRACT $GCC4ARM_DIR
 
 echo Extracting updated GCC binaries...
-RunAndLog tar -x --xform s/adamgreen-GCC-ARM-Embedded-[0-9]*-[a-f0-9]*/GCC-ARM-Embedded/ -f $NEWBIN_TAR
+RunAndLog tar -x --transform s/adamgreen-GCC-ARM-Embedded-[0-9]*-[a-f0-9]*/GCC-ARM-Embedded/ -f $NEWBIN_TAR
 
 echo Installing updated GCC binaries...
 RunAndLog cp $NEWBIN_DIR/arm-none-eabi-gdb $GCC4ARM_BINDIR/
