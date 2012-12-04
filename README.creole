@@ -1,8 +1,9 @@
 ==Current Version
-**GCC Version:**  [[https://launchpad.net/gcc-arm-embedded/4.6/4.6-2012-q1-update|GCC ARM Embedded 4.6-2012-q1-update]]\\
-**mbed SDK Version:** [[http://mbed.org/handbook/mbed-Library-Releases|Revision 43]]\\
+**GCC Version:**  [[https://launchpad.net/gcc-arm-embedded/4.6/4.6-2012-q4-update|GCC ARM Embedded 4.6-2012-q4-update]]\\
+**mbed SDK Version:** [[http://mbed.org/handbook/mbed-Library-Releases|Revision 50]]\\
 
 ==Previous Versions
+[[https://github.com/adamgreen/gcc4mbed/tree/gcc4.6-2012-q1_mbed43|GCC ARM Embedded 4.6-2012-q1-update with mbed SDK revision 43]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/cs2011.03-42_mbed28|Code Sourcery G++ Lite 2011.03-42 with mbed SDK revision 28]]\\
 
 ==Quick Start
