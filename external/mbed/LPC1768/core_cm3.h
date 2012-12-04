@@ -1,8 +1,8 @@
 /**************************************************************************//**
  * @file     core_cm3.h
  * @brief    CMSIS Cortex-M3 Core Peripheral Access Layer Header File
- * @version  V3.01
- * @date     06. March 2012
+ * @version  V3.02
+ * @date     16. July 2012
  *
  * @note
  * Copyright (C) 2009-2012 ARM Limited. All rights reserved.
@@ -112,7 +112,9 @@
   #endif
 
 #elif defined ( __TASKING__ )
-    /* add preprocessor checks */
+  #if defined __FPU_VFP__
+    #error "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)"
+  #endif
 #endif
 
 #include <stdint.h>                      /* standard types definitions                      */
@@ -634,39 +636,81 @@ typedef struct
   __IO uint32_t TPR;                     /*!< Offset: 0xE40 (R/W)  ITM Trace Privilege Register              */
        uint32_t RESERVED2[15];
   __IO uint32_t TCR;                     /*!< Offset: 0xE80 (R/W)  ITM Trace Control Register                */
+       uint32_t RESERVED3[29];
+  __O  uint32_t IWR;                     /*!< Offset: 0xEF8 ( /W)  ITM Integration Write Register            */
+  __I  uint32_t IRR;                     /*!< Offset: 0xEFC (R/ )  ITM Integration Read Register             */
+  __IO uint32_t IMCR;                    /*!< Offset: 0xF00 (R/W)  ITM Integration Mode Control Register     */
+       uint32_t RESERVED4[43];
+  __O  uint32_t LAR;                     /*!< Offset: 0xFB0 ( /W)  ITM Lock Access Register                  */
+  __I  uint32_t LSR;                     /*!< Offset: 0xFB4 (R/ )  ITM Lock Status Register                  */
+       uint32_t RESERVED5[6];
+  __I  uint32_t PID4;                    /*!< Offset: 0xFD0 (R/ )  ITM Peripheral Identification Register #4 */
+  __I  uint32_t PID5;                    /*!< Offset: 0xFD4 (R/ )  ITM Peripheral Identification Register #5 */
+  __I  uint32_t PID6;                    /*!< Offset: 0xFD8 (R/ )  ITM Peripheral Identification Register #6 */
+  __I  uint32_t PID7;                    /*!< Offset: 0xFDC (R/ )  ITM Peripheral Identification Register #7 */
+  __I  uint32_t PID0;                    /*!< Offset: 0xFE0 (R/ )  ITM Peripheral Identification Register #0 */
+  __I  uint32_t PID1;                    /*!< Offset: 0xFE4 (R/ )  ITM Peripheral Identification Register #1 */
+  __I  uint32_t PID2;                    /*!< Offset: 0xFE8 (R/ )  ITM Peripheral Identification Register #2 */
+  __I  uint32_t PID3;                    /*!< Offset: 0xFEC (R/ )  ITM Peripheral Identification Register #3 */
+  __I  uint32_t CID0;                    /*!< Offset: 0xFF0 (R/ )  ITM Component  Identification Register #0 */
+  __I  uint32_t CID1;                    /*!< Offset: 0xFF4 (R/ )  ITM Component  Identification Register #1 */
+  __I  uint32_t CID2;                    /*!< Offset: 0xFF8 (R/ )  ITM Component  Identification Register #2 */
+  __I  uint32_t CID3;                    /*!< Offset: 0xFFC (R/ )  ITM Component  Identification Register #3 */
 } ITM_Type;
 
 /* ITM Trace Privilege Register Definitions */
-#define ITM_TPR_PRIVMASK_Pos                0                                          /*!< ITM TPR: PRIVMASK Position */
-#define ITM_TPR_PRIVMASK_Msk               (0xFUL << ITM_TPR_PRIVMASK_Pos)             /*!< ITM TPR: PRIVMASK Mask */
+#define ITM_TPR_PRIVMASK_Pos                0                                             /*!< ITM TPR: PRIVMASK Position */
+#define ITM_TPR_PRIVMASK_Msk               (0xFUL << ITM_TPR_PRIVMASK_Pos)                /*!< ITM TPR: PRIVMASK Mask */
 
 /* ITM Trace Control Register Definitions */
-#define ITM_TCR_BUSY_Pos                   23                                          /*!< ITM TCR: BUSY Position */
-#define ITM_TCR_BUSY_Msk                   (1UL << ITM_TCR_BUSY_Pos)                   /*!< ITM TCR: BUSY Mask */
+#define ITM_TCR_BUSY_Pos                   23                                             /*!< ITM TCR: BUSY Position */
+#define ITM_TCR_BUSY_Msk                   (1UL << ITM_TCR_BUSY_Pos)                      /*!< ITM TCR: BUSY Mask */
 
-#define ITM_TCR_TraceBusID_Pos             16                                          /*!< ITM TCR: ATBID Position */
-#define ITM_TCR_TraceBusID_Msk             (0x7FUL << ITM_TCR_TraceBusID_Pos)          /*!< ITM TCR: ATBID Mask */
+#define ITM_TCR_TraceBusID_Pos             16                                             /*!< ITM TCR: ATBID Position */
+#define ITM_TCR_TraceBusID_Msk             (0x7FUL << ITM_TCR_TraceBusID_Pos)             /*!< ITM TCR: ATBID Mask */
 
-#define ITM_TCR_GTSFREQ_Pos                10                                          /*!< ITM TCR: Global timestamp frequency Position */
-#define ITM_TCR_GTSFREQ_Msk                (3UL << ITM_TCR_GTSFREQ_Pos)                /*!< ITM TCR: Global timestamp frequency Mask */
+#define ITM_TCR_GTSFREQ_Pos                10                                             /*!< ITM TCR: Global timestamp frequency Position */
+#define ITM_TCR_GTSFREQ_Msk                (3UL << ITM_TCR_GTSFREQ_Pos)                   /*!< ITM TCR: Global timestamp frequency Mask */
 
-#define ITM_TCR_TSPrescale_Pos              8                                          /*!< ITM TCR: TSPrescale Position */
-#define ITM_TCR_TSPrescale_Msk             (3UL << ITM_TCR_TSPrescale_Pos)             /*!< ITM TCR: TSPrescale Mask */
+#define ITM_TCR_TSPrescale_Pos              8                                             /*!< ITM TCR: TSPrescale Position */
+#define ITM_TCR_TSPrescale_Msk             (3UL << ITM_TCR_TSPrescale_Pos)                /*!< ITM TCR: TSPrescale Mask */
 
-#define ITM_TCR_SWOENA_Pos                  4                                          /*!< ITM TCR: SWOENA Position */
-#define ITM_TCR_SWOENA_Msk                 (1UL << ITM_TCR_SWOENA_Pos)                 /*!< ITM TCR: SWOENA Mask */
+#define ITM_TCR_SWOENA_Pos                  4                                             /*!< ITM TCR: SWOENA Position */
+#define ITM_TCR_SWOENA_Msk                 (1UL << ITM_TCR_SWOENA_Pos)                    /*!< ITM TCR: SWOENA Mask */
 
-#define ITM_TCR_TXENA_Pos                   3                                          /*!< ITM TCR: TXENA Position */
-#define ITM_TCR_TXENA_Msk                  (1UL << ITM_TCR_TXENA_Pos)                  /*!< ITM TCR: TXENA Mask */
+#define ITM_TCR_DWTENA_Pos                  3                                             /*!< ITM TCR: DWTENA Position */
+#define ITM_TCR_DWTENA_Msk                 (1UL << ITM_TCR_DWTENA_Pos)                    /*!< ITM TCR: DWTENA Mask */
 
-#define ITM_TCR_SYNCENA_Pos                 2                                          /*!< ITM TCR: SYNCENA Position */
-#define ITM_TCR_SYNCENA_Msk                (1UL << ITM_TCR_SYNCENA_Pos)                /*!< ITM TCR: SYNCENA Mask */
+#define ITM_TCR_SYNCENA_Pos                 2                                             /*!< ITM TCR: SYNCENA Position */
+#define ITM_TCR_SYNCENA_Msk                (1UL << ITM_TCR_SYNCENA_Pos)                   /*!< ITM TCR: SYNCENA Mask */
 
-#define ITM_TCR_TSENA_Pos                   1                                          /*!< ITM TCR: TSENA Position */
-#define ITM_TCR_TSENA_Msk                  (1UL << ITM_TCR_TSENA_Pos)                  /*!< ITM TCR: TSENA Mask */
+#define ITM_TCR_TSENA_Pos                   1                                             /*!< ITM TCR: TSENA Position */
+#define ITM_TCR_TSENA_Msk                  (1UL << ITM_TCR_TSENA_Pos)                     /*!< ITM TCR: TSENA Mask */
 
-#define ITM_TCR_ITMENA_Pos                  0                                          /*!< ITM TCR: ITM Enable bit Position */
-#define ITM_TCR_ITMENA_Msk                 (1UL << ITM_TCR_ITMENA_Pos)                 /*!< ITM TCR: ITM Enable bit Mask */
+#define ITM_TCR_ITMENA_Pos                  0                                             /*!< ITM TCR: ITM Enable bit Position */
+#define ITM_TCR_ITMENA_Msk                 (1UL << ITM_TCR_ITMENA_Pos)                    /*!< ITM TCR: ITM Enable bit Mask */
+
+/* ITM Integration Write Register Definitions */
+#define ITM_IWR_ATVALIDM_Pos                0                                             /*!< ITM IWR: ATVALIDM Position */
+#define ITM_IWR_ATVALIDM_Msk               (1UL << ITM_IWR_ATVALIDM_Pos)                  /*!< ITM IWR: ATVALIDM Mask */
+
+/* ITM Integration Read Register Definitions */
+#define ITM_IRR_ATREADYM_Pos                0                                             /*!< ITM IRR: ATREADYM Position */
+#define ITM_IRR_ATREADYM_Msk               (1UL << ITM_IRR_ATREADYM_Pos)                  /*!< ITM IRR: ATREADYM Mask */
+
+/* ITM Integration Mode Control Register Definitions */
+#define ITM_IMCR_INTEGRATION_Pos            0                                             /*!< ITM IMCR: INTEGRATION Position */
+#define ITM_IMCR_INTEGRATION_Msk           (1UL << ITM_IMCR_INTEGRATION_Pos)              /*!< ITM IMCR: INTEGRATION Mask */
+
+/* ITM Lock Status Register Definitions */
+#define ITM_LSR_ByteAcc_Pos                 2                                             /*!< ITM LSR: ByteAcc Position */
+#define ITM_LSR_ByteAcc_Msk                (1UL << ITM_LSR_ByteAcc_Pos)                   /*!< ITM LSR: ByteAcc Mask */
+
+#define ITM_LSR_Access_Pos                  1                                             /*!< ITM LSR: Access Position */
+#define ITM_LSR_Access_Msk                 (1UL << ITM_LSR_Access_Pos)                    /*!< ITM LSR: Access Mask */
+
+#define ITM_LSR_Present_Pos                 0                                             /*!< ITM LSR: Present Position */
+#define ITM_LSR_Present_Msk                (1UL << ITM_LSR_Present_Pos)                   /*!< ITM LSR: Present Mask */
 
 /*@}*/ /* end of group CMSIS_ITM */
 
@@ -1030,6 +1074,24 @@ typedef struct
 /* MPU Region Attribute and Size Register */
 #define MPU_RASR_ATTRS_Pos                 16                                             /*!< MPU RASR: MPU Region Attribute field Position */
 #define MPU_RASR_ATTRS_Msk                 (0xFFFFUL << MPU_RASR_ATTRS_Pos)               /*!< MPU RASR: MPU Region Attribute field Mask */
+
+#define MPU_RASR_XN_Pos                    28                                             /*!< MPU RASR: ATTRS.XN Position */
+#define MPU_RASR_XN_Msk                    (1UL << MPU_RASR_XN_Pos)                       /*!< MPU RASR: ATTRS.XN Mask */
+
+#define MPU_RASR_AP_Pos                    24                                             /*!< MPU RASR: ATTRS.AP Position */
+#define MPU_RASR_AP_Msk                    (0x7UL << MPU_RASR_AP_Pos)                     /*!< MPU RASR: ATTRS.AP Mask */
+
+#define MPU_RASR_TEX_Pos                   19                                             /*!< MPU RASR: ATTRS.TEX Position */
+#define MPU_RASR_TEX_Msk                   (0x7UL << MPU_RASR_TEX_Pos)                    /*!< MPU RASR: ATTRS.TEX Mask */
+
+#define MPU_RASR_S_Pos                     18                                             /*!< MPU RASR: ATTRS.S Position */
+#define MPU_RASR_S_Msk                     (1UL << MPU_RASR_S_Pos)                        /*!< MPU RASR: ATTRS.S Mask */
+
+#define MPU_RASR_C_Pos                     17                                             /*!< MPU RASR: ATTRS.C Position */
+#define MPU_RASR_C_Msk                     (1UL << MPU_RASR_C_Pos)                        /*!< MPU RASR: ATTRS.C Mask */
+
+#define MPU_RASR_B_Pos                     16                                             /*!< MPU RASR: ATTRS.B Position */
+#define MPU_RASR_B_Msk                     (1UL << MPU_RASR_B_Pos)                        /*!< MPU RASR: ATTRS.B Mask */
 
 #define MPU_RASR_SRD_Pos                    8                                             /*!< MPU RASR: Sub-Region Disable Position */
 #define MPU_RASR_SRD_Msk                   (0xFFUL << MPU_RASR_SRD_Pos)                   /*!< MPU RASR: Sub-Region Disable Mask */
@@ -1454,9 +1516,9 @@ __STATIC_INLINE void NVIC_SystemReset(void)
  */
 __STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
 {
-  if (ticks > SysTick_LOAD_RELOAD_Msk)  return (1);            /* Reload value impossible */
+  if ((ticks - 1) > SysTick_LOAD_RELOAD_Msk)  return (1);      /* Reload value impossible */
 
-  SysTick->LOAD  = (ticks & SysTick_LOAD_RELOAD_Msk) - 1;      /* set reload register */
+  SysTick->LOAD  = ticks - 1;                                  /* set reload register */
   NVIC_SetPriority (SysTick_IRQn, (1<<__NVIC_PRIO_BITS) - 1);  /* set Priority for Systick Interrupt */
   SysTick->VAL   = 0;                                          /* Load the SysTick Counter Value */
   SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |

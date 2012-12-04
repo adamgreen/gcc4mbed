@@ -1,109 +1,117 @@
-/* mbed Microcontroller Library - Ethernet
- * Copyright (c) 2009-2011 ARM Limited. All rights reserved.
- */ 
- 
+/* mbed Microcontroller Library
+ * Copyright (c) 2006-2012 ARM Limited
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 #ifndef MBED_ETHERNET_H
 #define MBED_ETHERNET_H
 
-#include "device.h"
+#include "platform.h"
 
 #if DEVICE_ETHERNET
 
-#include "Base.h"
-
 namespace mbed {
 
-/* Class: Ethernet
- *  An ethernet interface, to use with the ethernet pins.
+/** An ethernet interface, to use with the ethernet pins.
  *
  * Example:
- * > // Read destination and source from every ethernet packet
- * >
- * > #include "mbed.h"
- * >
- * > Ethernet eth;
- * > 
- * > int main() {
- * >     char buf[0x600];
- * >     
- * >     while(1) {
- * >         int size = eth.receive();
- * >         if(size > 0) {
- * >             eth.read(buf, size);
- * >             printf("Destination:  %02X:%02X:%02X:%02X:%02X:%02X\n",
- * >                     buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]);
- * >             printf("Source: %02X:%02X:%02X:%02X:%02X:%02X\n",
- * >                     buf[6], buf[7], buf[8], buf[9], buf[10], buf[11]);
- * >         }
- * >         
- * >         wait(1);
- * >     }
- * > }
+ * @code
+ * // Read destination and source from every ethernet packet
+ * 
+ * #include "mbed.h"
  *
+ * Ethernet eth;
+ *  
+ * int main() {
+ *     char buf[0x600];
+ *     
+ *     while(1) {
+ *         int size = eth.receive();
+ *         if(size > 0) {
+ *             eth.read(buf, size);
+ *             printf("Destination:  %02X:%02X:%02X:%02X:%02X:%02X\n",
+ *                     buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]);
+ *             printf("Source: %02X:%02X:%02X:%02X:%02X:%02X\n",
+ *                     buf[6], buf[7], buf[8], buf[9], buf[10], buf[11]);
+ *         }
+ *         
+ *         wait(1);
+ *     }
+ * }
+ * @endcode
  */
-class Ethernet : public Base {
+class Ethernet {
 
 public:
     
-    /* Constructor: Ethernet
-     *  Initialise the ethernet interface.
+    /** Initialise the ethernet interface.
      */
     Ethernet();
 
-    /* Destructor: Ethernet
-     *  Powers the hardware down.
+    /** Powers the hardware down.
      */
     virtual ~Ethernet();
 
     enum Mode {
-        AutoNegotiate
-        , HalfDuplex10
-        , FullDuplex10
-        , HalfDuplex100
-        , FullDuplex100
+        AutoNegotiate,
+        HalfDuplex10,
+        FullDuplex10,
+        HalfDuplex100,
+        FullDuplex100
     };
 
-    /* Function: write
-     *  Writes into an outgoing ethernet packet.
+    /** Writes into an outgoing ethernet packet.
      *
      *  It will append size bytes of data to the previously written bytes.
      *  
-     *  Variables:
-     *   data - An array to write.
-     *   size - The size of data.
+     *  @param data An array to write.
+     *  @param size The size of data.
      *
-     *  Returns:
+     *  @returns
      *   The number of written bytes.
      */
     int write(const char *data, int size);
 
-    /* Function: send
-     *  Send an outgoing ethernet packet.
+    /** Send an outgoing ethernet packet.
      *
      *  After filling in the data in an ethernet packet it must be send.
      *  Send will provide a new packet to write to.
      *
-     * Returns:
-     *  0 - If the sending was failed.
-     *  1 - If the package is successfully sent.
+     *  @returns
+     *    0 if the sending was failed,
+     *    1 if the package is successfully sent.
      */
     int send();
 
-    /* Function: receive
-     *  Recevies an arrived ethernet packet.
+    /** Recevies an arrived ethernet packet.
      *
      *  Receiving an ethernet packet will drop the last received ethernet packet 
      *  and make a new ethernet packet ready to read.
      *  If no ethernet packet is arrived it will return 0.
      *
-     * Returns:
-     *  0 - If no ethernet packet is arrived.
-     *  The size of the arrived packet.
+     *  @returns
+     *    0 if no ethernet packet is arrived,
+     *    or the size of the arrived packet.
      */
     int receive();
 
-    /* Function: read
-     *  Read from an recevied ethernet packet.
+    /** Read from an recevied ethernet packet.
      *
      *  After receive returnd a number bigger than 0it is
      *  possible to read bytes from this packet.
@@ -112,58 +120,53 @@ public:
      *  It is possible to use read multible times. 
      *  Each time read will start reading after the last read byte before.
      *
-     * Returns:
+     *  @returns
      *  The number of byte read.
      */
     int read(char *data, int size);
     
-    /* Function: address
-     *  Gives the ethernet address of the mbed.
+    /** Gives the ethernet address of the mbed.
      *
-     * Variables:
-     *  mac - Must be a pointer to a 6 byte char array to copy the ethernet address in.
+     *  @param mac Must be a pointer to a 6 byte char array to copy the ethernet address in.
      */
     void address(char *mac);
 
-    /* Function: link
-     *  Returns if an ethernet link is pressent or not. It takes a wile after Ethernet initializion to show up.
+    /** Returns if an ethernet link is pressent or not. It takes a wile after Ethernet initializion to show up.
      * 
-     * Returns:
-     *  0 - If no ethernet link is pressent.
-     *  1 - If an ethernet link is pressent.
+     *  @returns
+     *   0 if no ethernet link is pressent,
+     *   1 if an ethernet link is pressent.
      *
      * Example:
-     * > // Using the Ethernet link function
-     * > #include "mbed.h"
-     * >
-     * > Ethernet eth;
-     * >
-     * > int main() {
-     * >     wait(1); // Needed after startup.
-     * >     if(eth.link()) {
-     * >         printf("online\n");
-     * >     } else {
-     * >          printf("offline\n");
-     * >     }
-     * > }
+     * @code
+     * // Using the Ethernet link function
+     * #include "mbed.h"
+     * 
+     * Ethernet eth;
      *
+     * int main() {
+     *     wait(1); // Needed after startup.
+     *     if (eth.link()) {
+     *          printf("online\n");
+     *     } else {
+     *          printf("offline\n");
+     *     }
+     * }
+     * @endcode
      */
     int link();
 
-    /* Function: set_link
-     *  Sets the speed and duplex parameters of an ethernet link
+    /** Sets the speed and duplex parameters of an ethernet link
      *
-     *  Variables:
-     *   mode - the speed and duplex mode to set the link to:
+     * - AutoNegotiate      Auto negotiate speed and duplex
+     * - HalfDuplex10       10 Mbit, half duplex
+     * - FullDuplex10       10 Mbit, full duplex
+     * - HalfDuplex100      100 Mbit, half duplex
+     * - FullDuplex100      100 Mbit, full duplex
      *
-     * > AutoNegotiate      Auto negotiate speed and duplex
-     * > HalfDuplex10       10 Mbit, half duplex
-     * > FullDuplex10       10 Mbit, full duplex
-     * > HalfDuplex100      100 Mbit, half duplex
-     * > FullDuplex100      100 Mbit, full duplex
+     *  @param mode the speed and duplex mode to set the link to:
      */
     void set_link(Mode mode);
-
 };
 
 } // namespace mbed

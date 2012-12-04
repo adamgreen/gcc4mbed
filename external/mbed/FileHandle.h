@@ -1,7 +1,24 @@
-/* mbed Microcontroller Library - FileHandler
- * Copyright (c) 2007-2009 ARM Limited. All rights reserved.
- */ 
- 
+/* mbed Microcontroller Library
+ * Copyright (c) 2006-2012 ARM Limited
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 #ifndef MBED_FILEHANDLE_H
 #define MBED_FILEHANDLE_H
 
@@ -17,81 +34,73 @@ typedef long off_t;
 
 namespace mbed { 
 
-/* Class FileHandle
- *  An OO equivalent of the internal FILEHANDLE variable
- *  and associated _sys_* functions
+/** An OO equivalent of the internal FILEHANDLE variable
+ *  and associated _sys_* functions.
  *
  * FileHandle is an abstract class, needing at least sys_write and
- * sys_read to be implmented for a simple interactive device
+ *  sys_read to be implmented for a simple interactive device.
  *
  * No one ever directly tals to/instanciates a FileHandle - it gets 
- * created by FileSystem, and wrapped up by stdio
+ *  created by FileSystem, and wrapped up by stdio.
  */
 class FileHandle {
 
 public:
-
-    /* Function write
-     *  Write the contents of a buffer to the file
+    /** Write the contents of a buffer to the file
      *
-     * Parameters
-     *  buffer - the buffer to write from
-     *  length - the number of characters to write
+     *  @param buffer the buffer to write from
+     *  @param length the number of characters to write
      *
-     * Returns
+     *  @returns
      *  The number of characters written (possibly 0) on success, -1 on error.
      */
     virtual ssize_t write(const void* buffer, size_t length) = 0;
 
-    /* Function close
-     *  Close the file
+    /** Close the file
      *
-     * Returns
+     *  @returns
      *  Zero on success, -1 on error.
      */
     virtual int close() = 0;
 
-    /* Function read
+    /** Function read
      *  Reads the contents of the file into a buffer
      *
-     * Parameters
-     *  buffer - the buffer to read in to
-     *  length - the number of characters to read
+     *  @param buffer the buffer to read in to
+     *  @param length the number of characters to read
      *
-     * Returns
+     *  @returns
      *  The number of characters read (zero at end of file) on success, -1 on error.
      */
     virtual ssize_t read(void* buffer, size_t length) = 0;
 
-    /* Function isatty
-     *  Check if the handle is for a interactive terminal device 
-     *
+    /** Check if the handle is for a interactive terminal device.
      * If so, line buffered behaviour is used by default
      *
-     * Returns
-     *  1 if it is a terminal, 0 otherwise
+     *  @returns
+     *    1 if it is a terminal,
+     *    0 otherwise
      */
-    virtual int isatty() = 0 ;
+    virtual int isatty() = 0;
 
-    /* Function lseek
-     *  Move the file position to a given offset from a given location.
+    /** Move the file position to a given offset from a given location.
      *
-     * Parameters
-     *  offset - The offset from whence to move to
-     *  whence - SEEK_SET for the start of the file, SEEK_CUR for the
+     *  @param offset The offset from whence to move to
+     *  @param whence SEEK_SET for the start of the file, SEEK_CUR for the
      *   current file position, or SEEK_END for the end of the file.
      *
-     * Returns
-     *  New file position on success, -1 on failure or unsupported
+     *  @returns
+     *    new file position on success,
+     *    -1 on failure or unsupported
      */
     virtual off_t lseek(off_t offset, int whence) = 0;
 
-    /* Function fsync
-     *  Flush any buffers associated with the FileHandle, ensuring it
+    /** Flush any buffers associated with the FileHandle, ensuring it
      *  is up to date on disk
      *
-     * Returns
-     *  0 on success or un-needed, -1 on error
+     *  @returns
+     *    0 on success or un-needed,
+     *   -1 on error
      */
     virtual int fsync() = 0;
 
@@ -105,10 +114,10 @@ public:
         lseek(pos, SEEK_SET);
         return res;
     }
-
+    
+    virtual ~FileHandle();
 };
 
 } // namespace mbed
 
 #endif
-

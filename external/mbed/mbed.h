@@ -1,26 +1,40 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2011 ARM Limited. All rights reserved.
- */ 
- 
+ * Copyright (c) 2006-2012 ARM Limited
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 #ifndef MBED_H
 #define MBED_H
 
-#define MBED_LIBRARY_VERSION 29
- 
+#define MBED_LIBRARY_VERSION 30
+
+#include "platform.h"
+
 // Useful C libraries
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <time.h>
 
 // mbed Debug libraries
-
 #include "error.h"
 #include "mbed_interface.h"
 
 // mbed Peripheral components
-
 #include "DigitalIn.h"
 #include "DigitalOut.h"
 #include "DigitalInOut.h"
@@ -34,10 +48,8 @@
 #include "AnalogOut.h"
 #include "PwmOut.h"
 #include "Serial.h"
-#include "SerialHalfDuplex.h"
 #include "SPI.h"
 #include "SPISlave.h"
-#include "SPIHalfDuplex.h"
 #include "I2C.h"
 #include "I2CSlave.h"
 #include "Ethernet.h"
@@ -52,8 +64,7 @@
 #include "wait_api.h"
 #include "rtc_time.h"
 
-using namespace mbed; 
-using namespace std; 
+using namespace mbed;
+using namespace std;
 
-#endif 
-
+#endif

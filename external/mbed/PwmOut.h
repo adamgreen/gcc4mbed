@@ -1,144 +1,160 @@
-/* mbed Microcontroller Library - PwmOut
- * Copyright (c) 2007-2011 ARM Limited. All rights reserved.
- */ 
- 
+/* mbed Microcontroller Library
+ * Copyright (c) 2006-2012 ARM Limited
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 #ifndef MBED_PWMOUT_H
 #define MBED_PWMOUT_H
 
-#include "device.h"
+#include "platform.h"
 
 #if DEVICE_PWMOUT
-
-#include "platform.h"
-#include "PinNames.h"
-#include "PeripheralNames.h"
-#include "Base.h"
+#include "pwmout_api.h"
 
 namespace mbed {
 
-/* Class: PwmOut
- *  A pulse-width modulation digital output
+/** A pulse-width modulation digital output
  *
  * Example
- * > // Fade a led on.
- * > #include "mbed.h"
- * >
- * > PwmOut led(LED1);
- * > 
- * > int main() {
- * >     while(1) {
- * >         led = led + 0.01;
- * >         wait(0.2);
- * >         if(led == 1.0) {
- * >             led = 0;
- * >         }
- * >     }
- * > }
+ * @code
+ * // Fade a led on.
+ * #include "mbed.h"
  *
- *  Note that on the LPC1768 and LPC2368, the PWMs all share the same
+ * PwmOut led(LED1);
+ * 
+ * int main() {
+ *     while(1) {
+ *         led = led + 0.01;
+ *         wait(0.2);
+ *         if(led == 1.0) {
+ *             led = 0;
+ *         }
+ *     }
+ * }
+ * @endcode
+ *
+ * @note
+ *  On the LPC1768 and LPC2368, the PWMs all share the same
  *  period - if you change the period for one, you change it for all.
  *  Although routines that change the period maintain the duty cycle
  *  for its PWM, all other PWMs will require their duty cycle to be
  *  refreshed.
  */
-class PwmOut : public Base {
+class PwmOut {
 
 public:
 
-    /* Constructor: PwmOut
-     *  Create a PwmOut connected to the specified pin
+    /** Create a PwmOut connected to the specified pin
      *
-     * Variables:
-     *  pin - PwmOut pin to connect to
+     *  @param pin PwmOut pin to connect to
      */
-    PwmOut(PinName pin, const char *name = NULL);
+    PwmOut(PinName pin) {
+        pwmout_init(&_pwm, pin);
+    }
 
-    /* Function: write
-     *  Set the ouput duty-cycle, specified as a percentage (float)
+    /** Set the ouput duty-cycle, specified as a percentage (float)
      *
-     * Variables:
-     *  value - A floating-point value representing the output duty-cycle, 
+     *  @param value A floating-point value representing the output duty-cycle, 
      *    specified as a percentage. The value should lie between
      *    0.0f (representing on 0%) and 1.0f (representing on 100%).
-     *    Values outside this range will be saturated to 0.0f or 1.0f.	 
+     *    Values outside this range will be saturated to 0.0f or 1.0f.
      */
-    void write(float value);
+    void write(float value) {
+        pwmout_write(&_pwm, value);
+    }
 
-    /* Function: read
-     *  Return the current output duty-cycle setting, measured as a percentage (float)
+    /** Return the current output duty-cycle setting, measured as a percentage (float)
      *
-     * Variables:
-     *  returns - A floating-point value representing the current duty-cycle being output on the pin, 
+     *  @returns
+     *    A floating-point value representing the current duty-cycle being output on the pin, 
      *    measured as a percentage. The returned value will lie between
      *    0.0f (representing on 0%) and 1.0f (representing on 100%).
      *
-     * Note:
+     *  @note
      *  This value may not match exactly the value set by a previous <write>.
      */
-    float read();
+    float read() {
+        return pwmout_read(&_pwm);
+    }
     
-    /* Function: period
-     *  Set the PWM period, specified in seconds (float), keeping the
-     *  duty cycle the same.
+    /** Set the PWM period, specified in seconds (float), keeping the duty cycle the same.
      *
-     *  Note:
+     *  @note
      *   The resolution is currently in microseconds; periods smaller than this
      *   will be set to zero.
      */
-    void period(float seconds);
+    void period(float seconds) {
+        pwmout_period(&_pwm, seconds);
+    }
 
-    /* Function: period_ms
-     *  Set the PWM period, specified in milli-seconds (int), keeping the
-     *  duty cycle the same.
+    /** Set the PWM period, specified in milli-seconds (int), keeping the duty cycle the same.
      */
-    void period_ms(int ms);
+    void period_ms(int ms) {
+        pwmout_period_ms(&_pwm, ms);
+    }
 
-    /* Function: period_us
-     *  Set the PWM period, specified in micro-seconds (int), keeping the
-     *  duty cycle the same.
+    /** Set the PWM period, specified in micro-seconds (int), keeping the duty cycle the same.
      */
-    void period_us(int us);
+    void period_us(int us) {
+        pwmout_period_us(&_pwm, us);
+    }
 
-    /* Function: pulsewidth
-     *  Set the PWM pulsewidth, specified in seconds (float), keeping the
-     *  period the same.
+    /** Set the PWM pulsewidth, specified in seconds (float), keeping the period the same.
      */
-    void pulsewidth(float seconds);
+    void pulsewidth(float seconds) {
+        pwmout_pulsewidth(&_pwm, seconds);
+    }
 
-    /* Function: pulsewidth_ms
-     *  Set the PWM pulsewidth, specified in milli-seconds (int), keeping
-     *  the period the same.
+    /** Set the PWM pulsewidth, specified in milli-seconds (int), keeping the period the same.
      */
-    void pulsewidth_ms(int ms);
+    void pulsewidth_ms(int ms) {
+        pwmout_pulsewidth_ms(&_pwm, ms);
+    }
 
-    /* Function: pulsewidth_us
-     *  Set the PWM pulsewidth, specified in micro-seconds (int), keeping
-     *  the period the same.
+    /** Set the PWM pulsewidth, specified in micro-seconds (int), keeping the period the same.
      */
-    void pulsewidth_us(int us);
+    void pulsewidth_us(int us) {
+        pwmout_pulsewidth_us(&_pwm, us);
+    }
 
 #ifdef MBED_OPERATORS
-    /* Function: operator=
-     *  A operator shorthand for <write()>
+    /** A operator shorthand for write()
      */
-    PwmOut& operator= (float value);
-    PwmOut& operator= (PwmOut& rhs);
-
-    /* Function: operator float()
-     *  An operator shorthand for <read()>
+    PwmOut& operator= (float value) {
+        write(value);
+        return *this;
+    }
+    
+    PwmOut& operator= (PwmOut& rhs) {
+        write(rhs.read());
+        return *this;
+    }
+    
+    /** An operator shorthand for read()
      */
-    operator float();
-#endif
-
-#ifdef MBED_RPC
-    virtual const struct rpc_method *get_rpc_methods();
-    static struct rpc_class *get_rpc_class();
+    operator float() {
+        return read();
+    }
 #endif
 
 protected:
-
-    PWMName _pwm;
-
+    pwmout_t _pwm;
 };
 
 } // namespace mbed
