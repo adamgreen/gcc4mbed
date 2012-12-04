@@ -24,10 +24,12 @@
 # USAGE:
 # Variables that must be defined in including makefile.
 #   PROJECT: Name to be given to the output binary for this project.
-#   SRC: The root directory for the sources of your project.
 #   GCC4MBED_DIR: The root directory for where the gcc4mbed sources are located
 #                 in your project.  This should point to the parent directory
 #                 of the build directory which contains this gcc4mbed.mk file.
+#
+# Variables that may be optionally set in makefile.
+#   SRC: The root directory for the sources of your project.  Defaults to '.'.
 #   LIBS_PREFIX: List of library/object files to prepend to mbed.ar capi.ar libs.
 #   LIBS_SUFFIX: List of library/object files to append to mbed.ar capi.ar libs.
 #   GCC4MBED_TYPE: Type of build to produce.  Allowed values are:
@@ -40,6 +42,9 @@
 #                            as Debug but might be needed when bugs don't
 #                            reproduce in Debug builds.
 #                  default: Release
+#   VERBOSE: When set to 1, all build commands will be displayed to console.
+#            It defaults to 0 which suppresses the output of the build tool
+#            command lines themselves.
 #   MRI_BREAK_ON_INIT: Should the program halt before calling into main(),
 #                      allowing the developer time to set breakpoints in main()
 #                      or in code run from within global constructors.
@@ -69,6 +74,14 @@ endif
 
 ifndef GCC4MBED_DIR
 $(error makefile must set GCC4MBED_DIR.)
+endif
+
+# Set VERBOSE make variable to 1 to output all tool commands.
+VERBOSE?=0
+ifeq "$(VERBOSE)" "0"
+Q=@
+else
+Q=
 endif
 
 
@@ -220,39 +233,48 @@ endef
 endif
 
 #########################################################################
-.PHONY: all clean deploy
+.PHONY: all clean deploy size
 
-all:: $(PROJECT).hex $(PROJECT).bin $(OUTDIR)/$(PROJECT).disasm
+all:: $(PROJECT).hex $(PROJECT).bin $(OUTDIR)/$(PROJECT).disasm size
 
 $(PROJECT).bin: $(PROJECT).elf
-	$(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
+	@echo Extracting $@
+	$(Q) $(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
 
 $(PROJECT).hex: $(PROJECT).elf
-	$(OBJCOPY) -R .stack -O ihex $(PROJECT).elf $(PROJECT).hex
+	@echo Extracting $@
+	$(Q) $(OBJCOPY) -R .stack -O ihex $(PROJECT).elf $(PROJECT).hex
 	
 $(OUTDIR)/$(PROJECT).disasm: $(PROJECT).elf
-	$(OBJDUMP) -d -f -M reg-names-std $(PROJECT).elf >$(OUTDIR)/$(PROJECT).disasm
+	@echo Extracting disassembly to $@
+	$(Q) $(OBJDUMP) -d -f -M reg-names-std $(PROJECT).elf >$(OUTDIR)/$(PROJECT).disasm
 	
 $(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
-	$(LD) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(PROJECT).elf
-	$(SIZE) $(PROJECT).elf
+	@echo Linking $@
+	$(Q) $(LD) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(PROJECT).elf
+
+size: $(PROJECT).elf
+	$(Q) $(SIZE) $(PROJECT).elf
+	@echo
 
 clean:
-	$(REMOVE) -f $(call convert-slash,$(OBJECTS)) $(QUIET)
-	$(REMOVE) -f $(call convert-slash,$(DEPFILES)) $(QUIET)
-	$(REMOVE_DIR) $(OUTDIR) $(QUIET)
-	$(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).map) $(QUIET)
-	$(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).disasm) $(QUIET)
-	$(REMOVE) -f $(PROJECT).bin $(QUIET)
-	$(REMOVE) -f $(PROJECT).hex $(QUIET)
-	$(REMOVE) -f $(PROJECT).elf $(QUIET)
+	@echo Cleaning up all build generated files
+	$(Q) $(REMOVE) -f $(call convert-slash,$(OBJECTS)) $(QUIET)
+	$(Q) $(REMOVE) -f $(call convert-slash,$(DEPFILES)) $(QUIET)
+	$(Q) $(REMOVE_DIR) $(OUTDIR) $(QUIET)
+	$(Q) $(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).map) $(QUIET)
+	$(Q) $(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).disasm) $(QUIET)
+	$(Q) $(REMOVE) -f $(PROJECT).bin $(QUIET)
+	$(Q) $(REMOVE) -f $(PROJECT).hex $(QUIET)
+	$(Q) $(REMOVE) -f $(PROJECT).elf $(QUIET)
 
 -include $(DEPFILES)
 
 ifdef LPC_DEPLOY
 DEPLOY_COMMAND = $(subst PROJECT,$(PROJECT),$(LPC_DEPLOY))
 deploy:
-	$(DEPLOY_COMMAND)
+	@echo Deploying to target.
+	$(Q) $(DEPLOY_COMMAND)
 endif
 
 #########################################################################
@@ -260,23 +282,28 @@ endif
 #  and assemble .s files to .o
 
 $(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c
-	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(GPP) $(GPFLAGS) -c $< -o $@
+	@echo Compiling $<
+	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(Q) $(GPP) $(GPFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.cpp
-	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(GPP) $(GPFLAGS) -c $< -o $@
+	@echo Compiling $<
+	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(Q) $(GPP) $(GPFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.c
-	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(GCC) $(GCFLAGS) -c $< -o $@
+	@echo Compiling $<
+	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(Q) $(GCC) $(GCFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.S
-	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(GCC) $(AS_GCFLAGS) -c $< -o $@
+	@echo Assembling $<
+	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(Q) $(GCC) $(AS_GCFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.s
-	$(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(AS) $(AS_FLAGS) -o $@ $<
+	@echo Assembling $<
+	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(Q) $(AS) $(AS_FLAGS) -o $@ $<
 
 #########################################################################

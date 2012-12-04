@@ -102,7 +102,9 @@ extern "C" {
     void rewinddir(DIR*);
     long telldir(DIR*);
     void seekdir(DIR*, long);
+#ifdef __ARMCC_VERSION
     int mkdir(const char *name, mode_t n);
+#endif
 };
 
 #endif /* MBED_DIRHANDLE_H */

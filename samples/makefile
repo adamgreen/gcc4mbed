@@ -15,6 +15,14 @@
 # Directories to be built
 DIRS=HelloWorld Blink Ticker StdIO LocalFileSystem FileTest
 
+# Set VERBOSE make variable to 1 to output all tool commands.
+VERBOSE?=0
+ifeq "$(VERBOSE)" "0"
+Q=@
+else
+Q=
+endif
+
 .PHONY: subdirs $(DIRS)
 
 subdirs: $(DIRS)
@@ -23,5 +31,6 @@ clean: $(DIRS)
 
 # Recurse into each of the specified directories and perform a make
 $(DIRS):
-	$(MAKE) $(MAKECMDGOALS) -C $@
+	@echo Building $@
+	$(Q) $(MAKE) $(MAKECMDGOALS) -C $@
 
