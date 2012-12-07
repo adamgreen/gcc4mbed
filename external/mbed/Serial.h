@@ -74,6 +74,19 @@ public:
     void baud(int baudrate) {
         serial_baud(&_serial, baudrate);
     }
+    
+    enum Parity {
+        None = 0,
+        Odd,
+        Even,
+        Forced1,
+        Forced0
+    };
+    
+    enum IrqType {
+        RxIrq = 0,
+        TxIrq
+    };
 
     /** Set the transmission format used by the Serial port
      *
@@ -81,8 +94,8 @@ public:
      *  @param parity The parity used (Serial::None, Serial::Odd, Serial::Even, Serial::Forced1, Serial::Forced0; default = Serial::None)
      *  @param stop The number of stop bits (1 or 2; default = 1)
      */
-    void format(int bits = 8, SerialParity parity=ParityNone, int stop_bits=1) {
-        serial_format(&_serial, bits, parity, stop_bits);
+    void format(int bits = 8, Parity parity=Serial::None, int stop_bits=1) {
+        serial_format(&_serial, bits, (SerialParity)parity, stop_bits);
     }
 
     /** Determine if there is a character available to read
@@ -110,12 +123,12 @@ public:
      *  @param fptr A pointer to a void function, or 0 to set as none
      *  @param type Which serial interrupt to attach the member function to (Seriall::RxIrq for receive, TxIrq for transmit buffer empty)
      */
-    void attach(void (*fptr)(void), SerialIrq type=RxIrq) {
+    void attach(void (*fptr)(void), IrqType type=RxIrq) {
         if (fptr) {
             _irq[type].attach(fptr);
-            serial_irq_set(&_serial, type, 1);
+            serial_irq_set(&_serial, (SerialIrq)type, 1);
         } else {
-            serial_irq_set(&_serial, type, 0);
+            serial_irq_set(&_serial, (SerialIrq)type, 0);
         }
     }
 
@@ -126,10 +139,10 @@ public:
      *  @param type Which serial interrupt to attach the member function to (Seriall::RxIrq for receive, TxIrq for transmit buffer empty)
      */
     template<typename T>
-    void attach(T* tptr, void (T::*mptr)(void), SerialIrq type=RxIrq) {
+    void attach(T* tptr, void (T::*mptr)(void), IrqType type=RxIrq) {
         if((mptr != NULL) && (tptr != NULL)) {
             _irq[type].attach(tptr, mptr);
-            serial_irq_set(&_serial, type, 1);
+            serial_irq_set(&_serial, (SerialIrq)type, 1);
         }
     }
     
