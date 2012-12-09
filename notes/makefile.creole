@@ -19,6 +19,21 @@ The **INCDIRS** variable can be used by an application's makefile to prepend a l
 ===LIBS_SUFFIX
 **LIBS_SUFFIX** is an optional variable that an application's makefile can use to specify a list of libraries that should be linked into its final binary **after** it links in the mbed SDK libraries.
 
+===GPFLAGS
+**GPFLAGS** is an optional variable that an application's makefile can use to specify additional flags to use when compiling C++ source files.
+
+===GCFLAGS
+**GCFLAGS** is an optional variable that an application's makefile can use to specify additional flags to use when compiling C source files.
+
+===AS_GCFLAGS
+**AS_GCFLAGS** is an optional variable that an application's makefile can use to specify additional flags to use when compiling preprocessed .S assembly language sources files.
+
+===AS_FLAGS
+**AS_FLAGS** is an optional variable that an application's makefile can use to specify additional flags to use when assembling .s assembly language source files.
+
+===VERBOSE
+**VERBOSE** is an optional variable that an application's makefile can set to 1, indicating that all build tool commands should be displayed to the user.  For example this will cause the full GCC command line for each source file to be shown.
+
 ===GCC4MBED_TYPE
 The **GCC4MBED_TYPE** variable is used to specify the type of build to produce.  It would typically be set as an environment variable but it can also be set in the application's makefile.  The allowed values are:
 * **Debug** - Build for debugging.  Disables optimizations and links in debug MRI runtime.  Best debugging experience.

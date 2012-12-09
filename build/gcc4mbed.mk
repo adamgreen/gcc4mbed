@@ -42,6 +42,12 @@
 #                            as Debug but might be needed when bugs don't
 #                            reproduce in Debug builds.
 #                  default: Release
+#   GPFLAGS: Additional compiler flags used when building C++ sources.
+#   GCFLAGS: Additional compiler flags used when building C sources.
+#   AS_GCFLAGS: Additional compiler flags used by GCC when building
+#               preprocessed assembly language sources.
+#   AS_FLAGS: Additional assembler flags used when building assembly language
+#             sources.
 #   VERBOSE: When set to 1, all build commands will be displayed to console.
 #            It defaults to 0 which suppresses the output of the build tool
 #            command lines themselves.
@@ -173,18 +179,18 @@ LIBS += $(LIBS_SUFFIX)
 DEPFLAGS = -MMD -MP
 
 # Compiler Options
-GPFLAGS = -O$(OPTIMIZATION) -g3 -mcpu=cortex-m3 -mthumb -mthumb-interwork 
+GPFLAGS += -O$(OPTIMIZATION) -g3 -mcpu=cortex-m3 -mthumb -mthumb-interwork 
 GPFLAGS += -ffunction-sections -fdata-sections  -fno-exceptions -fno-delete-null-pointer-checks
 GPFLAGS += $(patsubst %,-I%,$(INCDIRS))
 GPFLAGS += $(DEFINES)
 GPFLAGS += $(DEPFLAGS)
 GPFLAGS += -Wall -Wextra -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wredundant-decls -Wcast-qual -Wcast-align
 
-GCFLAGS = $(GPFLAGS)
+GCFLAGS += $(GPFLAGS)
 
-AS_GCFLAGS = -g3 -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
+AS_GCFLAGS += -g3 -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
 AS_GCFLAGS += $(patsubst %,-I%,$(INCDIRS))
-AS_FLAGS = -g3 -mcpu=cortex-m3 -mthumb
+AS_FLAGS += -g3 -mcpu=cortex-m3 -mthumb
 
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
