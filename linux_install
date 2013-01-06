@@ -46,12 +46,6 @@ GCC4ARM_EXTRACT=$ROOTDIR/$GCC4ARM_VERSION
 GCC4ARM_DIR=$ROOTDIR/gcc-arm-none-eabi
 GCC4ARM_BINDIR=$GCC4ARM_DIR/bin
 GCC4ARM_LIBEXEC=$GCC4ARM_DIR/libexec/gcc/arm-none-eabi/4.6.2
-# UNDONE: Remove
-#NEWBIN_URL=https://github.com/adamgreen/GCC-ARM-Embedded-20120316/tarball/master
-#NEWBIN_TAR=$ROOTDIR/GCC-ARM-Embedded-20120316.tar.gz
-#NEWBIN_MD5=ab3e32a3418a38121eceb267e4366848
-#NEWBIN_BASEDIR=$ROOTDIR/GCC-ARM-Embedded
-#NEWBIN_DIR=$NEWBIN_BASEDIR/lin32
 OUR_MAKE=make
 BUILDSHELL_CMD=$ROOTDIR/BuildShell
 BUILDSHELL_DEBUG_CMD=$ROOTDIR/BuildShellDebug
@@ -78,46 +72,10 @@ if [ "$archive_match" != "1" ] ; then
     exit 1
 fi
 
-# UNDONE: Remove instead.
-if [ "1" != "1" ] ; then
-
-echo Downloading updated GCC binaries from github...
-rm $NEWBIN_TAR >/dev/null 2>/dev/null
-echo `date` Executing wget -O $NEWBIN_TAR $NEWBIN_URL>>$LOGFILE
-wget -O $NEWBIN_TAR $NEWBIN_URL
-
-echo Validating md5 signature of updated GCC binaries...
-echo `date` Validating md5 signature of csgcc4mac project>>$LOGFILE
-archive_match=`md5sum  $NEWBIN_TAR | grep -c $NEWBIN_MD5`
-if [ "$archive_match" != "1" ] ; then
-    echo $NEWBIN_TAR failed MD5 signature check.>>$LOGFILE
-    echo `date` Failure forced early exit>>$LOGFILE
-    cat $LOGFILE
-    rm -f $ERRORFILE
-    popd >/dev/null
-    read -n 1 -sp "Press any key to continue..." dummy ; echo
-    exit 1
-fi
-
-#UNDONE:
-fi
-
 echo Extracting GNU Tools for ARM Embedded Processors...
 rm -r $GCC4ARM_DIR >/dev/null 2>/dev/null
 RunAndLog tar xf $GCC4ARM_TAR
 RunAndLog mv $GCC4ARM_EXTRACT $GCC4ARM_DIR
-
-#UNDONE:
-if [ "$archive_match" != "1" ] ; then
-
-echo Extracting updated GCC binaries...
-RunAndLog tar -x --transform s/adamgreen-GCC-ARM-Embedded-[0-9]*-[a-f0-9]*/GCC-ARM-Embedded/ -f $NEWBIN_TAR
-
-echo Installing updated GCC binaries...
-RunAndLog cp $NEWBIN_DIR/arm-none-eabi-gdb $GCC4ARM_BINDIR/
-
-#UNDONE
-fi
 
 echo Creating helper scripts...
 echo "#! /usr/bin/env bash">$BUILDSHELL_CMD
@@ -153,8 +111,6 @@ RunAndLog $OUR_MAKE clean
 RunAndLog $OUR_MAKE
 
 echo Cleaning up intermediate files...
-# UNDONE: RunAndLog rm -r $NEWBIN_BASEDIR
-# UNDONE: RunAndLog rm $NEWBIN_TAR
 RunAndLog rm $GCC4ARM_TAR
 
 echo
