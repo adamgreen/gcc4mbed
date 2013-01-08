@@ -48,6 +48,10 @@
 #               preprocessed assembly language sources.
 #   AS_FLAGS: Additional assembler flags used when building assembly language
 #             sources.
+#   NO_FLOAT_SCANF: When set to 1, scanf() will not support %f specifier to
+#                   input floating point values.  Reduces code size.
+#   NO_FLOAT_PRINTF: When set to 1, scanf() will not support %f specifier to
+#                    output floating point values.  Reduces code size.
 #   VERBOSE: When set to 1, all build commands will be displayed to console.
 #            It defaults to 0 which suppresses the output of the build tool
 #            command lines themselves.
@@ -160,7 +164,7 @@ DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_S
 
 # Libraries to be linked into final binary
 MBED_LIBS = $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libcpp.a $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libcapi.a
-SYS_LIBS = -lstdc++ -lsupc++ -lm -lgcc -lc -lgcc -lc -lnosys
+SYS_LIBS = -lstdc++_s -lsupc++_s -lm -lgcc -lc_s -lgcc -lc_s -lnosys
 LIBS = $(LIBS_PREFIX) 
 
 ifeq "$(MRI_ENABLE)" "1"
@@ -201,7 +205,13 @@ MRI_WRAPS=
 endif
 
 # Linker Options.
-LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty$(MRI_WRAPS) -T$(LSCRIPT)  -L $(EXTERNAL_DIR)/gcc/LPC1768
+LDFLAGS  = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty$(MRI_WRAPS) -T$(LSCRIPT)
+ifneq "$(NO_FLOAT_SCANF)" "1"
+LDFLAGS += -u _scanf_float
+endif
+ifneq "$(NO_FLOAT_PRINTF)" "1"
+LDFLAGS += -u _printf_float
+endif
 
 
 #  Compiler/Assembler/Linker Paths

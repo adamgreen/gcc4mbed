@@ -10,6 +10,12 @@ The **SRC** variable is used in an application's makefile to specify the root di
 ===GCC4MBED_DIR
 The **GCC4MBED_DIR** variable is used in an application's makefile to specify the root directory location of the GCC4MBED project.  This directory will be the directory which contained the GCC4MBED install scripts such as win_install.cmd, linux_install, and mac_install.  The application's makefile must specify a value for this variable.
 
+===NO_FLOAT_SCANF
+The **NO_FLOAT_SCANF** is an optional variable that an application's makefile can set to 1, indicating that scanf() does not need to support floating point values and can therefore reduce code size.
+
+===NO_FLOAT_PRINTF
+The **NO_FLOAT_PRINTF** is an optional variable that an application's makefile can set to 1, indicating that printf() does not need to support floating point values and can therefore reduce code size.
+
 ===INCDIRS
 The **INCDIRS** variable can be used by an application's makefile to prepend a list of directories to the INCLUDE path used by the compiler for finding #included header files.  This list should be space separated.
 
