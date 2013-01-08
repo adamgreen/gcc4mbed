@@ -316,6 +316,11 @@ __attribute ((noreturn)) void __cs3_start_c (void){
 
 #else
 
+#define TO_STR(X) TO_STR2(X)
+#define TO_STR2(X) #X
+
+extern unsigned int __heapLimit;
+extern unsigned int __stackSize;
 __attribute__((naked)) void software_init_hook (void) {
   __asm (
     ".syntax unified\n"
@@ -331,6 +336,13 @@ __attribute__((naked)) void software_init_hook (void) {
     "mov  r1,r5\n"
     "bl   osKernelInitialize\n"
     "ldr  r0,=os_thread_def_main\n"
+    "ldr  r1,=__stackSize\n"
+    "movs r2,#" TO_STR(OS_SCHEDULERSTKSIZE) "\n"
+    "lsl  r2,#2\n"
+    "sub  r1,r2\n"
+    "str  r1,[r0,#8]\n"
+    "ldr  r1,=__heapLimit\n"
+    "str  r1,[r0,#12]\n"
     "movs r1,#0\n"
     "bl   osThreadCreate\n"
     "bl   osKernelStart\n"
