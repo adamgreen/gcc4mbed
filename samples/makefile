@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 # Directories to be built
-DIRS=HelloWorld Blink Ticker StdIO LocalFileSystem FileTest
+DIRS=HelloWorld Blink Ticker StdIO LocalFileSystem FileTest TCPSocket_HelloWorld
 
 # Set VERBOSE make variable to 1 to output all tool commands.
 VERBOSE?=0
