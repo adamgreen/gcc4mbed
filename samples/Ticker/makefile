@@ -16,5 +16,7 @@ GCC4MBED_DIR=../..
 INCDIRS=
 LIBS_PREFIX=
 LIBS_SUFFIX=
+NO_FLOAT_SCANF=1
+NO_FLOAT_PRINTF=1
 
 include ../../build/gcc4mbed.mk
