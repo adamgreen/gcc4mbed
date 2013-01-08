@@ -66,6 +66,7 @@ int TCPSocketServer::accept(TCPSocketConnection& connection) {
         if (wait_readable(timeout) != 0)
             return -1;
     }
+    connection.reset_address();
     socklen_t newSockRemoteHostLen = sizeof(connection._remoteHost);
     int fd = lwip_accept(_sock_fd, (struct sockaddr*) &connection._remoteHost, &newSockRemoteHostLen);
     if (fd < 0)

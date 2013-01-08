@@ -45,32 +45,40 @@ public:
     */
     bool is_connected(void);
     
-    /** Send data to the remote host.
-    \param data The buffer to send to the host.
-    \param length The length of the buffer to send.
-    \return the number of written bytes on success (>=0) or -1 on failure
+    /*! \brief Send data to the remote host. Applications are responsible for 
+     *         checking that all data has been sent; if only some of the data was
+     *         transmitted, the application needs to attempt delivery of the
+     *         remaining data.
+     * \param data The buffer to send to the host.
+     * \param length The length of the buffer to send.
+     * \return the number of written bytes on success (>=0) or -1 on failure
      */
     int send(char* data, int length);
     
-    /** Send all the data to the remote host.
-    \param data The buffer to send to the host.
-    \param length The length of the buffer to send.
-    \return the number of written bytes on success (>=0) or -1 on failure
-    */
+    /*! \brief Send all the data to the remote host. This method continues to send
+     *         data until either all data has been sent, or an error occurs, or a
+     *         timeout occurs.
+     * \param data The buffer to send to the host.
+     * \param length The length of the buffer to send.
+     * \return the number of written bytes on success (>=0) or -1 on failure
+     */
     int send_all(char* data, int length);
     
-    /** Receive data from the remote host.
-    \param data The buffer in which to store the data received from the host.
-    \param length The maximum length of the buffer.
-    \return the number of received bytes on success (>=0) or -1 on failure
+    /*! \brief Receive data from the remote host. Return as soon as some data is
+     *         available.
+     * \param data The buffer in which to store the data received from the host.
+     * \param length The maximum length of the buffer.
+     * \return the number of received bytes on success (>=0) or -1 on failure
      */
     int receive(char* data, int length);
     
-    /** Receive all the data from the remote host.
-    \param data The buffer in which to store the data received from the host.
-    \param length The maximum length of the buffer.
-    \return the number of received bytes on success (>=0) or -1 on failure
-    */
+    /*! \brief Receive all the data from the remote host. This method continues to receive
+     *         data until either length bytes has been received, or an error occurs, or a
+     *         timeout occurs.
+     * \param data The buffer in which to store the data received from the host.
+     * \param length The maximum length of the buffer.
+     * \return the number of received bytes on success (>=0) or -1 on failure
+     */
     int receive_all(char* data, int length);
 
 private:
