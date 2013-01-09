@@ -230,11 +230,13 @@ SHELL=cmd.exe
 REMOVE_DIR = rd /s /q
 MKDIR = mkdir
 QUIET=>nul 2>nul & exit 0
+BLANK_LINE=echo -
 else
 REMOVE = rm
 REMOVE_DIR = rm -r -f
 MKDIR = mkdir -p
 QUIET=> /dev/null 2>&1 ; exit 0
+BLANK_LINE=echo
 endif
 
 # Create macro which will convert / to \ on Windows.
@@ -271,7 +273,7 @@ $(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
 
 size: $(PROJECT).elf
 	$(Q) $(SIZE) $(PROJECT).elf
-	@echo
+	@$(BLANK_LINE)
 
 clean:
 	@echo Cleaning up all build generated files

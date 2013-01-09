@@ -19,17 +19,19 @@ setlocal
 set ROOTDIR=%~dp0
 set LOGFILE=%ROOTDIR%win_install.log
 set ERRORFILE=%ROOTDIR%win_install.err
-set GCC4ARM_FILENAME=gcc-arm-none-eabi-4_6-2012q4-20121016.tar.bz2
-set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.6/4.6-2012-q4-update/+download/%GCC4ARM_FILENAME%
+
+set GCC4ARM_FILENAME=gcc-arm-none-eabi-4_7-2012q4-20121208-linux.tar.bz2
+set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.7/4.7-2012-q4-major/+download/%GCC4ARM_FILENAME%
 set GCC4ARM_TAR=%ROOTDIR%%GCC4ARM_FILENAME%
 set GCC4ARM_MD5=%ROOTDIR%external\win32\gcc-arm-none-eabi.md5
-set GCC4ARM_VERSION=gcc-arm-none-eabi-4_6-2012q4
+set GCC4ARM_VERSION=gcc-arm-none-eabi-4_7-2012q4
 set GCC4ARM_EXTRACT=%ROOTDIR%%GCC4ARM_VERSION%
 set GCC4ARM_DIR=%ROOTDIR%gcc-arm-none-eabi
 set GCC4ARM_BINDIR=%GCC4ARM_DIR%\bin
-set GCC4ARM_LIBEXEC=%GCC4ARM_DIR%\libexec\gcc\arm-none-eabi\4.6.2
-set WINBIN_URL=https://github.com/adamgreen/GCC-ARM-Embedded-20121016/tarball/master
-set WINBIN_TAR=%ROOTDIR%GCC-ARM-Embedded-20121016.tar.gz
+set GCC4ARM_LIBEXEC=%GCC4ARM_DIR%\lib\gcc\arm-none-eabi\4.7.3
+set WINBIN_URL=https://github.com/adamgreen/GCC-ARM-Embedded-20121208/tarball/master
+set WINBIN_TAR=%ROOTDIR%GCC-ARM-Embedded-20121208.tar.gz
+
 set WINBIN_MD5=%ROOTDIR%external\win32\GCC-ARM-Embedded.md5
 set WINBIN_BASEDIR=%ROOTDIR%GCC-ARM-Embedded
 set WINBIN_DIR=%WINBIN_BASEDIR%\win32
@@ -85,7 +87,6 @@ call :RunAndLog copy %WINBIN_DIR%\arm-none-eabi-* %GCC4ARM_BINDIR%\
 if errorlevel 1 goto ExitOnError
 for %%i in (as g++ ld objcopy ranlib ar c++ gcc nm objdump strip) do call :CopyGccFile %%i
 if "%ERROR_ENCOUNTERED%"=="1" goto ExitOnError
-call :RunAndLog rd /s /q %GCC4ARM_LIBEXEC%
 call :RunAndLog xcopy /eiy %WINBIN_DIR%\libexec %GCC4ARM_LIBEXEC%
 if errorlevel 1 goto ExitOnError
 
