@@ -69,6 +69,7 @@ call :RunAndLog external\win32\md5sum --check %WINBIN_MD5%
 if errorlevel 1 goto ExitOnError
 
 echo Extracting GNU Tools for ARM Embedded Processors...
+call :RunAndLog rd /s /q %GCC4ARM_EXTRACT%
 call :RunAndLog rd /s /q %GCC4ARM_DIR%
 call :RunAndLog external\win32\bsdtar xf %GCC4ARM_TAR%
 if errorlevel 1 goto ExitOnError
