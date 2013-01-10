@@ -19,38 +19,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef MBED_TIMEREVENT_H
-#define MBED_TIMEREVENT_H
+#ifndef MBED_FILEPATH_H
+#define MBED_FILEPATH_H
 
-#include "us_ticker_api.h"
+#include "platform.h"
+
+#include "FileSystemLike.h"
+#include "FileLike.h"
 
 namespace mbed {
 
-/** Base abstraction for timer interrupts
-*/
-class TimerEvent {
+class FilePath {
 public:
-    TimerEvent();
+    FilePath(const char* file_path);
     
-    /** The handler registered with the underlying timer interrupt
-     */
-    static void irq(uint32_t id);
+    const char* fileName(void);
     
-    /** Destruction removes it...
-     */
-    virtual ~TimerEvent();
+    bool          isFileSystem(void);
+    FileSystemLike* fileSystem(void);
+    
+    bool    isFile(void);
+    FileLike* file(void);
 
-protected:
-    // The handler called to service the timer event of the derived class
-    virtual void handler() = 0;
-    
-    // insert in to linked list
-    void insert(unsigned int timestamp);
-    
-    // remove from linked list, if in it
-    void remove();
-    
-    ticker_event_t event;
+private:
+    const char* file_name;
+    FileBase* fb;
 };
 
 } // namespace mbed

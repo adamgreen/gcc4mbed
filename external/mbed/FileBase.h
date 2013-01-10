@@ -19,38 +19,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef MBED_TIMEREVENT_H
-#define MBED_TIMEREVENT_H
+#ifndef MBED_FILEBASE_H
+#define MBED_FILEBASE_H
 
-#include "us_ticker_api.h"
+typedef int FILEHANDLE;
+
+#include <stdio.h>
+
+#ifdef __ARMCC_VERSION
+#    define O_RDONLY 0
+#    define O_WRONLY 1
+#    define O_RDWR   2
+#    define O_CREAT  0x0200
+#    define O_TRUNC  0x0400
+#    define O_APPEND 0x0008
+
+#    define NAME_MAX 255
+
+typedef int mode_t;
+typedef int ssize_t;
+typedef long off_t;
+
+#else
+#    include <sys/fcntl.h>
+#    include <sys/types.h>
+#    include <sys/syslimits.h>
+#endif
+
+#include "platform.h"
 
 namespace mbed {
 
-/** Base abstraction for timer interrupts
-*/
-class TimerEvent {
-public:
-    TimerEvent();
-    
-    /** The handler registered with the underlying timer interrupt
-     */
-    static void irq(uint32_t id);
-    
-    /** Destruction removes it...
-     */
-    virtual ~TimerEvent();
+typedef enum {
+    FilePathType,
+    FileSystemPathType
+} PathType;
 
-protected:
-    // The handler called to service the timer event of the derived class
-    virtual void handler() = 0;
+class FileBase {
+public:
+    FileBase(const char *name, PathType t);
     
-    // insert in to linked list
-    void insert(unsigned int timestamp);
+    virtual ~FileBase();
     
-    // remove from linked list, if in it
-    void remove();
+    const char* getName(void);
+    PathType    getPathType(void);
     
-    ticker_event_t event;
+    static FileBase *lookup(const char *name, unsigned int len);
+    
+    static FileBase *get(int n);
+
+protected: 
+    static FileBase *_head;
+    
+    FileBase   *_next;
+    const char *_name;
+    PathType    _path_type;
 };
 
 } // namespace mbed

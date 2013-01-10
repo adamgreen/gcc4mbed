@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2012 ARM Limited
+ * Copyright (c) 2006-2013 ARM Limited
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,21 +22,9 @@
 #ifndef MBED_FILESYSTEMLIKE_H
 #define MBED_FILESYSTEMLIKE_H
 
-#ifdef __ARMCC_VERSION
-#    define O_RDONLY 0
-#    define O_WRONLY 1
-#    define O_RDWR   2
-#    define O_CREAT  0x0200
-#    define O_TRUNC  0x0400
-#    define O_APPEND 0x0008
-typedef int mode_t;
-
-#else
-#    include <sys/fcntl.h>
-#endif
-
 #include "platform.h"
 
+#include "FileBase.h"
 #include "FileHandle.h"
 #include "DirHandle.h"
 
@@ -48,7 +36,7 @@ namespace mbed {
  *  Implementations must define at least open (the default definitions
  *  of the rest of the functions just return error values).
  */
-class FileSystemLike {
+class FileSystemLike : public FileBase {
 
 public:
     /** FileSystemLike constructor
@@ -58,15 +46,6 @@ public:
     FileSystemLike(const char *name);
     
     virtual ~FileSystemLike();
-    
-    /* Function lookup
-     *  Lookup and return the object that has the given name.
-     *
-     * Variables
-     *  name - the name to lookup.
-     *  len - the length of name.
-     */
-    static FileSystemLike *lookup(const char *name, unsigned int len);
     
     static DirHandle *opendir();
     friend class BaseDirHandle;
@@ -122,25 +101,8 @@ public:
      *   -1 on failure.
      */
     virtual int mkdir(const char *name, mode_t mode) { return -1; }
-
-    // TODO other filesystem functions (mkdir, rm, rn, ls etc)
-
-protected: 
-    static FileSystemLike *_head;
-    FileSystemLike *_next;
-    const char *_name;
-};
-
-class FilePath {
-public:
-    FilePath(const char* file_path);
     
-    const char* fileName(void);
-    FileSystemLike* fileSystem(void);
-
-private:
-    const char* file_name;
-    FileSystemLike* fs;
+    // TODO other filesystem functions (mkdir, rm, rn, ls etc)
 };
 
 } // namespace mbed

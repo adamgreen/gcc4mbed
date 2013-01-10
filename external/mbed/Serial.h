@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2012 ARM Limited
+ * Copyright (c) 2006-2013 ARM Limited
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,6 @@ namespace mbed {
 class Serial : public Stream {
 
 public:
-
     /** Create a Serial port, connected to the specified transmit and receive pins
      *
      *  @param tx Transmit pin 
@@ -62,18 +61,13 @@ public:
      *  @note
      *    Either tx or rx may be specified as NC if unused
      */
-    Serial(PinName tx, PinName rx) {
-        serial_init(&_serial, tx, rx);
-        serial_irq_handler(&_serial, Serial::_irq_handler, (uint32_t)this);
-    }
-
+    Serial(PinName tx, PinName rx, const char *name=NULL);
+    
     /** Set the baud rate of the serial port
      *  
      *  @param baudrate The baudrate of the serial port (default = 9600).
      */
-    void baud(int baudrate) {
-        serial_baud(&_serial, baudrate);
-    }
+    void baud(int baudrate);
     
     enum Parity {
         None = 0,
@@ -94,44 +88,31 @@ public:
      *  @param parity The parity used (Serial::None, Serial::Odd, Serial::Even, Serial::Forced1, Serial::Forced0; default = Serial::None)
      *  @param stop The number of stop bits (1 or 2; default = 1)
      */
-    void format(int bits = 8, Parity parity=Serial::None, int stop_bits=1) {
-        serial_format(&_serial, bits, (SerialParity)parity, stop_bits);
-    }
-
+    void format(int bits = 8, Parity parity=Serial::None, int stop_bits=1);
+    
     /** Determine if there is a character available to read
      *
      *  @returns
      *    1 if there is a character available to read,
      *    0 otherwise
      */
-    int readable() {
-        return serial_readable(&_serial);
-    }
-
+    int readable();
+    
     /** Determine if there is space available to write a character
      * 
      *  @returns
      *    1 if there is space to write a character,
      *    0 otherwise
      */
-    int writeable() {
-        return serial_writable(&_serial);
-    }
-
+    int writeable();
+    
     /** Attach a function to call whenever a serial interrupt is generated
      *
      *  @param fptr A pointer to a void function, or 0 to set as none
      *  @param type Which serial interrupt to attach the member function to (Seriall::RxIrq for receive, TxIrq for transmit buffer empty)
      */
-    void attach(void (*fptr)(void), IrqType type=RxIrq) {
-        if (fptr) {
-            _irq[type].attach(fptr);
-            serial_irq_set(&_serial, (SerialIrq)type, 1);
-        } else {
-            serial_irq_set(&_serial, (SerialIrq)type, 0);
-        }
-    }
-
+    void attach(void (*fptr)(void), IrqType type=RxIrq);
+    
     /** Attach a member function to call whenever a serial interrupt is generated
      *     
      *  @param tptr pointer to the object to call the member function on
@@ -146,22 +127,13 @@ public:
         }
     }
     
-    static void _irq_handler(uint32_t id, SerialIrq irq_type) {
-        Serial *handler = (Serial*)id;
-        handler->_irq[irq_type].call();
-    }
+    static void _irq_handler(uint32_t id, SerialIrq irq_type);
 
 protected:
-    virtual int _getc() {
-        return serial_getc(&_serial);
-    }
+    virtual int _getc();
+    virtual int _putc(int c);
     
-    virtual int _putc(int c) {
-        serial_putc(&_serial, c);
-        return c;
-    }
-    
-    serial_t   _serial;
+    serial_t        _serial;
     FunctionPointer _irq[2];
 };
 

@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2012 ARM Limited
+ * Copyright (c) 2006-2013 ARM Limited
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,14 @@
 #define MBED_STREAM_H
 
 #include "platform.h"
-#include "FileHandle.h"
+#include "FileLike.h"
 
 namespace mbed {
 
-class Stream : public FileHandle {
+class Stream : public FileLike {
 
 public:
-    Stream(void);
+    Stream(const char *name=NULL);
     virtual ~Stream();
 
     int putc(int c);

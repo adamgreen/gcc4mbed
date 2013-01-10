@@ -19,38 +19,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef MBED_TIMEREVENT_H
-#define MBED_TIMEREVENT_H
+#ifndef MBED_FILELIKE_H
+#define MBED_FILELIKE_H
 
-#include "us_ticker_api.h"
+#include "FileBase.h"
+#include "FileHandle.h"
 
 namespace mbed {
 
-/** Base abstraction for timer interrupts
-*/
-class TimerEvent {
-public:
-    TimerEvent();
-    
-    /** The handler registered with the underlying timer interrupt
-     */
-    static void irq(uint32_t id);
-    
-    /** Destruction removes it...
-     */
-    virtual ~TimerEvent();
+/* Class FileLike
+ *  A file-like object is one that can be opened with fopen by
+ *  fopen("/name", mode). It is intersection of the classes Base and
+ *  FileHandle.
+ */
+class FileLike : public FileHandle, public FileBase {
 
-protected:
-    // The handler called to service the timer event of the derived class
-    virtual void handler() = 0;
+public:
+    /* Constructor FileLike
+     *
+     * Variables
+     *  name - The name to use to open the file.
+     */
+    FileLike(const char *name);
     
-    // insert in to linked list
-    void insert(unsigned int timestamp);
-    
-    // remove from linked list, if in it
-    void remove();
-    
-    ticker_event_t event;
+    virtual ~FileLike();
 };
 
 } // namespace mbed

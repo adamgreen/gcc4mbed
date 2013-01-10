@@ -163,7 +163,7 @@ DEFINES += -DMRI_ENABLE=$(MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMET
 DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
 
 # Libraries to be linked into final binary
-MBED_LIBS = $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libcpp.a $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libcapi.a
+MBED_LIBS = $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libmbed.a
 SYS_LIBS = -lstdc++_s -lsupc++_s -lm -lgcc -lc_s -lgcc -lc_s -lnosys
 LIBS = $(LIBS_PREFIX) 
 
