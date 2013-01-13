@@ -302,7 +302,7 @@ endif
 $(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GPP) $(GPFLAGS) -c $< -o $@
+	$(Q) $(GCC) $(GCFLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.cpp
 	@echo Compiling $<
