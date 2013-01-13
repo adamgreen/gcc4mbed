@@ -96,21 +96,3 @@ void __cxa_pure_virtual(void)
 {
     abort();
 }
-
-
-int __aeabi_unwind_cpp_pr0(int state, void* controlBlock, void* context)
-{
-    abort();
-}
-
-
-int __aeabi_unwind_cpp_pr1(int state, void* controlBlock, void* context)
-{
-    abort();
-}
-
-
-int __aeabi_unwind_cpp_pr2(int state, void* controlBlock, void* context)
-{
-    abort();
-}
