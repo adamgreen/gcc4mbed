@@ -1,0 +1,176 @@
+I first want to thank [[http://mbed.org/users/dcabanis/|David Cabanis]] for the e-mail that he sent me a few months ago.  It forms the core of this documentation.  David, You Rock!
+
+
+== Install GCC4MBED Project
+Refer to the following link to install GCC4MBED on your machine: [[https://github.com/adamgreen/gcc4mbed#quick-start]]
+
+
+== Install Eclipse with C/C++ and GNU Support
+To get started, you need to install Eclipse.  To this you will add support for the GNU tool chain used by the [[https://github.com/adamgreen/gcc4mbed|GCC4MBED project]].  At the time this document was written, Eclipse 4.2 (Juno), was the current release.
+
+* Eclipse is a Java application and [[http://wiki.eclipse.org/Eclipse/Installation#Install_a_JVM|requires at least version 6 of the Java Runtime Environment, JRE,]] be installed on your machine.  On Windows and Linux, you will want to make sure that you have this Java requirement installed.  On OS X, it will detect the Java requirement when you first attempt to run Eclipse and offer to install it for you if not already installed.
+* Go to [[http://www.eclipse.org/downloads]] to download and decompress the **Eclipse IDE for C/C++ Developers** archive.
+* Now startup that shiny new version of Eclipse by executing the Eclipse binary at the root of the decompressed Eclipse files.  There is no separate install process required for Eclipse.  If Eclipse fails to start, it is probably due to a missing JRE.
+** On initial startup, it will ask where you want your workspace to be located.  Accept the default and check the item to always use this as the default and not ask on every startup.
+* On the **Help** menu, select the **Install New Software...** option.
+* On the install dialog, press the **Add...** button near the upper right hand corner.
+* Set **Name:** to **Eclipse for ARM**.
+* Set **Location:** to **http://sourceforge.net/projects/gnuarmeclipse/files/Eclipse/updates/**
+* Click the **Ok** button.
+* There should now be a **CDT GNU Cross Development Tools** item listed on the Install dialog.  It may take several seconds to populate this item into the list.  Once it appears, check it.
+* Now press the **Next** button.
+* At this point an install wizard appears.  You can just keep clicking through this wizard to allow it to progress.  
+**At some point it will complain about unsigned content.  Ignore this warning by pressing the **Ok** button.
+* At the end of the install wizard, press the **Restart Now** button.
+
+
+== Create Eclipse Project for GCC4MBED Sample
+Now let's go through the steps to take an existing GCC4MBED sample, FileTest, and get it to build from within Eclipse.  We will create 3 configurations which expose the 3 main build types supported by GCC4MBED's existing makefile: Debug, Checked, and Release.  The first two configurations will actually produce builds that we can run under the debugger in Eclipse!  Yeah!
+
+* If this is the first time you are running Eclipse, you may be at the Welcome screen.  You need to enter the Workbench by clicking  its associated icon (arrow icon pointing into the screen.)
+* On the **File** menu select **New** > **Makefile Project with Existing Code**
+* You are now presented with the **New Project** dialog.
+* Set **Existing Code Location** to the directory where the GCC4MBED FileTest sample is located on your machine.  On my machine this is **/depots/gcc4mbed/samples/FileTest** but for you it will depend on your Operating System, OS, and to where you extracted the GCC4MBED project.
+* If the **Project Name** field wasn't automatically filled in with FileTest then set it to that manually.
+* You now need to select an appropriate toolchain from the **Toolchain for Indexer Settings** list.  Even though we are using the GNUARM toolchain, we will select the Sourcery G++ Lite one because it uses the tool names which most closely match what we desire.  Select the list item based on your operating system:
+** **Windows:**  ARM Windows GCC (Sourcery G++ Lite)
+** **Linux:** ARM Linux GCC (Sourcery G++ Lite)
+** **OS X:** ARM Mac OS X GCC (Sourcery G++ Lite)
+* Click the **Finish** button.
+
+You now have a FileTest project in the left pane, Project Explorer.  We will start by creating a Debug build configuration that can build an unoptimized build of the FileTest sample.
+
+* Right-click on the **File Test** project in the **Project Explorer** pane.
+* Select **Properties** from the pop-up menu.  This will bring up the **Properties for FileTest** dialog.
+* In the left pane, select the **C/C++ Build** item.
+* Click the **Manage Configurations...** button towards the upper right hand corner of the dialog.  This will pop up the FileTest: Manage Configurations dialog.
+* Click the **New...** button.
+* Set **Name:** to **Debug**
+* You should be able to accept the default of **Copy settings from** > **Existing configuration** > **Default**.
+* Click the **Ok** button to return to the manage configurations dialog.
+* Select **Debug** configuration from the list at the top of the small configurations dialog and then press the **Set Active** dialog.
+* Select **Default** configuration from the same list and then press the **Delete** button.
+* Press **Yes** to confirm the deletion of the default configuration.
+* Click the **Ok** button to return to the properties dialog.
+* Select the **Behaviour** sub-tab in the properties dialog.
+* Change **Build (Incremental Build)** from **all** to **all deploy GCC4MBED_TYPE=Debug**
+* Click the arrow to left of the **C/C++ Build** item in the left pane to expand its sub-items.
+* Select the **Environment** sub-item.
+* Click the **Add...** button on the environment properties dialog.
+* Set **Name:** to **PATH**
+* Set **Value:** to **${ProjDirPath}/../../gcc-arm-none-eabi/bin**
+* Click the **Ok** button to return to the environment properties dialog.
+* Click the **Add...** button again.
+* Set **Name:** to **LPC_DEPLOY**
+* The string you use for **Value:** will depend on what commands are required to copy binaries to the mbed device in your environment.  Here are some examples that I use on various operating systems that I test with (please note that the GCC4MBED build system will automatically replace the PROJECT string with the name of your project, FileTest in this case):
+** **OS X:** cp PROJECT.bin /Volumes/MBED/ ; sync
+** **Linux:** cp PROJECT.bin /media/MBED/ ; sync
+** **Windows:** copy PROJECT.bin e:\
+* Click the **Ok** button to return to environment properties dialog.
+* At this point you can click on the **Ok** button on the **Properties for FileTest** dialog.
+
+Let's now do a clean debug build of the FileTest sample in the Eclipse IDE.
+* Right-click on the **File Test** project in the **Project Explorer** pane.
+* Select **Clean Project** from the pop-up menu.
+* In the bottom pane, select the **Console** tab.  It should contain output similar to:
+{{{
+17:15:41 **** Clean-only build of configuration Debug for project FileTest ****
+make clean 
+Cleaning up all build generated files
+
+17:15:41 Build Finished (took 320ms)
+}}}
+* Right-click on the **File Test** project in the **Project Explorer** pane.
+* Select **Build Project** from the pop-up menu.
+* In the bottom pane, select the **Console** tab if not already selected.  It should contain output similar to:
+{{{
+17:53:03 **** Build of configuration Debug for project FileTest ****
+make all deploy GCC4MBED_TYPE=Debug 
+Compiling main.cpp
+Compiling ../../src/gcc4mbed.c
+Linking FileTest.elf
+Extracting FileTest.hex
+Extracting FileTest.bin
+Extracting disassembly to LPC176x/FileTest.disasm
+   text	   data	    bss	    dec	    hex	filename
+  48328	    368	   1452	  50148	   c3e4	FileTest.elf
+
+Deploying to target.
+
+17:53:05 Build Finished (took 2s.291ms)
+}}}
+
+We can now use the Debug build configuration as the basis for the Checked and Release configurations.  Both of these new configurations has compiler optimizations turned on but the Checked build is still enabled for debugging under Eclipse.  You can build Release binaries with Eclipse and deploy them to your mbed but you can't run them under the debugger.  It should also be noted that Debug and Checked builds will always hang when they first start, waiting for the debugger to be attached and setup initial breakpoints, etc.
+
+* Right-click on the **File Test** project in the **Project Explorer** pane.
+* Select **Properties** from the pop-up menu.  This will bring up the **Properties for FileTest** dialog.
+* In the left pane, select the **C/C++ Build** item.
+* Click the **Manage Configurations...** button towards the upper right hand corner of the dialog.  This will pop up the FileTest: Manage Configurations dialog.
+* Click the **New...** button.
+* Set **Name:** to **Checked**
+* You should be able to accept the default of **Copy settings from** > **Existing configuration** > **Debug**.
+* Click the **Ok** button to return to the manage configurations dialog.
+* Click the **New...** button.
+* Set **Name:** to **Release**
+* You should be able to accept the default of **Copy settings from** > **Existing configuration** > **Debug**.
+* Click the **Ok** button to return to the manage configurations dialog again.
+* Click the **Ok** button to return to the properties dialog.
+* At the top of the properties dialog set **Configuration:** to **Checked**
+* Select the **Behaviour** sub-tab in the properties dialog.
+* Change **Build (Incremental Build)** from **all deploy GCC4MBED_TYPE=Debug** to **all deploy GCC4MBED_TYPE=Checked**
+* Click the **Apply** button.
+* At the top of the properties dialog set **Configuration:** to **Release**
+* Select the **Behaviour** sub-tab in the properties dialog.
+* Change **Build (Incremental Build)** from **all deploy GCC4MBED_TYPE=Debug** to **all deploy GCC4MBED_TYPE=Release**
+* Click the **Ok** button to save and dismiss the **Properties for FileTest** dialog.
+
+
+== Run FileTest sample under Debugger
+Now comes the really fun part.  Not only can we build our GCC4MBED samples in Eclipse, we can also run them under its debugger UI.
+
+* Right-click on the **File Test** project in the **Project Explorer** pane.
+* Select **Debug as** > **Debug Configurations...** from the pop-up menu.  This will bring up the **Debug Configurations** dialog.
+* In the left pane, right-click the **C/C++ Remote Application** item and select the **New** item from the pop-up menu.  This will create us a new remote debugging configuration.
+* At the bottom of this dialog, there is a link named **Select other...**.  Click it to pop up the **Select Preferred Launcher** dialog.
+* Check the **Use configuration specific settings** check-box.
+* Select the **GDB (DSF) Manual Remote Debugging Lancher**.
+* Click **Ok** to return to the debug configurations dialog.
+* Set **C/C++ Application:** to **FileTest.elf**
+* Select the **Disable auto build** option.
+* Click on the **Debugger** tab.
+* Change **GDB debugger:** from **gdb** to **arm-none-eabi-gdb**
+* Click on the **Connection** sub-tab.
+* Set **Type:** to **Serial**
+* Set **Device:** to a value appropriate for your environment.  You can learn more about determining your serial port [[http://mbed.org/handbook/SerialPC|here]].
+* Click on the **Common** tab.
+* In the **Display in favorites menu**, check the **Debug** option.
+* Click the **Close** button to dismiss the **Debug Configurations** 
+
+Now that we have the debug configuration setup, we are ready to try running FileTest under the debugger.
+
+* Reset your device to make sure that the debug build we did earlier is up and running on your device.
+* In the toolbar at the top of Eclipse, there is a button that looks like a bug which has a small down pointing arrow to its right.  Click the arrow with your mouse and select the **FileTest Debug** configuration that we just created.
+* You should now be in the debugger at the top of the main() function.
+
+
+== Eliminate Indexer Errors
+It is typical to see clean build results with no errors but yet Eclipse complains about unresolved references ,etc. in the **Problems** tab at the bottom of Eclipse.  These can typically be silenced by giving the Indexer a few more include paths.
+
+* Right-click on the **File Test** project in the **Project Explorer** pane.
+* Select **Properties** from the pop-up menu.  This will bring up the **Properties for FileTest** dialog.
+* Click arrow to left of **C/C++ General** item in left pane to expand its sub-items.
+* Select the **Paths and Symbols** sub-item.
+* Click the **Add..** button.  This will pop-up the **Add directory path** dialog.
+* Set **Directory:** to **${ProjDirPath}/../../external/mbed/LPC1768**
+* Check both **Add to all configurations** and **Add to all languages**.
+* Click the **Ok** button.
+* Add another directory and set it to **${ProjDirPath}/../../external/mbed** using the same steps as before.
+* Click the **Ok** button to save and dismiss the **Properties for FileTest** dialog.
+* Right-click on the **File Test** project in the **Project Explorer** pane.
+* Select **Index** > **Rebuild** from the pop-up menu.  This will re-index the files and hopefully find all of the necessary include files.
+
+**Note:** If you get Indexer errors and can't figure out what might be missing from the include path, you can right click on your project and select the **Index** > **Search for Unresolved Includes** option to see what headers it couldn't find.
+
+
+==Thanks
+Thanks again to David Cabanis for his help.  Also thanks to the Smoothie users that helped me with Eclipse and testing.

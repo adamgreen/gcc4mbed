@@ -24,6 +24,8 @@ These are the quick steps to get gcc4mbed installed on your computer:
 * If you don't need floating point support from scanf() and printf() routines in your program then you can reduce your binary size by setting NO_FLOAT_SCANF and NO_FLOAT_PRINTF make variables to 1.  See samples/HelloWorld/makefile for an example.
 
 ==More Information
+**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/eclipse.creole|Eclipse]]:**  Learn how to use the Eclipse IDE to build and debug GCC4MBED programs.\\
+\\
 **[[https://github.com/adamgreen/mri/blob/master/README.creole#mri---monitor-for-remote-inspection|Debugging]]:**  Learn how to use the GNU Debugger, GDB, with the new MRI debug monitor in GCC4MBED.\\
 \\
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/overview.creole#overview|Overview]]:**  Overview and a bit of history related to this GCC4MBED project.\\
