@@ -16,6 +16,7 @@
 /* Provide routines which hook the MRI debug monitor into GCC4MBED projects. */
 #include <string.h>
 #include <mri.h>
+#include <cmsis.h>
 
 
 extern unsigned int __bss_start__;
@@ -70,6 +71,37 @@ int __wrap__isatty(int file)
     if (file < 3)
         return 1;
     return __real__isatty(file);
+}
+
+
+/* Wrap memory allocation routines to make sure that they aren't being called from interrupt handler. */
+static void breakOnHeapOpFromInterruptHandler(void)
+{
+    if (__get_IPSR() != 0)
+        __debugbreak();
+}
+
+void* __real_malloc(size_t size);
+void* __wrap_malloc(size_t size)
+{
+    breakOnHeapOpFromInterruptHandler();
+    return __real_malloc(size);
+}
+
+
+void* __real_realloc(void* ptr, size_t size);
+void* __wrap_realloc(void* ptr, size_t size)
+{
+    breakOnHeapOpFromInterruptHandler();
+    return __real_realloc(ptr, size);
+}
+
+
+void __real_free(void* ptr);
+void __wrap_free(void* ptr)
+{
+    breakOnHeapOpFromInterruptHandler();
+    __real_free(ptr);
 }
 
 
