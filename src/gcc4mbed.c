@@ -15,6 +15,8 @@
 */
 /* Provide routines which hook the MRI debug monitor into GCC4MBED projects. */
 #include <string.h>
+#include <sys/types.h>
+#include <errno.h>
 #include <mri.h>
 #include <cmsis.h>
 
@@ -114,7 +116,6 @@ int __wrap_semihost_connected(void)
 }
 
 
-
 void abort(void)
 {
     if (MRI_ENABLE)
@@ -127,4 +128,28 @@ void abort(void)
 void __cxa_pure_virtual(void)
 {
     abort();
+}
+
+
+/* Linker defined symbol to be used by sbrk for where dynamically heap should start. */
+int __HeapLimit;
+
+/* Turn off the errno macro and use actual external global variable instead. */
+#undef errno
+extern int errno;
+
+/* Dynamic memory allocation related syscalls. */
+caddr_t _sbrk(int incr) 
+{
+    static unsigned char* heap = (unsigned char*)&__HeapLimit;
+    unsigned char*        prev_heap = heap;
+    unsigned char*        new_heap = heap + incr;
+
+    if (new_heap >= (unsigned char*)__get_MSP()) {
+        errno = ENOMEM;
+        return (caddr_t)-1;
+    }
+    
+    heap = new_heap;
+    return (caddr_t) prev_heap;
 }
