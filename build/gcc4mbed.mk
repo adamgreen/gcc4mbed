@@ -301,27 +301,27 @@ endif
 #  Default rules to compile .c and .cpp file to .o
 #  and assemble .s files to .o
 
-$(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c
+$(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(GCFLAGS) -c $< -o $@
 
-$(OUTDIR)/%.o : %.cpp
+$(OUTDIR)/%.o : %.cpp makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GPP) $(GPFLAGS) -c $< -o $@
 
-$(OUTDIR)/%.o : %.c
+$(OUTDIR)/%.o : %.c makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(GCFLAGS) -c $< -o $@
 
-$(OUTDIR)/%.o : %.S
+$(OUTDIR)/%.o : %.S makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(AS_GCFLAGS) -c $< -o $@
 
-$(OUTDIR)/%.o : %.s
+$(OUTDIR)/%.o : %.s makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(AS) $(AS_FLAGS) -o $@ $<
