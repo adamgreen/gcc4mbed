@@ -1,5 +1,6 @@
 I first want to thank [[http://mbed.org/users/dcabanis/|David Cabanis]] for the e-mail that he sent me a few months ago.  It forms the core of this documentation.  David, You Rock!
 
+**Important Notes for Windows Users:** The [[http://mbed.org/cookbook/eclipse-for-building-and-debugging#additional-notes-for-windows-users1523|related cookbook page on the mbed website]] contains updated notes for configuring Eclipse on Windows.
 
 == Install GCC4MBED Project
 Refer to the following link to install GCC4MBED on your machine: [[https://github.com/adamgreen/gcc4mbed#quick-start]]
