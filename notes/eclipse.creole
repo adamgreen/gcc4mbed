@@ -16,7 +16,7 @@ To get started, you need to install Eclipse.  To this you will add support for t
 * On the **Help** menu, select the **Install New Software...** option.
 * On the install dialog, press the **Add...** button near the upper right hand corner.
 * Set **Name:** to **Eclipse for ARM**.
-* Set **Location:** to **http://sourceforge.net/projects/gnuarmeclipse/files/Eclipse/updates/**
+* Set **Location:** to **{{{http://sourceforge.net/projects/gnuarmeclipse/files/Eclipse/updates/}}}**
 * Click the **Ok** button.
 * There should now be a **CDT GNU Cross Development Tools** item listed on the Install dialog.  It may take several seconds to populate this item into the list.  Once it appears, check it.
 * Now press the **Next** button.
