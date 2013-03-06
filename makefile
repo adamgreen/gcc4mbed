@@ -1,4 +1,4 @@
-# Copyright 2011 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 #
 # Directories to be built
 DIRS=samples
+DIRSCLEAN = $(addsuffix .clean,$(DIRS))
 
 # Set VERBOSE make variable to 1 to output all tool commands.
 VERBOSE?=0
@@ -23,13 +24,16 @@ else
 Q=
 endif
 
-.PHONY: subdirs $(DIRS)
+all: $(DIRS)
 
-subdirs:$(DIRS)
+clean: $(DIRSCLEAN)
 
-clean: $(DIRS)
-
-# Recurse into each of the specified directories and perform a make
 $(DIRS):
 	@echo Building $@
-	$(Q) $(MAKE) $(MAKECMDGOALS) -C $@
+	$(Q) $(MAKE) -C $@ all
+
+$(DIRSCLEAN): %.clean:
+	@echo Cleaning $*
+	$(Q) $(MAKE) -C $*  clean
+
+.PHONY: all clean $(DIRS) $(DIRSCLEAN)
