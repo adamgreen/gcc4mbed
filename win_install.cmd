@@ -22,11 +22,12 @@ set ERRORFILE=%ROOTDIR%win_install.err
 
 set GCC4ARM_VERSION=gcc-arm-none-eabi-4_7-2013q2
 set GCC4ARM_FILENAME=gcc-arm-none-eabi-4_7-2013q2-20130614-win32.zip
-set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q2-update/+download/$GCC4ARM_FILENAME
+set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q2-update/+download/%GCC4ARM_FILENAME%
 set GCC4ARM_TAR=%ROOTDIR%%GCC4ARM_FILENAME%
 set GCC4ARM_MD5=7e9e17ebeb2fc3d4117ff9f537f42852
 set GCC4ARM_MD5_FILENAME=%ROOTDIR%gcc-arm-none-eabi.md5
-set GCC4ARM_EXTRACT=%ROOTDIR%%GCC4ARM_VERSION%
+set GCC4ARM_EXTRACT_PARENT=%ROOTDIR%GNU Tools ARM Embedded
+set GCC4ARM_EXTRACT=%GCC4ARM_EXTRACT_PARENT%\4.7 2013q2
 set GCC4ARM_DIR=%ROOTDIR%gcc-arm-none-eabi
 set GCC4ARM_BINDIR=%GCC4ARM_DIR%\bin
 set OUR_MAKE=%ROOTDIR%external\win32\make.exe
@@ -59,7 +60,7 @@ call :RunAndLog rd /s /q %GCC4ARM_EXTRACT%
 call :RunAndLog rd /s /q %GCC4ARM_DIR%
 call :RunAndLog external\win32\bsdtar xf %GCC4ARM_TAR%
 if errorlevel 1 goto ExitOnError
-call :RunAndLog move %GCC4ARM_EXTRACT% %GCC4ARM_DIR%
+call :RunAndLog move "%GCC4ARM_EXTRACT%" %GCC4ARM_DIR%
 if errorlevel 1 goto ExitOnError
 
 echo Creating helper scripts...
@@ -84,6 +85,7 @@ if errorlevel 1 goto ExitOnError
 
 echo Cleaning up intermediate files...
 call :RunAndLog del /f %GCC4ARM_TAR%
+call :RunAndLog rd /s /q "%GCC4ARM_EXTRACT_PARENT%"
 
 echo **************************************************************************
 echo To build gcc4mbed samples, you will first need to run the following batch
