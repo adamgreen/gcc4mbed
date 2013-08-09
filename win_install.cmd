@@ -1,5 +1,5 @@
 @echo off
-rem Copyright 2012 Adam Green (http://mbed.org/users/AdamGreen/)
+rem Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
 rem
 rem Licensed under the Apache License, Version 2.0 (the "License");
 rem you may not use this file except in compliance with the License.
@@ -20,26 +20,19 @@ set ROOTDIR=%~dp0
 set LOGFILE=%ROOTDIR%win_install.log
 set ERRORFILE=%ROOTDIR%win_install.err
 
-set GCC4ARM_FILENAME=gcc-arm-none-eabi-4_7-2012q4-20121208-linux.tar.bz2
-set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.7/4.7-2012-q4-major/+download/%GCC4ARM_FILENAME%
+set GCC4ARM_VERSION=gcc-arm-none-eabi-4_7-2013q2
+set GCC4ARM_FILENAME=gcc-arm-none-eabi-4_7-2013q2-20130614-win32.zip
+set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q2-update/+download/$GCC4ARM_FILENAME
 set GCC4ARM_TAR=%ROOTDIR%%GCC4ARM_FILENAME%
-set GCC4ARM_MD5=%ROOTDIR%external\win32\gcc-arm-none-eabi.md5
-set GCC4ARM_VERSION=gcc-arm-none-eabi-4_7-2012q4
+set GCC4ARM_MD5=7e9e17ebeb2fc3d4117ff9f537f42852
+set GCC4ARM_MD5_FILENAME=%ROOTDIR%gcc-arm-none-eabi.md5
 set GCC4ARM_EXTRACT=%ROOTDIR%%GCC4ARM_VERSION%
 set GCC4ARM_DIR=%ROOTDIR%gcc-arm-none-eabi
 set GCC4ARM_BINDIR=%GCC4ARM_DIR%\bin
-set GCC4ARM_LIBEXEC=%GCC4ARM_DIR%\lib\gcc\arm-none-eabi\4.7.3
-set WINBIN_URL=https://github.com/adamgreen/GCC-ARM-Embedded-20121208/tarball/master
-set WINBIN_TAR=%ROOTDIR%GCC-ARM-Embedded-20121208.tar.gz
-
-set WINBIN_MD5=%ROOTDIR%external\win32\GCC-ARM-Embedded.md5
-set WINBIN_BASEDIR=%ROOTDIR%GCC-ARM-Embedded
-set WINBIN_DIR=%WINBIN_BASEDIR%\win32
 set OUR_MAKE=%ROOTDIR%external\win32\make.exe
 set BUILDENV_CMD=%GCC4ARM_BINDIR%\buildenv.cmd
 set BUILDSHELL_CMD=%ROOTDIR%BuildShell.cmd
 set BUILDSHELL_DEBUG_CMD=%ROOTDIR%BuildShellDebug.cmd
-set ERROR_ENCOUNTERED=0
 
 
 rem Make sure that we are running with current directory set to where this
@@ -55,18 +48,11 @@ echo %DATE% %TIME%  Executing external\win32\curl -kL0 %GCC4ARM_URL%>>%LOGFILE%
 external\win32\curl -kL0 %GCC4ARM_URL% >%GCC4ARM_TAR%
 if errorlevel 1 goto ExitOnError
 
-echo Validating md5 signature of Code Sourcery G++ Lite...
-call :RunAndLog external\win32\md5sum --check %GCC4ARM_MD5%
+echo Validating md5 signature of GNU Tools for ARM Embedded Processors...
+echo %GCC4ARM_MD5% *%GCC4ARM_FILENAME%>%GCC4ARM_MD5_FILENAME%
+call :RunAndLog external\win32\md5sum --check %GCC4ARM_MD5_FILENAME%
 if errorlevel 1 goto ExitOnError
-
-echo Downloading Windows GCC binaries from github...
-echo %DATE% %TIME%  Executing external\win32\curl -kL0 %WINBIN_URL%>>%LOGFILE%
-external\win32\curl -kL0 %WINBIN_URL% >%WINBIN_TAR%
-if errorlevel 1 goto ExitOnError
-
-echo Validating md5 signature of Windows GCC binaries...
-call :RunAndLog external\win32\md5sum --check %WINBIN_MD5%
-if errorlevel 1 goto ExitOnError
+del "%GCC4ARM_MD5_FILENAME%"
 
 echo Extracting GNU Tools for ARM Embedded Processors...
 call :RunAndLog rd /s /q %GCC4ARM_EXTRACT%
@@ -74,21 +60,6 @@ call :RunAndLog rd /s /q %GCC4ARM_DIR%
 call :RunAndLog external\win32\bsdtar xf %GCC4ARM_TAR%
 if errorlevel 1 goto ExitOnError
 call :RunAndLog move %GCC4ARM_EXTRACT% %GCC4ARM_DIR%
-if errorlevel 1 goto ExitOnError
-
-echo Extracting Windows GCC binaries...
-call :RunAndLog rd /s /q %WINBIN_BASEDIR%
-call :RunAndLog external\win32\bsdtar xf %WINBIN_TAR%
-for /d %%i in (adamgreen-GCC-ARM-Embedded-*) do call :RunAndLog move %%i %WINBIN_BASEDIR%
-if errorlevel 1 goto ExitOnError
-
-echo Installing Windows binaries...
-call :RunAndLog del /q %GCC4ARM_BINDIR%\*
-call :RunAndLog copy %WINBIN_DIR%\arm-none-eabi-* %GCC4ARM_BINDIR%\
-if errorlevel 1 goto ExitOnError
-for %%i in (as g++ ld objcopy ranlib ar c++ gcc nm objdump strip) do call :CopyGccFile %%i
-if "%ERROR_ENCOUNTERED%"=="1" goto ExitOnError
-call :RunAndLog xcopy /eiy %WINBIN_DIR%\libexec %GCC4ARM_LIBEXEC%
 if errorlevel 1 goto ExitOnError
 
 echo Creating helper scripts...
@@ -112,8 +83,6 @@ call :RunAndLog %OUR_MAKE%
 if errorlevel 1 goto ExitOnError
 
 echo Cleaning up intermediate files...
-call :RunAndLog rd /s /q %WINBIN_BASEDIR%
-call :RunAndLog del /f %WINBIN_TAR%
 call :RunAndLog del /f %GCC4ARM_TAR%
 
 echo **************************************************************************
@@ -141,17 +110,9 @@ goto :EOF
 
 
 
-rem Copies a file between GCC directories where one has arm-none-eabi prefix and the other doesn't
-:CopyGccFile
-call :RunAndLog del "%GCC4ARM_DIR%\arm-none-eabi\bin\%1"
-call :RunAndLog copy /y "%GCC4ARM_BINDIR%\arm-none-eabi-%1.exe" "%GCC4ARM_DIR%\arm-none-eabi\bin\%1.exe"
-if errorlevel 1 set ERROR_ENCOUNTERED=1
-goto :EOF
-
-
 rem Exits the batch file due to error.
-rem Make sure that any stderr text ends up in win_install.log and the restore
-rem the current dictory before forcing an early exit.
+rem Make sure that any stderr text ends up in win_install.log and then restore
+rem the current directory before forcing an early exit.
 :ExitOnError
 type %ERRORFILE% >>%LOGFILE%
 echo %DATE% %TIME%  Failure forced early exit>>%LOGFILE%
