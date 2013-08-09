@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-# Copyright 2012 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,11 +37,11 @@ pushd $ROOTDIR
 ROOTDIR=$PWD
 LOGFILE=$ROOTDIR/mac_install.log
 ERRORFILE=$ROOTDIR/mac_install.err
-GCC4ARM_VERSION=gcc-arm-none-eabi-4_7-2012q4
-GCC4ARM_FILENAME=gcc-arm-none-eabi-4_7-2012q4-20121208-mac.tar.bz2
-GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.7/4.7-2012-q4-major/+download/$GCC4ARM_FILENAME
+GCC4ARM_VERSION=gcc-arm-none-eabi-4_7-2013q2
+GCC4ARM_FILENAME=gcc-arm-none-eabi-4_7-2013q2-20130614-mac.tar.bz2
+GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.7/4.7-2013-q2-update/+download/$GCC4ARM_FILENAME
 GCC4ARM_TAR=$ROOTDIR/$GCC4ARM_FILENAME
-GCC4ARM_MD5=fcfe3aecbfe77c1e5985845fbe722aac
+GCC4ARM_MD5=11c77b8eec68d4e90e7a300c0d506deb
 GCC4ARM_EXTRACT=$ROOTDIR/$GCC4ARM_VERSION
 GCC4ARM_DIR=$ROOTDIR/gcc-arm-none-eabi
 GCC4ARM_BINDIR=$GCC4ARM_DIR/bin
