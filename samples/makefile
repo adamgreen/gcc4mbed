@@ -28,12 +28,14 @@ all: $(DIRS)
 
 clean: $(DIRSCLEAN)
 
+clean-all: $(DIRSCLEAN)
+	$(Q) $(MAKE) -C HelloWorld clean-all
+
 $(DIRS):
 	@echo Building $@
 	$(Q) $(MAKE) -C $@ all
 
 $(DIRSCLEAN): %.clean:
-	@echo Cleaning $*
-	$(Q) $(MAKE) -C $*  clean
+	$(Q) $(MAKE) -C $* clean
 
-.PHONY: all clean $(DIRS) $(DIRSCLEAN)
+.PHONY: all clean clean-all $(DIRS) $(DIRSCLEAN)

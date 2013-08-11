@@ -1,4 +1,4 @@
-# Copyright 2011 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,12 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-PROJECT=Ticker
-GCC4MBED_DIR=../..
-INCDIRS=
-LIBS_PREFIX=
-LIBS_SUFFIX=
-NO_FLOAT_SCANF=1
-NO_FLOAT_PRINTF=1
+PROJECT         := Ticker
+GCC4MBED_DIR    := ../..
+NO_FLOAT_SCANF  := 1
+NO_FLOAT_PRINTF := 1
 
-include ../../build/gcc4mbed.mk
+include $(GCC4MBED_DIR)/build/gcc4mbed.mk

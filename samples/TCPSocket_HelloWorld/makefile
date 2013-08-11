@@ -11,10 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-PROJECT=TCPSocket_HelloWorld
-GCC4MBED_DIR=../..
-LIBS_PREFIX=
-LIBS_SUFFIX=
-DEFINES=-DTOOLCHAIN_GCC_ARM -DNDEBUG -D__CORTEX_M3
+PROJECT      := TCPSocket_HelloWorld
+GCC4MBED_DIR := ../..
 
-include ../../build/gcc4mbed.mk
+include $(GCC4MBED_DIR)/build/gcc4mbed.mk

@@ -1,25 +1,22 @@
-#Copyright (C) 2011 by Sagar G V
+# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
-#
-# Updates: 
-#    Arthur Wolf & Adam Green in 2011 - Updated to work with mbed.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 ###############################################################################
 # USAGE:
 # Variables that must be defined in including makefile.
@@ -86,12 +83,13 @@ ifndef GCC4MBED_DIR
 $(error makefile must set GCC4MBED_DIR.)
 endif
 
+
 # Set VERBOSE make variable to 1 to output all tool commands.
 VERBOSE?=0
 ifeq "$(VERBOSE)" "0"
-Q=@
+Q := @
 else
-Q=
+Q :=
 endif
 
 
@@ -105,40 +103,45 @@ MRI_UART ?= MRI_UART_MBED_USB
 # Configure MRI variables based on GCC4MBED_TYPE build type variable.
 ifeq "$(GCC4MBED_TYPE)" "Release"
 OPTIMIZATION ?= 2
-MRI_ENABLE = 0
+MRI_ENABLE := 0
 MRI_SEMIHOST_STDIO ?= 0
 endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Debug"
 OPTIMIZATION = 0
-MRI_ENABLE = 1
+MRI_ENABLE := 1
 MRI_SEMIHOST_STDIO ?= 1
 endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Checked"
 OPTIMIZATION ?= 2
-MRI_ENABLE = 1
+MRI_ENABLE := 1
 MRI_SEMIHOST_STDIO ?= 1
 endif
 
-MRI_INIT_PARAMETERS=$(MRI_UART)
+MRI_INIT_PARAMETERS := $(MRI_UART)
 
 
-# Output Object Directory
-OUTDIR=LPC176x
+# Output Object Directory.
+OUTDIR := LPC176x
+
+# Final target binary.  Used for variable target scoping.
+TARGET_BIN := $(OUTDIR)/$(PROJECT).bin
 
 # List of sources to be compiled/assembled
-CSRCS = $(wildcard $(SRC)/*.c $(SRC)/*/*.c $(SRC)/*/*/*.c $(SRC)/*/*/*/*.c $(SRC)/*/*/*/*/*.c)
-ASRCS =  $(wildcard $(SRC)/*.S $(SRC)/*/*.S $(SRC)/*/*/*.S $(SRC)/*/*/*/*.S $(SRC)/*/*/*/*/*.S)
+C_SRCS   := $(wildcard $(SRC)/*.c $(SRC)/*/*.c $(SRC)/*/*/*.c $(SRC)/*/*/*/*.c $(SRC)/*/*/*/*/*.c)
+ASM_SRCS :=  $(wildcard $(SRC)/*.S $(SRC)/*/*.S $(SRC)/*/*/*.S $(SRC)/*/*/*/*.S $(SRC)/*/*/*/*/*.S)
 ifneq "$(OS)" "Windows_NT"
-ASRCS +=  $(wildcard $(SRC)/*.s $(SRC)/*/*.s $(SRC)/*/*/*.s $(SRC)/*/*/*/*.s $(SRC)/*/*/*/*/*.s)
+ASM_SRCS +=  $(wildcard $(SRC)/*.s $(SRC)/*/*.s $(SRC)/*/*/*.s $(SRC)/*/*/*/*.s $(SRC)/*/*/*/*/*.s)
 endif
-CPPSRCS = $(wildcard $(SRC)/*.cpp $(SRC)/*/*.cpp $(SRC)/*/*/*.cpp $(SRC)/*/*/*/*.cpp $(SRC)/*/*/*/*/*.cpp)
+CPP_SRCS := $(wildcard $(SRC)/*.cpp $(SRC)/*/*.cpp $(SRC)/*/*/*.cpp $(SRC)/*/*/*/*.cpp $(SRC)/*/*/*/*/*.cpp)
 
-# List of the objects files to be compiled/assembled
-OBJECTS = $(patsubst %.c,$(OUTDIR)/%.o,$(CSRCS)) $(patsubst %.s,$(OUTDIR)/%.o,$(patsubst %.S,$(OUTDIR)/%.o,$(ASRCS))) $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPPSRCS))
+# List of the objects files to be compiled/assembled.
+OBJECTS := $(patsubst %.c,$(OUTDIR)/%.o,$(C_SRCS)) 
+OBJECTS += $(patsubst %.s,$(OUTDIR)/%.o,$(patsubst %.S,$(OUTDIR)/%.o,$(ASM_SRCS)))
+OBJECTS += $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPP_SRCS))
 
 # Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
 OBJECTS += $(OUTDIR)/gcc4mbed.o
@@ -153,77 +156,89 @@ LSCRIPT=$(GCC4MBED_DIR)/build/mbed.ld
 EXTERNAL_DIR = $(GCC4MBED_DIR)/external
 
 # Include path which points to external library headers and to subdirectories of this project which contain headers.
-SUBDIRS = $(wildcard $(SRC)/* $(SRC)/*/* $(SRC)/*/*/* $(SRC)/*/*/*/* $(SRC)/*/*/*/*/*)
-PROJINCS = $(sort $(dir $(SUBDIRS)))
-INCDIRS += $(SRC) $(PROJINCS) $(GCC4MBED_DIR)/mri $(EXTERNAL_DIR)/mbed $(EXTERNAL_DIR)/mbed/LPC1768
+SUBDIRS  := $(wildcard $(SRC)/* $(SRC)/*/* $(SRC)/*/*/* $(SRC)/*/*/*/* $(SRC)/*/*/*/*/*)
+PROJINCS := $(sort $(dir $(SUBDIRS)))
+MBED_DIR := $(EXTERNAL_DIR)/mbed/libraries/mbed
+INCDIRS  += $(SRC) $(PROJINCS)
+INCDIRS  += $(GCC4MBED_DIR)/mri
+INCDIRS  += $(MBED_DIR)/api
+INCDIRS  += $(MBED_DIR)/hal
+INCDIRS  += $(MBED_DIR)/targets/cmsis
+# UNDONE: This will need to work across multiple mbed SDK targets.
+INCDIRS  += $(MBED_DIR)/targets/hal/TARGET_NXP/TARGET_LPC176X
+INCDIRS  += $(MBED_DIR)/targets/cmsis/TARGET_NXP/TARGET_LPC176X
 
 # DEFINEs to be used when building C/C++ code
-DEFINES += -DTARGET_LPC1768
+# UNDONE: Is device specific
+DEFINES += -DTARGET_LPC1768 -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC -D__CORTEX_M3
 DEFINES += -DMRI_ENABLE=$(MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"' 
 DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
 
 # Libraries to be linked into final binary
-MBED_LIBS = $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libmbed.a
-SYS_LIBS = -lstdc++_s -lsupc++_s -lm -lgcc -lc_s -lgcc -lc_s -lnosys
-LIBS = $(LIBS_PREFIX) 
+SYS_LIBS  := -lstdc++_s -lsupc++_s -lm -lgcc -lc_s -lgcc -lc_s -lnosys
+LIBS      := $(LIBS_PREFIX) 
 
-ifeq "$(MRI_ENABLE)" "1"
-LIBS += $(GCC4MBED_DIR)/mri/mri.ar
+# Some choices like mbed library and enabling of asserts depend on build type.
+ifeq "$(GCC4MBED_TYPE)" "Debug"
+MBED_LIBS := $(EXTERNAL_DIR)/mbed/libraries/mbed/Debug/NXP_LPC176X/libmbed.a
+else
+MBED_LIBS := $(EXTERNAL_DIR)/mbed/libraries/mbed/Release/NXP_LPC176X/libmbed.a
+DEFINES   += -DNDEBUG
 endif
 
-LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/startup_LPC17xx.o
-LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/cmsis_nvic.o
-LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/core_cm3.o
-LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/system_LPC17xx.o
-LIBS += $(MBED_LIBS)
-LIBS += $(SYS_LIBS)
-LIBS += $(LIBS_SUFFIX)
+ifeq "$(MRI_ENABLE)" "1"
+LIBS      += $(GCC4MBED_DIR)/mri/mri.ar
+endif
+
+LIBS      += $(MBED_LIBS)
+LIBS      += $(LIBS_SUFFIX)
 
 # Compiler flags used to enable creation of header dependencies.
-DEPFLAGS = -MMD -MP
+DEPFLAGS := -MMD -MP
 
 # Compiler Options
-GPFLAGS += -O$(OPTIMIZATION) -g3 -mcpu=cortex-m3 -mthumb -mthumb-interwork 
-GPFLAGS += -ffunction-sections -fdata-sections  -fno-exceptions -fno-delete-null-pointer-checks
-GPFLAGS += $(patsubst %,-I%,$(INCDIRS))
-GPFLAGS += $(DEFINES)
-GPFLAGS += $(DEPFLAGS)
-GPFLAGS += -Wall -Wextra -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wredundant-decls -Wcast-qual -Wcast-align
+$(TARGET_BIN): CPP_FLAGS := $(GPFLAGS) -O$(OPTIMIZATION) -g3 -mcpu=cortex-m3 -mthumb -mthumb-interwork 
+$(TARGET_BIN): CPP_FLAGS += -ffunction-sections -fdata-sections  -fno-exceptions -fno-delete-null-pointer-checks
+$(TARGET_BIN): CPP_FLAGS += $(patsubst %,-I%,$(INCDIRS))
+$(TARGET_BIN): CPP_FLAGS += $(DEFINES)
+$(TARGET_BIN): CPP_FLAGS += $(DEPFLAGS)
+$(TARGET_BIN): CPP_FLAGS += -Wall -Wextra -Wno-unused-parameter
 
-GCFLAGS += $(GPFLAGS)
+$(TARGET_BIN): C_FLAGS := $(GCFLAGS) $(CPP_FLAGS)
 
-AS_GCFLAGS += -g3 -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
-AS_GCFLAGS += $(patsubst %,-I%,$(INCDIRS))
-AS_FLAGS += -g3 -mcpu=cortex-m3 -mthumb
+$(TARGET_BIN): ASM_FLAGS     := -g3 -mcpu=cortex-m3 -mthumb
+$(TARGET_BIN): ASM_GCC_FLAGS := $(AS_GCFLAGS) $(ASM_FLAGS) -x assembler-with-cpp
+$(TARGET_BIN): ASM_GCC_FLAGS += $(patsubst %,-I%,$(INCDIRS))
+$(TARGET_BIN): ASM_FLAGS     += $(AS_FLAGS)
 
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
 ifeq "$(MRI_ENABLE)" "1"
-MRI_WRAPS=,--wrap=_read,--wrap=_write,--wrap=semihost_connected
+$(TARGET_BIN): MRI_WRAPS := ,--wrap=_read,--wrap=_write,--wrap=semihost_connected
 else
-MRI_WRAPS=
+$(TARGET_BIN): MRI_WRAPS :=
 endif
 
 # Linker Options.
-LDFLAGS  = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec
-LDFLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
-LDFLAGS += -T$(LSCRIPT)
+$(TARGET_BIN): LD_FLAGS := -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec
+$(TARGET_BIN): LD_FLAGS  += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
-LDFLAGS += -u _scanf_float
+$(TARGET_BIN): LD_FLAGS += -u _scanf_float
 endif
 ifneq "$(NO_FLOAT_PRINTF)" "1"
-LDFLAGS += -u _printf_float
+$(TARGET_BIN): LD_FLAGS += -u _printf_float
 endif
 
 
 #  Compiler/Assembler/Linker Paths
-GCC = arm-none-eabi-gcc
-GPP = arm-none-eabi-g++
-AS = arm-none-eabi-as
-LD = arm-none-eabi-g++
-OBJCOPY = arm-none-eabi-objcopy
-OBJDUMP = arm-none-eabi-objdump
-SIZE = arm-none-eabi-size
+GCC     := arm-none-eabi-gcc
+GPP     := arm-none-eabi-g++
+AS      := arm-none-eabi-as
+AR      :=arm-none-eabi-ar
+LD      := arm-none-eabi-g++
+OBJCOPY := arm-none-eabi-objcopy
+OBJDUMP := arm-none-eabi-objdump
+SIZE    := arm-none-eabi-size
 
 # Some tools are different on Windows in comparison to Unix.
 ifeq "$(OS)" "Windows_NT"
@@ -252,49 +267,46 @@ $1
 endef
 endif
 
+
 #########################################################################
-.PHONY: all clean deploy size
+.PHONY: all clean clean-all deploy size
 
-all:: $(PROJECT).hex $(PROJECT).bin $(OUTDIR)/$(PROJECT).disasm size
+all:: $(TARGET_BIN) $(OUTDIR)/$(PROJECT).hex $(OUTDIR)/$(PROJECT).disasm size
 
-$(PROJECT).bin: $(PROJECT).elf
+$(TARGET_BIN): $(OUTDIR)/$(PROJECT).elf
 	@echo Extracting $@
-	$(Q) $(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
+	$(Q) $(OBJCOPY) -O binary $< $@
 
-$(PROJECT).hex: $(PROJECT).elf
+$(OUTDIR)/$(PROJECT).hex: $(OUTDIR)/$(PROJECT).elf
 	@echo Extracting $@
-	$(Q) $(OBJCOPY) -R .stack -O ihex $(PROJECT).elf $(PROJECT).hex
+	$(Q) $(OBJCOPY) -R .stack -O ihex $< $@
 	
-$(OUTDIR)/$(PROJECT).disasm: $(PROJECT).elf
+$(OUTDIR)/$(PROJECT).disasm: $(OUTDIR)/$(PROJECT).elf
 	@echo Extracting disassembly to $@
-	$(Q) $(OBJDUMP) -d -f -M reg-names-std $(PROJECT).elf >$(OUTDIR)/$(PROJECT).disasm
+	$(Q) $(OBJDUMP) -d -f -M reg-names-std $< >$@
 	
-$(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
+$(OUTDIR)/$(PROJECT).elf: $(LSCRIPT) $(OBJECTS) $(LIBS)
 	@echo Linking $@
-	$(Q) $(LD) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(PROJECT).elf
+	$(Q) $(LD) $(LD_FLAGS) -T$+ $(SYS_LIBS) -o $@
 
-size: $(PROJECT).elf
-	$(Q) $(SIZE) $(PROJECT).elf
+size: $(OUTDIR)/$(PROJECT).elf
+	$(Q) $(SIZE) $<
 	@$(BLANK_LINE)
 
+clean: CLEAN_TARGET := $(OUTDIR)
+clean: PROJECT      := $(PROJECT)
 clean:
-	@echo Cleaning up all build generated files
-	$(Q) $(REMOVE) -f $(call convert-slash,$(OBJECTS)) $(QUIET)
-	$(Q) $(REMOVE) -f $(call convert-slash,$(DEPFILES)) $(QUIET)
-	$(Q) $(REMOVE_DIR) $(OUTDIR) $(QUIET)
-	$(Q) $(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).map) $(QUIET)
-	$(Q) $(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).disasm) $(QUIET)
-	$(Q) $(REMOVE) -f $(PROJECT).bin $(QUIET)
-	$(Q) $(REMOVE) -f $(PROJECT).hex $(QUIET)
-	$(Q) $(REMOVE) -f $(PROJECT).elf $(QUIET)
+	@echo Cleaning $(PROJECT)/$(CLEAN_TARGET)
+	$(Q) $(REMOVE_DIR) $(CLEAN_TARGET) $(QUIET)
+
+clean-all: NXP_LPC176X_clean clean
 
 -include $(DEPFILES)
 
 ifdef LPC_DEPLOY
-DEPLOY_COMMAND = $(subst PROJECT,$(PROJECT),$(LPC_DEPLOY))
-deploy:
+deploy: $(OUTDIR)/$(PROJECT).elf
 	@echo Deploying to target.
-	$(Q) $(DEPLOY_COMMAND)
+	$(Q) $(subst PROJECT,$(OUTDIR)/$(PROJECT),$(LPC_DEPLOY))
 endif
 
 #########################################################################
@@ -304,26 +316,30 @@ endif
 $(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(GCFLAGS) -c $< -o $@
+	$(Q) $(GCC) $(C_FLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.cpp makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GPP) $(GPFLAGS) -c $< -o $@
+	$(Q) $(GPP) $(CPP_FLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.c makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(GCFLAGS) -c $< -o $@
+	$(Q) $(GCC) $(C_FLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.S makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(AS_GCFLAGS) -c $< -o $@
+	$(Q) $(GCC) $(ASM_GCC_FLAGS) -c $< -o $@
 
 $(OUTDIR)/%.o : %.s makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(AS) $(AS_FLAGS) -o $@ $<
+	$(Q) $(AS) $(ASM_FLAGS) -o $@ $<
 
 #########################################################################
+
+
+# Include makefiles that enable the building of mbed SDK dependencies.
+include $(GCC4MBED_DIR)/build/mbed-lpc1768.mk
