@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-PROJECT      := FileTest
-GCC4MBED_DIR := ../..
+PROJECT         := FileTest
+DEVICES         := LPC1768 LPC11U24
+GCC4MBED_DIR    := ../..
+NO_FLOAT_SCANF  := 1
+NO_FLOAT_PRINTF := 1
 
 include $(GCC4MBED_DIR)/build/gcc4mbed.mk

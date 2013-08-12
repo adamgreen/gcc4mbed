@@ -29,7 +29,7 @@ all: $(DIRS)
 clean: $(DIRSCLEAN)
 
 clean-all: $(DIRSCLEAN)
-	$(Q) $(MAKE) -C HelloWorld LPC176X_MBED_clean LPC11UXX_MBED_clean
+	$(Q) $(MAKE) -C HelloWorld LPC1768_MBED_clean LPC11U24_MBED_clean
 
 $(DIRS):
 	@echo Building $@

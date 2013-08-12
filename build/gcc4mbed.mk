@@ -98,7 +98,7 @@ SRC               ?= .
 GCC4MBED_TYPE     ?= Release
 MRI_BREAK_ON_INIT ?= 1
 MRI_UART          ?= MRI_UART_MBED_USB
-DEVICES           ?= LPC176X
+DEVICES           ?= LPC1768
 
 
 # Configure MRI variables based on GCC4MBED_TYPE build type variable.
@@ -167,8 +167,8 @@ endif
 all: $(DEVICES)
 clean: $(addsuffix _clean,$(DEVICES))
 clean-all: $(addsuffix _MBED_clean,$(DEVICES)) clean
-deploy: LPC176X_deploy
+deploy: LPC1768_deploy
 
 # Include makefiles that know how to build each of the supported device types.
-include $(GCC4MBED_DIR)/build/device-lpc176x.mk
-include $(GCC4MBED_DIR)/build/device-lpc11uxx.mk
+include $(GCC4MBED_DIR)/build/device-lpc1768.mk
+include $(GCC4MBED_DIR)/build/device-lpc11u24.mk

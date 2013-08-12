@@ -20,10 +20,17 @@
 
 
 # Output Object Directory.
-OUTDIR := $(MBED_TARGET_DEVICE)
+OUTDIR := $(MBED_DEVICE)
 
 # Final target binary.  Used for variable target scoping.
 TARGET_BIN := $(OUTDIR)/$(PROJECT).bin
+
+# Only allow the MRI debug monitor to be enabled for LPC1768 devices.
+ifeq "$(MBED_DEVICE)" "LPC1768"
+DEVICE_MRI_ENABLE := $(MRI_ENABLE)
+else
+DEVICE_MRI_ENABLE := 0
+endif
 
 # List of sources to be compiled/assembled
 C_SRCS   := $(wildcard $(SRC)/*.c $(SRC)/*/*.c $(SRC)/*/*/*.c $(SRC)/*/*/*/*.c $(SRC)/*/*/*/*/*.c)
@@ -45,8 +52,7 @@ OBJECTS += $(OUTDIR)/gcc4mbed.o
 DEPFILES = $(patsubst %.o,%.d,$(OBJECTS))
 
 # Linker script to be used.  Indicates what code should be placed where in memory.
-#LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)/TOOLCHAIN_GCC_ARM/
-LSCRIPT=$(GCC4MBED_DIR)/build/mbed.ld
+LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)/TOOLCHAIN_GCC_ARM/$(MBED_LD_SCRIPT)
 
 # Location of external library and header dependencies.
 EXTERNAL_DIR = $(GCC4MBED_DIR)/external
@@ -66,7 +72,7 @@ INCDIRS  += $(MBED_DIR)/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED
 # DEFINEs to be used when building C/C++ code
 # UNDONE: Is device specific
 DEFINES += -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE) -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC $(MBED_DEFINES)
-DEFINES += -DMRI_ENABLE=$(MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"' 
+DEFINES += -DMRI_ENABLE=$(DEVICE_MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"' 
 DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
 
 # Libraries to be linked into final binary
@@ -81,7 +87,7 @@ MBED_LIBS := $(EXTERNAL_DIR)/mbed/libraries/mbed/Release/$(MBED_TARGET)/libmbed.
 DEFINES   += -DNDEBUG
 endif
 
-ifeq "$(MRI_ENABLE)" "1"
+ifeq "$(DEVICE_MRI_ENABLE)" "1"
 LIBS      += $(GCC4MBED_DIR)/mri/mri.ar
 endif
 
@@ -92,43 +98,43 @@ LIBS      += $(LIBS_SUFFIX)
 DEPFLAGS := -MMD -MP
 
 # Compiler Options
-$(TARGET_BIN): CPP_FLAGS := $(GPFLAGS) -O$(OPTIMIZATION) -g3 $(MBED_TARGET_C_FLAGS) 
-$(TARGET_BIN): CPP_FLAGS += -ffunction-sections -fdata-sections  -fno-exceptions -fno-delete-null-pointer-checks
-$(TARGET_BIN): CPP_FLAGS += $(patsubst %,-I%,$(INCDIRS))
-$(TARGET_BIN): CPP_FLAGS += $(DEFINES)
-$(TARGET_BIN): CPP_FLAGS += $(DEPFLAGS)
-$(TARGET_BIN): CPP_FLAGS += -Wall -Wextra -Wno-unused-parameter
+$(MBED_DEVICE): CPP_FLAGS := $(GPFLAGS) -O$(OPTIMIZATION) -g3 $(MBED_TARGET_C_FLAGS) 
+$(MBED_DEVICE): CPP_FLAGS += -ffunction-sections -fdata-sections  -fno-exceptions -fno-delete-null-pointer-checks
+$(MBED_DEVICE): CPP_FLAGS += $(patsubst %,-I%,$(INCDIRS))
+$(MBED_DEVICE): CPP_FLAGS += $(DEFINES)
+$(MBED_DEVICE): CPP_FLAGS += $(DEPFLAGS)
+$(MBED_DEVICE): CPP_FLAGS += -Wall -Wextra -Wno-unused-parameter
 
-$(TARGET_BIN): C_FLAGS := $(GCFLAGS) $(CPP_FLAGS)
+$(MBED_DEVICE): C_FLAGS := $(GCFLAGS) $(CPP_FLAGS)
 
-$(TARGET_BIN): ASM_FLAGS     := -g3 $(MBED_ASM_FLAGS)
-$(TARGET_BIN): ASM_GCC_FLAGS := $(AS_GCFLAGS) $(ASM_FLAGS) -x assembler-with-cpp
-$(TARGET_BIN): ASM_GCC_FLAGS += $(patsubst %,-I%,$(INCDIRS))
-$(TARGET_BIN): ASM_FLAGS     += $(AS_FLAGS)
+$(MBED_DEVICE): ASM_FLAGS     := -g3 $(MBED_ASM_FLAGS)
+$(MBED_DEVICE): ASM_GCC_FLAGS := $(AS_GCFLAGS) $(ASM_FLAGS) -x assembler-with-cpp
+$(MBED_DEVICE): ASM_GCC_FLAGS += $(patsubst %,-I%,$(INCDIRS))
+$(MBED_DEVICE): ASM_FLAGS     += $(AS_FLAGS)
 
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
-ifeq "$(MRI_ENABLE)" "1"
-$(TARGET_BIN): MRI_WRAPS := ,--wrap=_read,--wrap=_write,--wrap=semihost_connected
+ifeq "$(DEVICE_MRI_ENABLE)" "1"
+MRI_WRAPS := ,--wrap=_read,--wrap=_write,--wrap=semihost_connected
 else
-$(TARGET_BIN): MRI_WRAPS :=
+MRI_WRAPS :=
 endif
 
 # Linker Options.
-$(TARGET_BIN): LD_FLAGS := $(MBED_LD_FLAGS) -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec
-$(TARGET_BIN): LD_FLAGS  += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
+$(MBED_DEVICE): LD_FLAGS := $(MBED_LD_FLAGS) -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec
+$(MBED_DEVICE): LD_FLAGS  += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
-$(TARGET_BIN): LD_FLAGS += -u _scanf_float
+$(MBED_DEVICE): LD_FLAGS += -u _scanf_float
 endif
 ifneq "$(NO_FLOAT_PRINTF)" "1"
-$(TARGET_BIN): LD_FLAGS += -u _printf_float
+$(MBED_DEVICE): LD_FLAGS += -u _printf_float
 endif
 
 
 #########################################################################
-.PHONY: $(MBED_TARGET_DEVICE) $(MBED_TARGET_DEVICE)_clean $(MBED_TARGET_DEVICE)_deploy $(MBED_TARGET_DEVICE)_size
+.PHONY: $(MBED_DEVICE) $(MBED_DEVICE)_clean $(MBED_DEVICE)_deploy $(MBED_DEVICE)_size
 
-$(MBED_TARGET_DEVICE): $(TARGET_BIN) $(OUTDIR)/$(PROJECT).hex $(OUTDIR)/$(PROJECT).disasm $(MBED_TARGET_DEVICE)_size
+$(MBED_DEVICE): $(TARGET_BIN) $(OUTDIR)/$(PROJECT).hex $(OUTDIR)/$(PROJECT).disasm $(MBED_DEVICE)_size
 
 $(TARGET_BIN): $(OUTDIR)/$(PROJECT).elf
 	@echo Extracting $@
@@ -146,13 +152,13 @@ $(OUTDIR)/$(PROJECT).elf: $(LSCRIPT) $(OBJECTS) $(LIBS)
 	@echo Linking $@
 	$(Q) $(LD) $(LD_FLAGS) -T$+ $(SYS_LIBS) -o $@
 
-$(MBED_TARGET_DEVICE)_size: $(OUTDIR)/$(PROJECT).elf
+$(MBED_DEVICE)_size: $(OUTDIR)/$(PROJECT).elf
 	$(Q) $(SIZE) $<
 	@$(BLANK_LINE)
 
-$(MBED_TARGET_DEVICE)_clean: CLEAN_TARGET := $(OUTDIR)
-$(MBED_TARGET_DEVICE)_clean: PROJECT      := $(PROJECT)
-$(MBED_TARGET_DEVICE)_clean:
+$(MBED_DEVICE)_clean: CLEAN_TARGET := $(OUTDIR)
+$(MBED_DEVICE)_clean: PROJECT      := $(PROJECT)
+$(MBED_DEVICE)_clean:
 	@echo Cleaning $(PROJECT)/$(CLEAN_TARGET)
 	$(Q) $(REMOVE_DIR) $(CLEAN_TARGET) $(QUIET)
 
@@ -161,8 +167,8 @@ $(MBED_TARGET_DEVICE)_clean:
 
 
 ifdef LPC_DEPLOY
-$(MBED_TARGET_DEVICE)_deploy: DEPLOY_PREFIX := $(OUTDIR)/$(PROJECT)
-$(MBED_TARGET_DEVICE)_deploy: $(TARGET_BIN) $(OUTDIR)/$(PROJECT).hex $(OUTDIR)/$(PROJECT).disasm $(MBED_TARGET_DEVICE)_size
+$(MBED_DEVICE)_deploy: DEPLOY_PREFIX := $(OUTDIR)/$(PROJECT)
+$(MBED_DEVICE)_deploy: $(MBED_DEVICE)
 	@echo Deploying to target.
 	$(Q) $(subst PROJECT,$(DEPLOY_PREFIX),$(LPC_DEPLOY))
 endif
