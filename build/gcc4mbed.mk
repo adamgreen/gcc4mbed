@@ -271,7 +271,7 @@ endif
 #########################################################################
 .PHONY: all clean clean-all deploy size
 
-all:: $(TARGET_BIN) $(OUTDIR)/$(PROJECT).hex $(OUTDIR)/$(PROJECT).disasm size
+all: $(TARGET_BIN) $(OUTDIR)/$(PROJECT).hex $(OUTDIR)/$(PROJECT).disasm size
 
 $(TARGET_BIN): $(OUTDIR)/$(PROJECT).elf
 	@echo Extracting $@
@@ -304,7 +304,7 @@ clean-all: NXP_LPC176X_clean clean
 -include $(DEPFILES)
 
 ifdef LPC_DEPLOY
-deploy: $(OUTDIR)/$(PROJECT).elf
+deploy: $(TARGET_BIN) $(OUTDIR)/$(PROJECT).hex $(OUTDIR)/$(PROJECT).disasm
 	@echo Deploying to target.
 	$(Q) $(subst PROJECT,$(OUTDIR)/$(PROJECT),$(LPC_DEPLOY))
 endif
@@ -342,4 +342,4 @@ $(OUTDIR)/%.o : %.s makefile
 
 
 # Include makefiles that enable the building of mbed SDK dependencies.
-include $(GCC4MBED_DIR)/build/mbed-lpc1768.mk
+include $(GCC4MBED_DIR)/build/device-lpc176x.mk

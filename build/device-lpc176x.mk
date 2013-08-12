@@ -28,4 +28,4 @@ MBED_TARGET_C_FLAGS := -mcpu=cortex-m3 -mthumb -mthumb-interwork
 MBED_ASM_FLAGS      := -mcpu=cortex-m3 -mthumb
 MBED_DEFINES        := -D__CORTEX_M3
 
-include $(GCC4MBED_DIR)/build/arm-common.mk
+include $(GCC4MBED_DIR)/build/mbed-device.mk
