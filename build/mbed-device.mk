@@ -19,14 +19,6 @@
 # SOFTWARE.
 
 
-# Build up target library name based on vendor and device name.  This will be
-# the root rule for the building of this library.
-# NOTE: Most of the variables defined in this included makefile will be scoped
-#       to this rule so that they don't interfere with other makefiles.
-MBED_TARGET  :=$(MBED_TARGET_VENDOR)_$(MBED_TARGET_DEVICE)
-CLEAN_TARGET :=$(MBED_TARGET)_clean
-
-
 # Directories where source files are found and output files should be placed.
 ROOT_DIR             :=$(GCC4MBED_DIR)/external/mbed/libraries/mbed
 HAL_TARGET_SRC       :=$(ROOT_DIR)/targets/hal/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
@@ -127,8 +119,8 @@ $(DEBUG_MBED): $(DEBUG_OBJECTS)
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(AR) -rc $@ $+
 
-$(CLEAN_TARGET): CLEAN_TARGETS:=$(DEBUG_DIR) $(RELEASE_DIR)
-$(CLEAN_TARGET):
+$(MBED_CLEAN): CLEAN_TARGETS:=$(DEBUG_DIR) $(RELEASE_DIR)
+$(MBED_CLEAN):
 	@echo Cleaning $(CLEAN_TARGETS)
 	$(Q) $(REMOVE_DIR) $(call convert-slash,$(CLEAN_TARGETS)) $(QUIET)
 
