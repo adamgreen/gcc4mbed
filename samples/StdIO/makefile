@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 PROJECT         := StdIO
-DEVICES         := LPC1768 LPC11U24
+DEVICES         := LPC1768 LPC11U24 KL25Z
 GCC4MBED_DIR    := ../..
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
