@@ -22,6 +22,7 @@
 MBED_TARGET_VENDOR := NXP
 MBED_TARGET_DEVICE := LPC176X
 MBED_DEVICE        := LPC1768
+MBED_TARGET_FAMILY := M3
 MBED_TARGET        := $(MBED_TARGET_VENDOR)_$(MBED_TARGET_DEVICE)
 MBED_CLEAN         := $(MBED_DEVICE)_MBED_clean
 
@@ -37,5 +38,20 @@ MBED_LD_FLAGS       := -mcpu=cortex-m3 -mthumb
 MBED_LD_SCRIPT      := LPC1768.ld
 
 
+# Clear out the include path for mbed components to be filled in by the
+# components which are actually used according to MBED_LIBS.
+MBED_INCLUDES :=
+
+
+# Include makefiles to build the project and any of the mbed components it
+# might require.
 include $(GCC4MBED_DIR)/build/gcc4mbed-device.mk
 include $(GCC4MBED_DIR)/build/mbed-device.mk
+include $(GCC4MBED_DIR)/build/rtos-device.mk
+include $(GCC4MBED_DIR)/build/lwip-device.mk
+include $(GCC4MBED_DIR)/build/eth-device.mk
+
+
+# When building the project for this device, use this scoped include path for
+# the mbed components used.
+$(MBED_DEVICE): MBED_INCLUDES := $(patsubst %,-I%,$(MBED_INCLUDES))

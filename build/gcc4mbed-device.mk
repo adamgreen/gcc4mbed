@@ -58,16 +58,11 @@ LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_$(MBED
 EXTERNAL_DIR = $(GCC4MBED_DIR)/external
 
 # Include path which points to external library headers and to subdirectories of this project which contain headers.
-SUBDIRS  := $(wildcard $(SRC)/* $(SRC)/*/* $(SRC)/*/*/* $(SRC)/*/*/*/* $(SRC)/*/*/*/*/*)
-PROJINCS := $(sort $(dir $(SUBDIRS)))
-MBED_DIR := $(EXTERNAL_DIR)/mbed/libraries/mbed
-INCDIRS  += $(SRC) $(PROJINCS)
-INCDIRS  += $(GCC4MBED_DIR)/mri
-INCDIRS  += $(MBED_DIR)/api
-INCDIRS  += $(MBED_DIR)/hal
-INCDIRS  += $(MBED_DIR)/targets/cmsis
-INCDIRS  += $(MBED_DIR)/targets/hal/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
-INCDIRS  += $(MBED_DIR)/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
+SUBDIRS      := $(wildcard $(SRC)/* $(SRC)/*/* $(SRC)/*/*/* $(SRC)/*/*/*/* $(SRC)/*/*/*/*/*)
+PROJINCS     := $(sort $(dir $(SUBDIRS)))
+INCLUDE_DIRS := $(INCDIRS)
+INCLUDE_DIRS += $(SRC) $(PROJINCS)
+INCLUDE_DIRS += $(GCC4MBED_DIR)/mri
 
 # DEFINEs to be used when building C/C++ code
 # UNDONE: Is device specific
@@ -79,34 +74,39 @@ DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_S
 SYS_LIBS  := -lstdc++_s -lsupc++_s -lm -lgcc -lc_s -lgcc -lc_s -lnosys
 LIBS      := $(LIBS_PREFIX) 
 
-# Some choices like mbed library and enabling of asserts depend on build type.
+# Some choices like mbed SDK library locations and enabling of asserts depend on build type.
 ifeq "$(GCC4MBED_TYPE)" "Debug"
-MBED_LIBS := $(EXTERNAL_DIR)/mbed/libraries/mbed/Debug/$(MBED_TARGET)/libmbed.a
+MBED_LIBRARIES := $(patsubst %,$(EXTERNAL_DIR)/mbed/libraries/Debug/$(MBED_TARGET)/%.a,$(MBED_LIBS))
 else
-MBED_LIBS := $(EXTERNAL_DIR)/mbed/libraries/mbed/Release/$(MBED_TARGET)/libmbed.a
-DEFINES   += -DNDEBUG
+MBED_LIBRARIES := $(patsubst %,$(EXTERNAL_DIR)/mbed/libraries/Release/$(MBED_TARGET)/%.a,$(MBED_LIBS))
+DEFINES        += -DNDEBUG
 endif
 
 ifeq "$(DEVICE_MRI_ENABLE)" "1"
 LIBS      += $(GCC4MBED_DIR)/mri/mri.ar
 endif
 
-LIBS      += $(MBED_LIBS)
+LIBS      += $(MBED_LIBRARIES)
 LIBS      += $(LIBS_SUFFIX)
 
 # Compiler flags used to enable creation of header dependencies.
 DEPFLAGS := -MMD -MP
 
-# Compiler Options
-$(MBED_DEVICE): CPP_FLAGS := $(GPFLAGS) -O$(OPTIMIZATION) -g3 $(MBED_TARGET_C_FLAGS) 
-$(MBED_DEVICE): CPP_FLAGS += -ffunction-sections -fdata-sections  -fno-exceptions -fno-delete-null-pointer-checks
-$(MBED_DEVICE): CPP_FLAGS += $(patsubst %,-I%,$(INCDIRS))
-$(MBED_DEVICE): CPP_FLAGS += $(DEFINES)
-$(MBED_DEVICE): CPP_FLAGS += $(DEPFLAGS)
-$(MBED_DEVICE): CPP_FLAGS += -Wall -Wextra -Wno-unused-parameter
+# Compiler Options.
+C_FLAGS := $(GCFLAGS) -O$(OPTIMIZATION) -g3 $(MBED_TARGET_C_FLAGS) 
+C_FLAGS += -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
+C_FLAGS += -Wall -Wextra -Wno-unused-parameter
+C_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS))
+C_FLAGS += $(DEFINES)
+C_FLAGS += $(DEP_FLAGS)
 
-$(MBED_DEVICE): C_FLAGS := $(GCFLAGS) $(CPP_FLAGS)
+CPP_FLAGS := $(GPFLAGS) $(C_FLAGS) -fno-rtti -std=gnu++11
+C_FLAGS   += -std=gnu99
 
+$(MBED_DEVICE): C_FLAGS := $(C_FLAGS)
+$(MBED_DEVICE): CPP_FLAGS := $(CPP_FLAGS)
+
+# Assembler Options.
 $(MBED_DEVICE): ASM_FLAGS     := -g3 $(MBED_ASM_FLAGS)
 $(MBED_DEVICE): ASM_GCC_FLAGS := $(AS_GCFLAGS) $(ASM_FLAGS) -x assembler-with-cpp
 $(MBED_DEVICE): ASM_GCC_FLAGS += $(patsubst %,-I%,$(INCDIRS))
@@ -180,22 +180,22 @@ endif
 $(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(C_FLAGS) -c $< -o $@
+	$(Q) $(GCC) $(C_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
 $(OUTDIR)/%.o : %.cpp makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GPP) $(CPP_FLAGS) -c $< -o $@
+	$(Q) $(GPP) $(CPP_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
 $(OUTDIR)/%.o : %.c makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(C_FLAGS) -c $< -o $@
+	$(Q) $(GCC) $(C_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
 $(OUTDIR)/%.o : %.S makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(ASM_GCC_FLAGS) -c $< -o $@
+	$(Q) $(GCC) $(ASM_GCC_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
 $(OUTDIR)/%.o : %.s makefile
 	@echo Assembling $<

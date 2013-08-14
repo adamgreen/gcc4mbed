@@ -163,11 +163,20 @@ endef
 endif
 
 
+# Make sure that the mbed library always gets linked in.
+MBED_LIBS += mbed
+
+
+# All supported devices that clean-all target should clean.
+ALL_DEVICES := LPC1768 LPC11U24 KL25Z
+
+
 # Rules for building all of the desired device targets
 all: $(DEVICES)
 clean: $(addsuffix _clean,$(DEVICES))
-clean-all: $(addsuffix _MBED_clean,$(DEVICES)) clean
+clean-all: $(addsuffix _MBED_clean,$(ALL_DEVICES)) clean
 deploy: LPC1768_deploy
+
 
 # Include makefiles that know how to build each of the supported device types.
 include $(GCC4MBED_DIR)/build/device-lpc1768.mk
