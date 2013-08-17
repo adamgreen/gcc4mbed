@@ -135,7 +135,7 @@ Now comes the really fun part.  Not only can we build our GCC4MBED samples in Ec
 * Check the **Use configuration specific settings** check-box.
 * Select the **GDB (DSF) Manual Remote Debugging Lancher**.
 * Click **Ok** to return to the debug configurations dialog.
-* Set **C/C++ Application:** to **FileTest.elf**
+* Set **C/C++ Application:** to **LPC1768/FileTest.elf**
 * Select the **Disable auto build** option.
 * Click on the **Debugger** tab.
 * Change **GDB debugger:** from **gdb** to **arm-none-eabi-gdb**
