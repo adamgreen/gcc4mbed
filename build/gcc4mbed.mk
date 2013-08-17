@@ -19,6 +19,9 @@
 # SOFTWARE.
 ###############################################################################
 # USAGE:
+# Summary folows but more information can be found at following link:
+#  https://github.com/adamgreen/gcc4mbed/blob/master/notes/makefile.creole
+#
 # Variables that must be defined in including makefile.
 #   PROJECT: Name to be given to the output binary for this project.
 #   GCC4MBED_DIR: The root directory for where the gcc4mbed sources are located
@@ -26,9 +29,17 @@
 #                 of the build directory which contains this gcc4mbed.mk file.
 #
 # Variables that may be optionally set in makefile.
+#   DEVCICES: Used to specify a space delimited list of target device(s) that
+#             this application should be built for.  Allowed values include:
+#              LPC1768
+#              LPC11U24
+#              KL25Z
+#              default: LPC1768
 #   SRC: The root directory for the sources of your project.  Defaults to '.'.
-#   LIBS_PREFIX: List of library/object files to prepend to mbed.ar capi.ar libs.
-#   LIBS_SUFFIX: List of library/object files to append to mbed.ar capi.ar libs.
+#   NO_FLOAT_SCANF: When set to 1, scanf() will not support %f specifier to
+#                   input floating point values.  Reduces code size.
+#   NO_FLOAT_PRINTF: When set to 1, scanf() will not support %f specifier to
+#                    output floating point values.  Reduces code size.
 #   GCC4MBED_TYPE: Type of build to produce.  Allowed values are:
 #                  Debug - Build for debugging.  Disables optimizations and
 #                          links in debug MRI runtime.  Best debugging 
@@ -39,19 +50,32 @@
 #                            as Debug but might be needed when bugs don't
 #                            reproduce in Debug builds.
 #                  default: Release
+#   MBED_LIBS: Specifies which additional official mbed libraries you would
+#              like to use with your application.  These include:
+#               net/lwip
+#               net/eth
+#               rtos
+#   INCDIRS: Space delimited list of extra directories to use for #include
+#            searches.
+#   LIBS_PREFIX: List of library/object files to prepend to mbed libs.
+#   LIBS_SUFFIX: List of library/object files to append to mbed libs.
 #   GPFLAGS: Additional compiler flags used when building C++ sources.
 #   GCFLAGS: Additional compiler flags used when building C sources.
 #   AS_GCFLAGS: Additional compiler flags used by GCC when building
 #               preprocessed assembly language sources.
 #   AS_FLAGS: Additional assembler flags used when building assembly language
 #             sources.
-#   NO_FLOAT_SCANF: When set to 1, scanf() will not support %f specifier to
-#                   input floating point values.  Reduces code size.
-#   NO_FLOAT_PRINTF: When set to 1, scanf() will not support %f specifier to
-#                    output floating point values.  Reduces code size.
+#   OPTIMIZATION: Optional variable that can be set to s, 0, 1, 2, or 3 for
+#                 overriding the compiler's optimization level.  It defaults
+#                 to 2 for Checked and Release buillds and is forced to be 0
+#                 for Debug builds.
 #   VERBOSE: When set to 1, all build commands will be displayed to console.
 #            It defaults to 0 which suppresses the output of the build tool
 #            command lines themselves.
+#   MRI_ENABLE: Is typically set based on GCC4MBED_TYPE but defaults to 1 for
+#               Debug (non-optimized builds).  User can force it to 0 for
+#               Debug builds so that the MRI debug monitor isn't used.  Useful
+#               for creating builds to use with JTAG debuggers.
 #   MRI_BREAK_ON_INIT: Should the program halt before calling into main(),
 #                      allowing the developer time to set breakpoints in main()
 #                      or in code run from within global constructors.
@@ -63,14 +87,16 @@
 #   MRI_UART: Select the UART to be used by the debugger.  See mri.h for
 #             allowed values.
 #             default: MRI_UART_MBED_USB - Use USB based UART on the mbed.
-# Example makefile:
-#       PROJECT=HelloWorld
-#       SRC=.
-#       GCC4MBED_DIR=../..
-#       LIBS_PREFIX=../agutil/agutil.ar
-#       LIBS_SUFFIX=
 #
-#       include ../../build/gcc4mbed.mk
+# Example makefile:
+#       PROJECT      := HelloWorld
+#       SRC          := .
+#       GCC4MBED_DIR := ../..
+#       INCDIRS      :=
+#       LIBS_PREFIX  :=
+#       LIBS_SUFFIX  :=
+#
+#       include $(GCC4MBED_DIR)/build/gcc4mbed.mk
 #      
 ###############################################################################
 
@@ -96,6 +122,8 @@ endif
 # Default variables.
 SRC               ?= .
 GCC4MBED_TYPE     ?= Release
+NO_FLOAT_SCANF    ?= 0
+NO_FLOAT_PRINTF   ?= 0
 MRI_BREAK_ON_INIT ?= 1
 MRI_UART          ?= MRI_UART_MBED_USB
 DEVICES           ?= LPC1768
@@ -110,8 +138,8 @@ endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Debug"
-OPTIMIZATION = 0
-MRI_ENABLE := 1
+OPTIMIZATION ?= 0
+MRI_ENABLE ?= 1
 MRI_SEMIHOST_STDIO ?= 1
 endif
 

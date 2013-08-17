@@ -65,7 +65,6 @@ INCLUDE_DIRS += $(SRC) $(PROJINCS)
 INCLUDE_DIRS += $(GCC4MBED_DIR)/mri
 
 # DEFINEs to be used when building C/C++ code
-# UNDONE: Is device specific
 DEFINES += -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE) -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC $(MBED_DEFINES)
 DEFINES += -DMRI_ENABLE=$(DEVICE_MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"' 
 DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
@@ -93,23 +92,23 @@ LIBS      += $(LIBS_SUFFIX)
 DEPFLAGS := -MMD -MP
 
 # Compiler Options.
-C_FLAGS := $(GCFLAGS) -O$(OPTIMIZATION) -g3 $(MBED_TARGET_C_FLAGS) 
+C_FLAGS := -O$(OPTIMIZATION) -g3 $(MBED_TARGET_C_FLAGS) 
 C_FLAGS += -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
 C_FLAGS += -Wall -Wextra -Wno-unused-parameter
 C_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS))
 C_FLAGS += $(DEFINES)
 C_FLAGS += $(DEP_FLAGS)
 
-CPP_FLAGS := $(GPFLAGS) $(C_FLAGS) -fno-rtti -std=gnu++11
-C_FLAGS   += -std=gnu99
+CPP_FLAGS := $(C_FLAGS) -fno-rtti -std=gnu++11 $(GPFLAGS)
+C_FLAGS   += -std=gnu99 $(GCFLAGS)
 
 $(MBED_DEVICE): C_FLAGS := $(C_FLAGS)
 $(MBED_DEVICE): CPP_FLAGS := $(CPP_FLAGS)
 
 # Assembler Options.
 $(MBED_DEVICE): ASM_FLAGS     := -g3 $(MBED_ASM_FLAGS)
-$(MBED_DEVICE): ASM_GCC_FLAGS := $(AS_GCFLAGS) $(ASM_FLAGS) -x assembler-with-cpp
-$(MBED_DEVICE): ASM_GCC_FLAGS += $(patsubst %,-I%,$(INCDIRS))
+$(MBED_DEVICE): ASM_GCC_FLAGS := $(ASM_FLAGS) -x assembler-with-cpp
+$(MBED_DEVICE): ASM_GCC_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS)) $(AS_GCFLAGS) 
 $(MBED_DEVICE): ASM_FLAGS     += $(AS_FLAGS)
 
 
@@ -121,7 +120,7 @@ MRI_WRAPS :=
 endif
 
 # Linker Options.
-$(MBED_DEVICE): LD_FLAGS := $(MBED_LD_FLAGS) -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec
+$(MBED_DEVICE): LD_FLAGS := $(MBED_LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec
 $(MBED_DEVICE): LD_FLAGS  += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
 $(MBED_DEVICE): LD_FLAGS += -u _scanf_float
