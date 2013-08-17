@@ -160,6 +160,9 @@ $(MBED_DEVICE)_clean: PROJECT      := $(PROJECT)
 $(MBED_DEVICE)_clean:
 	@echo Cleaning $(PROJECT)/$(CLEAN_TARGET)
 	$(Q) $(REMOVE_DIR) $(CLEAN_TARGET) $(QUIET)
+	$(Q) $(REMOVE) $(PROJECT).bin $(QUIET)
+	$(Q) $(REMOVE) $(PROJECT).hex $(QUIET)
+	$(Q) $(REMOVE) $(PROJECT).elf $(QUIET)
 
 
 -include $(DEPFILES)
