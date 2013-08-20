@@ -38,7 +38,7 @@ These are the quick steps to get gcc4mbed installed on your computer:
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/porting.creole#readme|Porting]]:**  Notes on porting applications from mbed cloud compiler to offline GCC4MBED project.\\
 
 ==Thanks
-The author wants to thank Arthur Wolf for the [[http://mbed.org/forum/mbed/topic/2336/|posting]] he made back in May which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
+The author wants to thank Arthur Wolf for the [[http://mbed.org/forum/mbed/topic/2336/|posting]] he made back in May on 2011 which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
 
 Thanks to Felyza Wishbringer for writing the first Windows install script which provided the inspiration for the Windows, Mac, and Linux scripts that are now included in the gcc4mbed project.
 
