@@ -1,5 +1,6 @@
 I first want to thank [[http://mbed.org/users/dcabanis/|David Cabanis]] for the e-mail that he sent me a few months ago.  It forms the core of this documentation.  David, You Rock!
 
+**Important Notes for Windows Users:** The [[http://mbed.org/cookbook/eclipse-for-building-and-debugging#additional-notes-for-windows-users1523|related cookbook page on the mbed website]] contains updated notes for configuring Eclipse on Windows.
 
 == Install GCC4MBED Project
 Refer to the following link to install GCC4MBED on your machine: [[https://github.com/adamgreen/gcc4mbed#quick-start]]
@@ -15,7 +16,7 @@ To get started, you need to install Eclipse.  To this you will add support for t
 * On the **Help** menu, select the **Install New Software...** option.
 * On the install dialog, press the **Add...** button near the upper right hand corner.
 * Set **Name:** to **Eclipse for ARM**.
-* Set **Location:** to **http://sourceforge.net/projects/gnuarmeclipse/files/Eclipse/updates/**
+* Set **Location:** to **{{{http://sourceforge.net/projects/gnuarmeclipse/files/Eclipse/updates/}}}**
 * Click the **Ok** button.
 * There should now be a **CDT GNU Cross Development Tools** item listed on the Install dialog.  It may take several seconds to populate this item into the list.  Once it appears, check it.
 * Now press the **Next** button.
