@@ -78,8 +78,12 @@ int __wrap__isatty(int file)
 /* Wrap memory allocation routines to make sure that they aren't being called from interrupt handler. */
 static void breakOnHeapOpFromInterruptHandler(void)
 {
+    /* UNDONE: I don't enable the check for KL25Z since the USBDevice implementation currently makes allocations from
+       its ISR to realize endpoint buffers. */
+#if !defined(TARGET_KL25Z)
     if (__get_IPSR() != 0)
         __debugbreak();
+#endif
 }
 
 void* __real_malloc(size_t size);
