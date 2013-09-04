@@ -13,7 +13,21 @@
 # limitations under the License.
 #
 # Directories to be built
-DIRS=HelloWorld Blink Ticker StdIO LocalFileSystem FileTest TCPSocket_HelloWorld
+DIRS=HelloWorld\
+     Blink\
+     Ticker\
+     StdIO\
+     LocalFileSystem\
+     FileTest\
+     SdPerf\
+     TCPSocket_HelloWorld\
+     USBMouse\
+     USBHostMouse\
+     USBHostKeyboard\
+     USBHostMSD\
+     USBHostHub\
+     USBHostSerial
+
 DIRSCLEAN = $(addsuffix .clean,$(DIRS))
 
 # Set VERBOSE make variable to 1 to output all tool commands.
