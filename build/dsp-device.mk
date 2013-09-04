@@ -19,25 +19,9 @@
 # SOFTWARE.
 
 
-# Clear out the include path for mbed components to be filled in by the
-# components which are actually used according to MBED_LIBS.
-MBED_INCLUDES :=
+# Name of library being build.
+LIBRARY := dsp
 
 
-# Include makefiles to build the project and any of the mbed components it
-# might require.
-include $(GCC4MBED_DIR)/build/gcc4mbed-device.mk
-include $(GCC4MBED_DIR)/build/mbed-device.mk
-include $(GCC4MBED_DIR)/build/rtos-device.mk
-include $(GCC4MBED_DIR)/build/lwip-device.mk
-include $(GCC4MBED_DIR)/build/eth-device.mk
-include $(GCC4MBED_DIR)/build/fs-device.mk
-include $(GCC4MBED_DIR)/build/usbdevice-device.mk
-include $(GCC4MBED_DIR)/build/usbhost-device.mk
-include $(GCC4MBED_DIR)/build/rpc-device.mk
-include $(GCC4MBED_DIR)/build/dsp-device.mk
-
-
-# When building the project for this device, use this scoped include path for
-# the mbed components used.
-$(MBED_DEVICE): MBED_INCLUDES := $(patsubst %,-I%,$(MBED_INCLUDES))
+# Include header which builds this library from the mbed SDK.
+include $(GCC4MBED_DIR)/build/lib-device.mk
