@@ -50,7 +50,7 @@ CPP_SRCS := $(wildcard $(ROOT)/*.cpp $(ROOT)/*/*.cpp $(ROOT)/*/*/*.cpp $(ROOT)/*
 # Debug and Release object files to go into separate sub-directories.
 OBJECTS := $(patsubst $(ROOT)/%.cpp,__Output__/%.o,$(CPP_SRCS))
 OBJECTS += $(patsubst $(ROOT)/%.c,__Output__/%.o,$(C_SRCS))
-OBJECTS += $(patsubst $(ROOT)/%.s,__Output__/%.o,$(ASM_SRCS))
+OBJECTS += $(patsubst $(ROOT)/%.s,__Output__/%.o,$(patsubst $(ROOT)/%.S,__Output__/%.o,$(ASM_SRCS)))
 
 DEBUG_OBJECTS   := $(patsubst __Output__%,$(DEBUG_OBJ_DIR)%,$(OBJECTS))
 RELEASE_OBJECTS := $(patsubst __Output__%,$(RELEASE_OBJ_DIR)%,$(OBJECTS))
@@ -79,13 +79,16 @@ RELEASE_OPTIMIZATION := 2
 DEP_FLAGS := -MMD -MP
 
 
+# Preprocessor defines to use when compiling/assembling code with GCC.
+GCC_DEFINES := -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE) -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC $(MBED_DEFINES)
+
 # Flags to be used with C/C++ compiler that are shared between Debug and Release builds.
 C_FLAGS := -g3 $(MBED_TARGET_C_FLAGS) 
 C_FLAGS += -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
 C_FLAGS += -Wall -Wextra
-C_FLAGS += -Wno-unused-parameter
+C_FLAGS += -Wno-unused-parameter -Wno-missing-field-initializers -Wno-missing-braces
 C_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS))
-C_FLAGS += -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE) -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC $(MBED_DEFINES)
+C_FLAGS += $(GCC_DEFINES)
 C_FLAGS += $(DEP_FLAGS)
 
 CPP_FLAGS := $(C_FLAGS) -fno-rtti -std=gnu++11
@@ -102,6 +105,7 @@ $(RELEASE_LIB): CPP_FLAGS := $(CPP_FLAGS) -O$(RELEASE_OPTIMIZATION) -DNDEBUG
 
 # Flags used to assemble assembly languages sources.
 ASM_FLAGS := -g3 $(MBED_ASM_FLAGS) -x assembler-with-cpp
+ASM_FLAGS += $(GCC_DEFINES)
 ASM_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS))
 $(RELEASE_LIB): ASM_FLAGS := $(ASM_FLAGS)
 $(DEBUG_LIB):   ASM_FLAGS := $(ASM_FLAGS)
@@ -153,6 +157,16 @@ $(DEBUG_OBJ_DIR)/%.o : $(ROOT)/%.s
 	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
 $(RELEASE_OBJ_DIR)/%.o : $(ROOT)/%.s
+	@echo Assembling $<
+	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
+
+$(DEBUG_OBJ_DIR)/%.o : $(ROOT)/%.S
+	@echo Assembling $<
+	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
+
+$(RELEASE_OBJ_DIR)/%.o : $(ROOT)/%.S
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
