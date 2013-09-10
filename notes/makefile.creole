@@ -39,9 +39,13 @@ The **SRC** variable is used in an application's makefile to specify the root di
 
 ===MBED_LIBS
 The **MBED_LIBS** variable is an optional variable that an application's makefile can use to provide a space delimited list of additional official mbed libraries to be used.  The order of the libraries in this list will matter since they dictate link order.  The supported libraries include:
-* **net/lwip**: Pulls in the core lwIP TCP/IP networking stack components.
-* **net/eth**: Pulls in the ethernet driver to be used with the TCP/IP networking stack.  //If you want to use the ethernet based TCP/IP stack, your MBED_LIBS variable should contain at least these 3 libs in this order: net/lwip net/eth rtos//
+* **net/eth**: Pulls in the ethernet version of the TCP/IP networking stack and its dependencies (ie. rtos).
 * **rtos**: Pulls in the mbed RTOS library.
+* **fs**: Pulls in the FATFileSystem and SDFileSytem drivers.
+* **rpc**: Pulls in the mbed RPC library.
+* **dsp**: Pulls in the CMSIS DSP library.
+* **USBDevice**: Pulls in the USBDevice drivers such USBMouse, USBKeyboard, USBSerial, USBKeyboardMouse, etc.
+* **USBHost**: Pulls in the USBHost drivers such as USBHostMSD, USBHostMouse, USBHostKeyboard, USBHostHub, USBHostSerial, etc.
 
 ===NO_FLOAT_SCANF
 The **NO_FLOAT_SCANF** variable is an optional variable that an application's makefile can set to 1, indicating that scanf() does not need to support floating point values which reduces code size.

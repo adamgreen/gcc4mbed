@@ -195,6 +195,11 @@ endif
 MBED_LIBS += mbed
 
 
+# Add in library dependencies.
+MBED_LIBS := $(patsubst net/eth,net/lwip net/eth rtos,$(MBED_LIBS))
+MBED_LIBS := $(patsubst USBHost,USBHost fs rtos,$(MBED_LIBS))
+
+
 # All supported devices that clean-all target should clean.
 ALL_DEVICES := LPC1768 LPC11U24 KL25Z
 

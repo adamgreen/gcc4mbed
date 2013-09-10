@@ -16,6 +16,6 @@ DEVICES         := LPC1768
 GCC4MBED_DIR    := ../..
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
-MBED_LIBS       := USBHost rtos
+MBED_LIBS       := USBHost
 
 include $(GCC4MBED_DIR)/build/gcc4mbed.mk
