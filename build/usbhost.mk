@@ -20,8 +20,8 @@
 
 
 # Name of library being build.
-LIBRARY := net/eth
+LIBRARY := USBHost
 
 
 # Include header which builds this library from the mbed SDK.
-include $(GCC4MBED_DIR)/build/lib-device.mk
+include $(GCC4MBED_DIR)/build/lib-generic.mk

@@ -210,6 +210,6 @@ deploy: LPC1768_deploy
 
 
 # Include makefiles that know how to build each of the supported device types.
-include $(GCC4MBED_DIR)/build/device-lpc1768.mk
-include $(GCC4MBED_DIR)/build/device-lpc11u24.mk
-include $(GCC4MBED_DIR)/build/device-kl25z.mk
+include $(GCC4MBED_DIR)/build/lpc1768.mk
+include $(GCC4MBED_DIR)/build/lpc11u24.mk
+include $(GCC4MBED_DIR)/build/kl25z.mk

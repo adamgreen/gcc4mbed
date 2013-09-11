@@ -18,24 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Vendor/device for which the library should be built.
-MBED_TARGET_VENDOR := Freescale
-MBED_TARGET_DEVICE := KL25Z
-MBED_DEVICE        := KL25Z
-MBED_TARGET_FAMILY := M0P
-MBED_TARGET        := $(MBED_TARGET_VENDOR)_$(MBED_TARGET_DEVICE)
-MBED_CLEAN         := $(MBED_DEVICE)_MBED_clean
+
+# Name of library being build.
+LIBRARY := dsp
 
 
-# Compiler flags which are specifc to this device.
-MBED_TARGET_C_FLAGS := -mcpu=cortex-m0plus -mthumb
-MBED_ASM_FLAGS      := -mcpu=cortex-m0plus -mthumb
-MBED_DEFINES        := -D__CORTEX_M0PLUS
-MBED_LD_FLAGS       := -mcpu=cortex-m0plus -mthumb
-
-
-# Linker script to be used for this device.
-MBED_LD_SCRIPT      := MKL25Z4.ld
-
-
-include $(GCC4MBED_DIR)/build/device-libs.mk
+# Include header which builds this library from the mbed SDK.
+include $(GCC4MBED_DIR)/build/lib-generic.mk

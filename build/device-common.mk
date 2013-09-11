@@ -60,16 +60,16 @@ ASM_FLAGS += $(GCC_DEFINES)
 
 # Include makefiles to build the project and any of the mbed components it
 # might require.
-include $(GCC4MBED_DIR)/build/gcc4mbed-device.mk
-include $(GCC4MBED_DIR)/build/mbed-device.mk
-include $(GCC4MBED_DIR)/build/rtos-device.mk
-include $(GCC4MBED_DIR)/build/lwip-device.mk
-include $(GCC4MBED_DIR)/build/eth-device.mk
-include $(GCC4MBED_DIR)/build/fs-device.mk
-include $(GCC4MBED_DIR)/build/usbdevice-device.mk
-include $(GCC4MBED_DIR)/build/usbhost-device.mk
-include $(GCC4MBED_DIR)/build/rpc-device.mk
-include $(GCC4MBED_DIR)/build/dsp-device.mk
+include $(GCC4MBED_DIR)/build/main.mk
+include $(GCC4MBED_DIR)/build/mbed.mk
+include $(GCC4MBED_DIR)/build/rtos.mk
+include $(GCC4MBED_DIR)/build/lwip.mk
+include $(GCC4MBED_DIR)/build/eth.mk
+include $(GCC4MBED_DIR)/build/fs.mk
+include $(GCC4MBED_DIR)/build/usbdevice.mk
+include $(GCC4MBED_DIR)/build/usbhost.mk
+include $(GCC4MBED_DIR)/build/rpc.mk
+include $(GCC4MBED_DIR)/build/dsp.mk
 
 
 # When building the project for this device, use this scoped include path for

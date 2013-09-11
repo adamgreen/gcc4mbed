@@ -18,24 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Vendor/device for which the library should be built.
-MBED_TARGET_VENDOR := NXP
-MBED_TARGET_DEVICE := LPC11UXX
-MBED_TARGET_FAMILY := M0
-MBED_DEVICE        := LPC11U24
-MBED_TARGET        := $(MBED_TARGET_VENDOR)_$(MBED_TARGET_DEVICE)
-MBED_CLEAN         := $(MBED_DEVICE)_MBED_clean
+
+# Name of library being build.
+LIBRARY := net/lwip
 
 
-# Compiler flags which are specifc to this device.
-MBED_TARGET_C_FLAGS := -mcpu=cortex-m0 -mthumb
-MBED_ASM_FLAGS      := $(MBED_TARGET_C_FLAGS)
-MBED_DEFINES        := -D__CORTEX_M0
-MBED_LD_FLAGS       := $(MBED_TARGET_C_FLAGS)
-
-
-# Linker script to be used for this device.
-MBED_LD_SCRIPT      := TARGET_LPC11U24_401/LPC11U24.ld
-
-
-include $(GCC4MBED_DIR)/build/device-libs.mk
+# Include header which builds this library from the mbed SDK.
+include $(GCC4MBED_DIR)/build/lib-generic.mk
