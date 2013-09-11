@@ -68,9 +68,6 @@ The **INCDIRS** variable can be used by an application's makefile to prepend a l
 ===GCFLAGS
 **GCFLAGS** is an optional variable that an application's makefile can use to specify additional flags for compiling C source files.
 
-===AS_GCFLAGS
-**AS_GCFLAGS** is an optional variable that an application's makefile can use to specify additional flags for compiling preprocessed .S assembly language sources files.
-
 ===AS_FLAGS
 **AS_FLAGS** is an optional variable that an application's makefile can use to specify additional flags for assembling .s assembly language source files.
 

@@ -63,9 +63,9 @@ PROJINCS     := $(sort $(dir $(SUBDIRS)))
 INCLUDE_DIRS := $(INCDIRS)
 INCLUDE_DIRS += $(SRC) $(PROJINCS)
 INCLUDE_DIRS += $(GCC4MBED_DIR)/mri
+INCLUDE_DIRS := $(patsubst %,-I%,$(INCLUDE_DIRS))
 
 # DEFINEs to be used when building C/C++ code
-DEFINES += -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE) -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC $(MBED_DEFINES)
 DEFINES += -DMRI_ENABLE=$(DEVICE_MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"' 
 DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
 
@@ -88,29 +88,11 @@ endif
 LIBS      += $(MBED_LIBRARIES)
 LIBS      += $(LIBS_SUFFIX)
 
-# Compiler flags used to enable creation of header dependencies.
-DEPFLAGS := -MMD -MP
-
-# Compiler Options.
-C_FLAGS := -O$(OPTIMIZATION) -g3 $(MBED_TARGET_C_FLAGS) 
-C_FLAGS += -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
-C_FLAGS += -Wall -Wextra -Wno-unused-parameter
-C_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS))
-C_FLAGS += $(DEFINES)
-C_FLAGS += $(DEP_FLAGS)
-
-CPP_FLAGS := $(C_FLAGS) -fno-rtti -std=gnu++11 $(GPFLAGS)
-C_FLAGS   += -std=gnu99 $(GCFLAGS)
-
-$(MBED_DEVICE): C_FLAGS := $(C_FLAGS)
-$(MBED_DEVICE): CPP_FLAGS := $(CPP_FLAGS)
+$(MBED_DEVICE): C_FLAGS   := -O$(OPTIMIZATION) $(C_FLAGS) $(DEFINES) $(INCLUDE_DIRS) $(GCFLAGS)
+$(MBED_DEVICE): CPP_FLAGS := -O$(OPTIMIZATION) $(CPP_FLAGS) $(DEFINES) $(INCLUDE_DIRS) $(GPFLAGS)
 
 # Assembler Options.
-$(MBED_DEVICE): ASM_FLAGS     := -g3 $(MBED_ASM_FLAGS)
-$(MBED_DEVICE): ASM_GCC_FLAGS := $(ASM_FLAGS) -x assembler-with-cpp
-$(MBED_DEVICE): ASM_GCC_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS)) $(AS_GCFLAGS) 
-$(MBED_DEVICE): ASM_FLAGS     += $(AS_FLAGS)
-
+$(MBED_DEVICE): ASM_FLAGS := $(ASM_FLAGS) $(AS_FLAGS) $(INCLUDE_DIRS)
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
 ifeq "$(DEVICE_MRI_ENABLE)" "1"
@@ -145,7 +127,7 @@ $(OUTDIR)/$(PROJECT).hex: $(OUTDIR)/$(PROJECT).elf
 	
 $(OUTDIR)/$(PROJECT).disasm: $(OUTDIR)/$(PROJECT).elf
 	@echo Extracting disassembly to $@
-	$(Q) $(OBJDUMP) -d -f -M reg-names-std $< >$@
+	$(Q) $(OBJDUMP) -d -f -M reg-names-std --demangle $< >$@
 	
 $(OUTDIR)/$(PROJECT).elf: $(LSCRIPT) $(OBJECTS) $(LIBS)
 	@echo Linking $@
@@ -197,11 +179,11 @@ $(OUTDIR)/%.o : %.c makefile
 $(OUTDIR)/%.o : %.S makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(ASM_GCC_FLAGS) $(MBED_INCLUDES) -c $< -o $@
+	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : %.s makefile
+$(OUTDIR)/%.o : %.S makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(AS) $(ASM_FLAGS) -o $@ $<
+	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
 #########################################################################

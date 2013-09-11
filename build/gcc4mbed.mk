@@ -61,8 +61,6 @@
 #   LIBS_SUFFIX: List of library/object files to append to mbed libs.
 #   GPFLAGS: Additional compiler flags used when building C++ sources.
 #   GCFLAGS: Additional compiler flags used when building C sources.
-#   AS_GCFLAGS: Additional compiler flags used by GCC when building
-#               preprocessed assembly language sources.
 #   AS_FLAGS: Additional assembler flags used when building assembly language
 #             sources.
 #   OPTIMIZATION: Optional variable that can be set to s, 0, 1, 2, or 3 for

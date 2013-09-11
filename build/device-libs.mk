@@ -24,6 +24,40 @@
 MBED_INCLUDES :=
 
 
+#
+# Setup flags that are common across the different pieces of code to be built.
+#
+# Optimization levels to be used for Debug and Release versions of libraries.
+DEBUG_OPTIMIZATION   := 0
+RELEASE_OPTIMIZATION := 2
+
+
+# Compiler flags used to enable creation of header dependency files.
+DEP_FLAGS := -MMD -MP
+
+
+# Preprocessor defines to use when compiling/assembling code with GCC.
+GCC_DEFINES := -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE)
+GCC_DEFINES += -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC $(MBED_DEFINES)
+
+
+# Flags to be used with C/C++ compiler that are shared between Debug and Release builds.
+C_FLAGS := -g3 $(MBED_TARGET_C_FLAGS) 
+C_FLAGS += -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
+C_FLAGS += -Wall -Wextra
+C_FLAGS += -Wno-unused-parameter -Wno-missing-field-initializers -Wno-missing-braces
+C_FLAGS += $(GCC_DEFINES)
+C_FLAGS += $(DEP_FLAGS)
+
+CPP_FLAGS := $(C_FLAGS) -fno-rtti -std=gnu++11
+C_FLAGS   += -std=gnu99
+
+
+# Flags used to assemble assembly languages sources.
+ASM_FLAGS := -g3 $(MBED_ASM_FLAGS) -x assembler-with-cpp
+ASM_FLAGS += $(GCC_DEFINES)
+
+
 # Include makefiles to build the project and any of the mbed components it
 # might require.
 include $(GCC4MBED_DIR)/build/gcc4mbed-device.mk

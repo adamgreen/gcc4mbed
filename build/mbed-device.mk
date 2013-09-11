@@ -19,25 +19,19 @@
 # SOFTWARE.
 
 
+# Name of this library.
+LIBRARY := mbed
+
+
 # Directories where source files are found and output files should be placed.
-ROOT_DIR             :=$(GCC4MBED_DIR)/external/mbed/libraries/mbed
-HAL_TARGET_SRC       :=$(ROOT_DIR)/targets/hal/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
-CMSIS_TARGET_SRC     :=$(ROOT_DIR)/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
-CMSIS_TARGET_TOOL    :=$(ROOT_DIR)/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)/TOOLCHAIN_GCC_ARM
-COMMON_SRC           :=$(ROOT_DIR)/common
-API_HEADERS          :=$(ROOT_DIR)/api
-HAL_HEADERS          :=$(ROOT_DIR)/hal
-CMSIS_COMMON_HEADERS :=$(ROOT_DIR)/targets/cmsis
-RELEASE_DIR          :=$(GCC4MBED_DIR)/external/mbed/libraries/Release/$(MBED_TARGET)
-DEBUG_DIR            :=$(GCC4MBED_DIR)/external/mbed/libraries/Debug/$(MBED_TARGET)
-RELEASE_OBJ_DIR      :=$(RELEASE_DIR)/mbed
-DEBUG_OBJ_DIR        :=$(DEBUG_DIR)/mbed
-
-
-# Release and Debug target libraries for C and C++ portions of mbed SDK.
-LIB_MBED     := mbed.a
-RELEASE_MBED := $(RELEASE_DIR)/$(LIB_MBED)
-DEBUG_MBED   := $(DEBUG_DIR)/$(LIB_MBED)
+ROOT                 :=$(GCC4MBED_DIR)/external/mbed/libraries/mbed
+HAL_TARGET_SRC       :=$(ROOT)/targets/hal/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
+CMSIS_TARGET_SRC     :=$(ROOT)/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
+CMSIS_TARGET_TOOL    :=$(ROOT)/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)/TOOLCHAIN_GCC_ARM
+COMMON_SRC           :=$(ROOT)/common
+API_HEADERS          :=$(ROOT)/api
+HAL_HEADERS          :=$(ROOT)/hal
+CMSIS_COMMON_HEADERS :=$(ROOT)/targets/cmsis
 
 
 # Build up list of all C, C++, and Assembly Language files to be compiled/assembled.
@@ -50,118 +44,25 @@ CMSIS_TARGET_TOOLS := $(wildcard $(CMSIS_TARGET_TOOL)/*.s)
 
 # Convert list of source files to corresponding list of object files to be generated.
 # Debug and Release object files to go into separate sub-directories.
-OBJECTS := $(patsubst $(ROOT_DIR)/%.c,__Output__/%.o,$(HAL_TARGET_SRCS))
-OBJECTS += $(patsubst $(ROOT_DIR)/%.c,__Output__/%.o,$(CMSIS_TARGET_SRCS))
-OBJECTS += $(patsubst $(ROOT_DIR)/%.c,__Output__/%.o,$(patsubst $(ROOT_DIR)/%.cpp,__Output__/%.o,$(COMMON_SRCS)))
-OBJECTS += $(patsubst $(ROOT_DIR)/%.s,__Output__/%.o,$(CMSIS_TARGET_TOOLS))
-
-DEBUG_OBJECTS   := $(patsubst __Output__%,$(DEBUG_OBJ_DIR)%,$(OBJECTS))
-RELEASE_OBJECTS := $(patsubst __Output__%,$(RELEASE_OBJ_DIR)%,$(OBJECTS))
-
-
-# List of the header dependency files, one per object file.
-DEBUG_DEPFILES   := $(patsubst %.o,%.d,$(DEBUG_OBJECTS))
-RELEASE_DEPFILES := $(patsubst %.o,%.d,$(RELEASE_OBJECTS))
+OBJECTS := $(patsubst $(ROOT)/%.c,__Output__/%.o,$(HAL_TARGET_SRCS))
+OBJECTS += $(patsubst $(ROOT)/%.c,__Output__/%.o,$(CMSIS_TARGET_SRCS))
+OBJECTS += $(patsubst $(ROOT)/%.c,__Output__/%.o,$(patsubst $(ROOT)/%.cpp,__Output__/%.o,$(COMMON_SRCS)))
+OBJECTS += $(patsubst $(ROOT)/%.s,__Output__/%.o,$(CMSIS_TARGET_TOOLS))
 
 
 # Include directory list.
-INCLUDE_DIRS := $(API_HEADERS) $(HAL_HEADERS) $(CMSIS_COMMON_HEADERS) $(CMSIS_TARGET_SRC) $(HAL_TARGET_SRC)
+PROJINCS := $(API_HEADERS) $(HAL_HEADERS) $(CMSIS_COMMON_HEADERS) $(CMSIS_TARGET_SRC) $(HAL_TARGET_SRC)
 
 
-# Append to main project's include path.
-MBED_INCLUDES += $(API_HEADERS) $(HAL_HEADERS) $(CMSIS_COMMON_HEADERS) $(CMSIS_TARGET_SRC) $(HAL_TARGET_SRC)
-
-
-# Optimization levels to be used for Debug and Release versions of the library.
-DEBUG_OPTIMIZATION   := 0
-RELEASE_OPTIMIZATION := 2
-
-
-# Compiler flags used to enable creation of header dependency files.
-DEP_FLAGS := -MMD -MP
-
-
-# Flags to be used with C/C++ compiler that are shared between Debug and Release builds.
-C_FLAGS := -g3 $(MBED_TARGET_C_FLAGS) 
-C_FLAGS += -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
-C_FLAGS += -Wall -Wextra
-C_FLAGS += -Wno-unused-parameter
-C_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS))
-C_FLAGS += -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE) -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC $(MBED_DEFINES)
-C_FLAGS += $(DEP_FLAGS)
-
-CPP_FLAGS := $(C_FLAGS) -fno-rtti -std=gnu++11
-C_FLAGS   += -std=gnu99
-
-
-# Customize C/C++ flags for Debug and Release builds.
-$(DEBUG_MBED): C_FLAGS   := $(C_FLAGS) -O$(DEBUG_OPTIMIZATION)
-$(DEBUG_MBED): CPP_FLAGS := $(CPP_FLAGS) -O$(DEBUG_OPTIMIZATION)
-
-$(RELEASE_MBED): C_FLAGS   := $(C_FLAGS) -O$(RELEASE_OPTIMIZATION) -DNDEBUG
-$(RELEASE_MBED): CPP_FLAGS := $(CPP_FLAGS) -O$(RELEASE_OPTIMIZATION) -DNDEBUG
-
-
-# Flags used to assemble assembly languages sources.
-ASM_FLAGS := -g3 $(MBED_ASM_FLAGS) -x assembler-with-cpp
-ASM_FLAGS += $(patsubst %,-I%,$(INCLUDE_DIRS))
-$(RELEASE_MBED): ASM_FLAGS := $(ASM_FLAGS)
-$(DEBUG_MBED):   ASM_FLAGS := $(ASM_FLAGS)
+include $(GCC4MBED_DIR)/build/lib-common.mk
 
 
 #########################################################################
-# High level rules for building Debug and Release versions of library.
+# High level rule for cleaning out all official mbed libraries.
 #########################################################################
 .PHONY: $(MBED_CLEAN)
-
-$(RELEASE_MBED): $(RELEASE_OBJECTS)
-	@echo Linking release library $@
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(AR) -rc $@ $+
-
-$(DEBUG_MBED): $(DEBUG_OBJECTS)
-	@echo Linking debug library $@
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(AR) -rc $@ $+
 
 $(MBED_CLEAN): CLEAN_TARGETS:=$(DEBUG_DIR) $(RELEASE_DIR)
 $(MBED_CLEAN):
 	@echo Cleaning $(CLEAN_TARGETS)
 	$(Q) $(REMOVE_DIR) $(call convert-slash,$(CLEAN_TARGETS)) $(QUIET)
-
--include $(DEBUG_DEPFILES)
--include $(RELEASE_DEPFILES)
-
-
-#########################################################################
-#  Default rules to compile c/c++/assembly language sources to objects.
-#########################################################################
-$(DEBUG_OBJ_DIR)/%.o : $(ROOT_DIR)/%.c
-	@echo Compiling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(C_FLAGS) -c $< -o $@
-
-$(RELEASE_OBJ_DIR)/%.o : $(ROOT_DIR)/%.c
-	@echo Compiling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(C_FLAGS) -c $< -o $@
-
-$(DEBUG_OBJ_DIR)/%.o : $(ROOT_DIR)/%.cpp
-	@echo Compiling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GPP) $(CPP_FLAGS) -c $< -o $@
-
-$(RELEASE_OBJ_DIR)/%.o : $(ROOT_DIR)/%.cpp
-	@echo Compiling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GPP) $(CPP_FLAGS) -c $< -o $@
-
-$(DEBUG_OBJ_DIR)/%.o : $(ROOT_DIR)/%.s
-	@echo Assembling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(ASM_FLAGS) -c $< -o $@
-
-$(RELEASE_OBJ_DIR)/%.o : $(ROOT_DIR)/%.s
-	@echo Assembling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(ASM_FLAGS) -c $< -o $@
