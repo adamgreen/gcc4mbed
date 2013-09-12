@@ -38,7 +38,8 @@ DEP_FLAGS := -MMD -MP
 
 # Preprocessor defines to use when compiling/assembling code with GCC.
 GCC_DEFINES := -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE)
-GCC_DEFINES += -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC $(MBED_DEFINES)
+GCC_DEFINES += -DTARGET_$(MBED_TARGET_VENDOR) -DTARGET_$(MBED_TARGET_FAMILY)
+GCC_DEFINES += -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC -D$(MBED_MATH) $(MBED_DEFINES)
 
 
 # Flags to be used with C/C++ compiler that are shared between Debug and Release builds.
