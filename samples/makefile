@@ -29,6 +29,9 @@ DIRS=HelloWorld\
      USBHostSerial
 
 DIRSCLEAN = $(addsuffix .clean,$(DIRS))
+DIRS_LPC1768 = $(addsuffix .lpc1768,$(DIRS))
+DIRS_LPC11U24 = $(addsuffix .lpc11u24,$(DIRS))
+DIRS_KL25Z = $(addsuffix .kl25z,$(DIRS))
 
 # Set VERBOSE make variable to 1 to output all tool commands.
 VERBOSE?=0
@@ -42,8 +45,12 @@ all: $(DIRS)
 
 clean: $(DIRSCLEAN)
 
+LPC1768: $(DIRS_LPC1768)
+LPC11U24: $(DIRS_LPC11U24)
+KL25Z: $(DIRS_KL25Z)
+
 clean-all: $(DIRSCLEAN)
-	$(Q) $(MAKE) -C HelloWorld LPC1768_MBED_clean LPC11U24_MBED_clean
+	$(Q) $(MAKE) -C HelloWorld LPC1768_MBED_clean LPC11U24_MBED_clean KL25Z_MBED_clean
 
 $(DIRS):
 	@echo Building $@
@@ -52,4 +59,13 @@ $(DIRS):
 $(DIRSCLEAN): %.clean:
 	$(Q) $(MAKE) -C $* clean
 
-.PHONY: all clean clean-all $(DIRS) $(DIRSCLEAN)
+$(DIRS_LPC1768): %.lpc1768:
+	$(Q) $(MAKE) -C $* LPC1768
+
+$(DIRS_LPC11U24): %.lpc11u24:
+	$(Q) $(MAKE) -C $* LPC11U24
+
+$(DIRS_KL25Z): %.kl25z:
+	$(Q) $(MAKE) -C $* KL25Z
+
+.PHONY: all clean LPC1768 LPC11U24 KL25Z clean-all $(DIRS) $(DIRSCLEAN) $(DIRS_LPC1768) $(DIRS_LPC11U24) $(DIRS_KL25Z)

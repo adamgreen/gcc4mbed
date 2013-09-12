@@ -19,6 +19,10 @@
 # SOFTWARE.
 
 
+# Can skip parsing of this makefile if user hasn't requested this device.
+ifeq "$(findstring $(MBED_DEVICE),$(DEVICES))" "$(MBED_DEVICE)"
+
+
 # Clear out the include path for mbed components to be filled in by the
 # components which are actually used according to MBED_LIBS.
 MBED_INCLUDES :=
@@ -76,3 +80,14 @@ include $(GCC4MBED_DIR)/build/dsp.mk
 # When building the project for this device, use this scoped include path for
 # the mbed components used.
 $(MBED_DEVICE): MBED_INCLUDES := $(patsubst %,-I%,$(MBED_INCLUDES))
+
+
+else
+# Have an empty rule for this device since it isn't supported.
+.PHONY: $(MBED_DEVICE)
+
+$(MBED_DEVICE):
+	@#
+
+
+endif # ifeq "$(findstring $(MBED_DEVICE),$(DEVICES))"...
