@@ -67,6 +67,9 @@
 #                 overriding the compiler's optimization level.  It defaults
 #                 to 2 for Checked and Release buillds and is forced to be 0
 #                 for Debug builds.
+#   NEWLIB_NANO: When set to 1, use the smaller newlib-nano C libraries and
+#                use the standard newlib libraries otherwise.  It defaults
+#                to a value of 1 so that smaller builds are produced.
 #   VERBOSE: When set to 1, all build commands will be displayed to console.
 #            It defaults to 0 which suppresses the output of the build tool
 #            command lines themselves.
@@ -125,6 +128,7 @@ NO_FLOAT_PRINTF   ?= 0
 MRI_BREAK_ON_INIT ?= 1
 MRI_UART          ?= MRI_UART_MBED_USB
 DEVICES           ?= LPC1768
+NEWLIB_NANO       ?= 1
 
 
 # Configure MRI variables based on GCC4MBED_TYPE build type variable.
@@ -205,7 +209,7 @@ ALL_DEVICES := LPC1768 LPC11U24 KL25Z
 # Rules for building all of the desired device targets
 all: $(DEVICES)
 clean: $(addsuffix _clean,$(DEVICES))
-clean-all: $(addsuffix _MBED_clean,$(ALL_DEVICES)) clean
+clean-all: $(addsuffix _MBED_clean,$(DEVICES)) clean
 deploy: LPC1768_deploy
 
 

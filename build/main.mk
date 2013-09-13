@@ -70,7 +70,7 @@ MAIN_DEFINES := $(DEFINES) -DMRI_ENABLE=$(DEVICE_MRI_ENABLE) -DMRI_INIT_PARAMETE
 MAIN_DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
 
 # Libraries to be linked into final binary
-SYS_LIBS  := -lstdc++_s -lsupc++_s -lm -lgcc -lc_s -lgcc -lc_s -lnosys
+SYS_LIBS  := -lstdc++ -lsupc++ -lm -lgcc -lc -lgcc -lc -lnosys
 LIBS      := $(LIBS_PREFIX) 
 
 # Some choices like mbed SDK library locations and enabling of asserts depend on build type.
@@ -103,14 +103,16 @@ endif
 
 # Linker Options.
 $(MBED_DEVICE): LD_FLAGS := $(MBED_LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec
-$(MBED_DEVICE): LD_FLAGS  += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
+$(MBED_DEVICE): LD_FLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
 $(MBED_DEVICE): LD_FLAGS += -u _scanf_float
 endif
 ifneq "$(NO_FLOAT_PRINTF)" "1"
 $(MBED_DEVICE): LD_FLAGS += -u _printf_float
 endif
-
+ifeq "$(NEWLIB_NANO)" "1"
+$(MBED_DEVICE): LD_FLAGS += -specs=$(GCC4MBED_DIR)/build/nano.specs
+endif
 
 #########################################################################
 .PHONY: $(MBED_DEVICE) $(MBED_DEVICE)_clean $(MBED_DEVICE)_deploy $(MBED_DEVICE)_size

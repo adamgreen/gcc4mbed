@@ -74,6 +74,9 @@ The **INCDIRS** variable can be used by an application's makefile to prepend a l
 ===VERBOSE
 **VERBOSE** is an optional variable that an application's makefile can set to 1, indicating that all build tool commands should be displayed to the user.  For example this will cause the full GCC command line for each source file to be shown.
 
+===NEWLIB_NANO
+**NEWLIB_NANO** is an optional variable that an applications' makefile can set to 0, indicating that the standard newlib C library should be used instead of the smaller newlib-nano library.  The user might want to do this if they need something like printf for 64-bit integers that isn't supported by newlib-nano.
+
 ===GCC4MBED_TYPE
 The **GCC4MBED_TYPE** variable is used to specify the type of build to produce.  It would typically be set as an environment variable but it can also be set in the application's makefile.  The allowed values are:
 * **Debug** - Build for debugging.  Disables optimizations and links in debug MRI runtime.  Best debugging experience.
