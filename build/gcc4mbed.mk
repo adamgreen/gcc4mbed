@@ -253,8 +253,11 @@ endif
 #########################################################################
 .PHONY: all clean deploy size
 
-all:: $(PROJECT).hex $(PROJECT).bin $(OUTDIR)/$(PROJECT).disasm size
+all:: $(OUTDIR) $(PROJECT).hex $(PROJECT).bin $(OUTDIR)/$(PROJECT).disasm size
 
+$(OUTDIR):
+	$(Q) $(MKDIR) $(call convert-slash,$@) $(QUIET)
+	
 $(PROJECT).bin: $(PROJECT).elf
 	@echo Extracting $@
 	$(Q) $(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
