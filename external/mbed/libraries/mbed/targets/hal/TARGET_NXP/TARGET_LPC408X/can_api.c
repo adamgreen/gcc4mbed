@@ -83,6 +83,10 @@ int can_mode(can_t *obj, CanMode mode)
     return 0; // not implemented
 }
 
+int can_filter(can_t *obj, uint32_t id, uint32_t mask, CANFormat format, int32_t handle) {
+    return 0; // not implemented
+}
+
 static inline void can_irq(uint32_t icr, uint32_t index) {
     uint32_t i;
     
@@ -164,7 +168,7 @@ void can_irq_set(can_t *obj, CanIrqType type, uint32_t enable) {
     obj->dev->MOD &= ~(1);
     
     // Enable NVIC if at least 1 interrupt is active
-    if((LPC_CAN1->IER | LPC_CAN2->IER) != 0) {
+    if(((LPC_SC->PCONP & (1 << 13)) && LPC_CAN1->IER) || ((LPC_SC->PCONP & (1 << 14)) && LPC_CAN2->IER)) {
         NVIC_SetVector(CAN_IRQn, (uint32_t) &can_irq_n);
         NVIC_EnableIRQ(CAN_IRQn);
     }
@@ -340,7 +344,7 @@ int can_write(can_t *obj, CAN_Message msg, int cc) {
     return 0;
 }
 
-int can_read(can_t *obj, CAN_Message *msg) {
+int can_read(can_t *obj, CAN_Message *msg, int handle) {
     CANMsg x;
     unsigned int *i = (unsigned int *)&x;
 
