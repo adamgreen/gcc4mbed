@@ -46,7 +46,7 @@ OBJECTS += $(patsubst %.s,$(OUTDIR)/%.o,$(patsubst %.S,$(OUTDIR)/%.o,$(ASM_SRCS)
 OBJECTS += $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPP_SRCS))
 
 # Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
-OBJECTS += $(OUTDIR)/gcc4mbed.o $(OUTDIR)/retarget_gcc.o
+OBJECTS += $(OUTDIR)/gcc4mbed.o
 
 # List of the header dependency files, one per object file.
 DEPFILES = $(patsubst %.o,%.d,$(OBJECTS))
@@ -70,7 +70,7 @@ MAIN_DEFINES := $(DEFINES) -DMRI_ENABLE=$(DEVICE_MRI_ENABLE) -DMRI_INIT_PARAMETE
 MAIN_DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
 
 # Libraries to be linked into final binary
-SYS_LIBS  := -lstdc++ -lsupc++ -lm -lgcc -lc -lgcc -lc
+SYS_LIBS  := -lstdc++ -lsupc++ -lm -lgcc -lc -lgcc -lc -lnosys
 LIBS      := $(LIBS_PREFIX) 
 
 # Some choices like mbed SDK library locations and enabling of asserts depend on build type.
@@ -96,14 +96,14 @@ $(MBED_DEVICE): ASM_FLAGS := $(ASM_FLAGS) $(AS_FLAGS) $(INCLUDE_DIRS)
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger. 
 ifeq "$(DEVICE_MRI_ENABLE)" "1"
-MRI_WRAPS := ,--wrap=semihost_connected
+MRI_WRAPS := ,--wrap=_read,--wrap=_write,--wrap=semihost_connected
 else
 MRI_WRAPS :=
 endif
 
 # Linker Options.
 $(MBED_DEVICE): LD_FLAGS := $(MBED_LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec
-$(MBED_DEVICE): LD_FLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
+$(MBED_DEVICE): LD_FLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
 $(MBED_DEVICE): LD_FLAGS += -u _scanf_float
 endif
@@ -167,11 +167,6 @@ $(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(C_FLAGS) $(MBED_INCLUDES) -c $< -o $@
-
-$(OUTDIR)/retarget_gcc.o : $(GCC4MBED_DIR)/src/retarget_gcc.cpp makefile
-	@echo Compiling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(CPP_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
 $(OUTDIR)/%.o : %.cpp makefile
 	@echo Compiling $<

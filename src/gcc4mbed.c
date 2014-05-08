@@ -47,6 +47,34 @@ void _start(void)
 }
 
 
+int __real__read(int file, char *ptr, int len);
+int __wrap__read(int file, char *ptr, int len)
+{
+    if (MRI_SEMIHOST_STDIO && file < 3)
+        return __mriNewlib_SemihostRead(file, ptr, len);
+     return __real__read(file, ptr, len);
+}
+
+
+int __real__write(int file, char *ptr, int len);
+int __wrap__write(int file, char *ptr, int len)
+{
+    if (MRI_SEMIHOST_STDIO && file < 3)
+        return __mriNewlib_SemihostWrite(file, ptr, len);
+    return __real__write(file, ptr, len);
+}
+
+
+int __real__isatty(int file);
+int __wrap__isatty(int file)
+{
+    /* Hardcoding the stdin/stdout/stderr handles to be interactive tty devices, unlike mbed.ar */
+    if (file < 3)
+        return 1;
+    return __real__isatty(file);
+}
+
+
 /* Wrap memory allocation routines to make sure that they aren't being called from interrupt handler. */
 static void breakOnHeapOpFromInterruptHandler(void)
 {
