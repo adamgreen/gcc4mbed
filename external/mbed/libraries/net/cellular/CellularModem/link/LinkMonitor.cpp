@@ -33,20 +33,24 @@ using std::sscanf;
 
 LinkMonitor::LinkMonitor(ATCommandsInterface* pIf) : m_pIf(pIf), m_rssi(0), m_registrationState(REGISTRATION_STATE_UNKNOWN), m_bearer(BEARER_UNKNOWN)
 {
-
+  m_gsm = true;
 }
 
-int LinkMonitor::init()
+int LinkMonitor::init(bool gsm)
 {
-  // we need to make sure that we setup the operator selection to be in 'numeric' format.
-  // i.e. it is made up of a network and country code when returned by the modem e.g. Operator = 23415. This allows easy logic parsing for
-  // setting up other network parameters in future.
-  DBG("LinkMonitor::init() being called. This should only happen once: executinging AT+COPS=0,2");  
-  int ret = m_pIf->executeSimple("AT+COPS=0,2", NULL, DEFAULT_TIMEOUT); //Configure to set the operator string to Country Code and mobile network code
-  if(ret != OK)
+  m_gsm = gsm;
+  if (m_gsm)
   {
-    WARN(" NET_PROTOCOL error from sending the AT+COPS command to the modem. ");
-    return NET_PROTOCOL;
+    // we need to make sure that we setup the operator selection to be in 'numeric' format.
+    // i.e. it is made up of a network and country code when returned by the modem e.g. Operator = 23415. This allows easy logic parsing for
+    // setting up other network parameters in future.
+    DBG("LinkMonitor::init() being called. This should only happen once: executinging AT+COPS=0,2");  
+    int ret = m_pIf->executeSimple("AT+COPS=0,2", NULL, DEFAULT_TIMEOUT); //Configure to set the operator string to Country Code and mobile network code
+    if(ret != OK)
+    {
+      WARN(" NET_PROTOCOL error from sending the AT+COPS command to the modem. ");
+      return NET_PROTOCOL;
+    }
   }
   return OK;
 }
@@ -54,6 +58,8 @@ int LinkMonitor::init()
 /*virtual*/ int LinkMonitor::onNewATResponseLine(ATCommandsInterface* pInst, const char* line)
 {
   DBG("Line is %s", line);
+  char n[32] = "";
+  char s[32] = "";
   int v;
   if( sscanf(line, "+CREG: %*d,%d", &v) >= 1 ) //Reg state is valid
   {
@@ -123,6 +129,13 @@ int LinkMonitor::init()
       m_rssi = -113 + 2*v;
     }
   }
+  else if ( (sscanf(line, "+CNUM: \"%[^\"]\",\"%[^\"]\",%d", n, s, &v) == 3) || 
+            (sscanf(line, "+CNUM: \"\",\"%[^\"]\",%d", s, &v) == 2) )
+  {
+      if (*s && ((v == 145/*number includes + */) || (v == 129/*otherwise*/))) {
+        strcpy(m_phoneNumber, s);
+      }
+  }
   return OK;
 }
 
@@ -136,7 +149,7 @@ int LinkMonitor::getState(int* pRssi, REGISTRATION_STATE* pRegistrationState, BE
   m_rssi = 0;
   m_registrationState = REGISTRATION_STATE_UNKNOWN;
   m_bearer = BEARER_UNKNOWN;
-  int ret = m_pIf->execute("AT+CREG?;+COPS?;+CSQ", this, NULL, DEFAULT_TIMEOUT); //Configure to get registration info & get it; get signal quality
+  int ret = m_pIf->execute(m_gsm ? "AT+CREG?;+COPS?;+CSQ" : "AT+CREG?;+CSQ", this, NULL, DEFAULT_TIMEOUT); //Configure to get registration info & get it; get signal quality
   if(ret != OK)
   {
     return NET_PROTOCOL;
@@ -144,5 +157,19 @@ int LinkMonitor::getState(int* pRssi, REGISTRATION_STATE* pRegistrationState, BE
   *pRssi = m_rssi;
   *pRegistrationState = m_registrationState;
   *pBearer = m_bearer;
+  return OK;
+}
+
+int LinkMonitor::getPhoneNumber(char* phoneNumber)
+{
+  *m_phoneNumber = '\0';
+  if (m_gsm) {
+    int ret = m_pIf->execute("AT+CNUM", this, NULL, DEFAULT_TIMEOUT);
+    if(ret != OK)
+    {
+      return NET_PROTOCOL;
+    }
+  }
+  strcpy(phoneNumber, m_phoneNumber);
   return OK;
 }

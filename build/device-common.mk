@@ -1,4 +1,4 @@
-# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright (C) 2014 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,16 +41,12 @@ DEP_FLAGS := -MMD -MP
 
 
 # Preprocessor defines to use when compiling/assembling code with GCC.
-GCC_DEFINES := -DTARGET_$(MBED_TARGET_DEVICE) -DTARGET_$(MBED_DEVICE)
-GCC_DEFINES += -DTARGET_$(MBED_TARGET_VENDOR) -DTARGET_$(MBED_TARGET_FAMILY)
-GCC_DEFINES += -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC -D$(MBED_MATH) $(MBED_DEFINES)
+GCC_DEFINES += -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC -D__MBED__=1
 
 
 # Flags to be used with C/C++ compiler that are shared between Debug and Release builds.
-C_FLAGS := -g3 $(MBED_TARGET_C_FLAGS) 
-C_FLAGS += -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
-C_FLAGS += -Wall -Wextra
-C_FLAGS += -Wno-unused-parameter -Wno-missing-field-initializers -Wno-missing-braces
+C_FLAGS += -g3 -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
+C_FLAGS += -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wno-missing-braces
 C_FLAGS += $(GCC_DEFINES)
 C_FLAGS += $(DEP_FLAGS)
 
@@ -59,8 +55,7 @@ C_FLAGS   += -std=gnu99
 
 
 # Flags used to assemble assembly languages sources.
-ASM_FLAGS := -g3 $(MBED_ASM_FLAGS) -x assembler-with-cpp
-ASM_FLAGS += $(GCC_DEFINES)
+ASM_FLAGS += -g3 -x assembler-with-cpp $(GCC_DEFINES)
 
 
 # Include makefiles to build the project and any of the mbed components it

@@ -29,6 +29,14 @@ void in_handler() {
 #define PIN_IN      (p11)
 #define PIN_OUT     (p12)
 
+#elif defined(TARGET_NUCLEO_F103RB) || defined(TARGET_NUCLEO_L152RE) || defined(TARGET_NUCLEO_F401RE) || defined(TARGET_NUCLEO_F030R8)
+#define PIN_IN      (PB_8)
+#define PIN_OUT     (PC_6)
+
+#elif defined(TARGET_FF_ARDUINO)
+#define PIN_OUT    D0
+#define PIN_IN     D7
+
 #else
 #define PIN_IN      (p5)
 #define PIN_OUT     (p25)
@@ -48,14 +56,13 @@ void flipper() {
 
 int main() {
     out = 0; myled = 0;
-
     //Test falling edges first
     in.rise(NULL);
     in.fall(in_handler);
     flipper();
 
     if(checks != 5) {
-        printf("falling edges test failed\n");
+        printf("falling edges test failed: %d\n",checks);
         notify_completion(false);
     }
 
@@ -65,7 +72,7 @@ int main() {
     flipper();
 
     if (checks != 10) {
-        printf("raising edges test failed\n");
+        printf("raising edges test failed: %d\n",checks);
         notify_completion(false);
     }
 

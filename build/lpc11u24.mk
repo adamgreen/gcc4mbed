@@ -1,4 +1,4 @@
-# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright (C) 2014 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,24 +19,29 @@
 # SOFTWARE.
 
 # Vendor/device for which the library should be built.
-MBED_TARGET_VENDOR := NXP
-MBED_TARGET_DEVICE := LPC11UXX
 MBED_DEVICE        := LPC11U24
-MBED_TARGET_FAMILY := M0
-MBED_MATH          := ARM_MATH_CM0
-MBED_TARGET        := $(MBED_TARGET_VENDOR)_$(MBED_TARGET_DEVICE)
-MBED_CLEAN         := $(MBED_DEVICE)_MBED_clean
+MBED_TARGET        := NXP_LPC11U24
+MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
+
+# Some libraries (mbed and rtos) have device specific source folders.
+HAL_TARGET_SRC   := $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC11UXX
+HAL_TARGET_SRC   += $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC11UXX/TARGET_LPC11U24_401
+CMSIS_TARGET_SRC := $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC11UXX
+CMSIS_TARGET_SRC += $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC11UXX/TOOLCHAIN_GCC_ARM
+RTX_TARGET_SRC   := $(GCC4MBED_DIR)/external/mbed/libraries/rtos/rtx/TARGET_M0/TOOLCHAIN_GCC
 
 
 # Compiler flags which are specifc to this device.
-MBED_TARGET_C_FLAGS := -mcpu=cortex-m0 -mthumb
-MBED_ASM_FLAGS      := $(MBED_TARGET_C_FLAGS)
-MBED_DEFINES        := -D__CORTEX_M0
-MBED_LD_FLAGS       := $(MBED_TARGET_C_FLAGS)
+GCC_DEFINES := -DTARGET_LPC11U24 -DTARGET_M0 -DTARGET_NXP -DTARGET_LPC11UXX -DTARGET_LPC11U24_401
+GCC_DEFINES += -D__CORTEX_M0 -DARM_MATH_CM0
+
+C_FLAGS   := -mcpu=cortex-m0 -mthumb -mthumb-interwork
+ASM_FLAGS := -mcpu=cortex-m0 -mthumb
+LD_FLAGS  := -mcpu=cortex-m0 -mthumb
 
 
-# Linker script to be used for this device.
-MBED_LD_SCRIPT      := TARGET_LPC11U24_401/LPC11U24.ld
+# Linker script to be used.  Indicates what code should be placed where in memory.
+LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC11UXX/TOOLCHAIN_GCC_ARM/TARGET_LPC11U24_401/LPC11U24.ld
 
 
 include $(GCC4MBED_DIR)/build/device-common.mk

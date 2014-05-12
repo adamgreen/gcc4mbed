@@ -9,9 +9,9 @@ The GCC4MBED supports the following rules when building your project makefile:
 * **all**: The main rule for building your project and all of its official mbed dependencies.
 * **clean**: Will clean out all of the output files for your project.  This will cause a full rebuild when you next issue the **all** rule.
 * **clean-all**: Will clean out all of the output files, those for your project and the mbed libraries.
-* **LPC1768_clean**: Will clean out the LPC1768 output files for your project.
-* **LPC11U24_clean**: Will clean out the LPC11U24 output files for your project.
-* **KL25Z_clean**: Will clean out the KL25Z output files for your project.
+* **LPC1768-clean**: Will clean out the LPC1768 output files for your project.
+* **LPC11U24-clean**: Will clean out the LPC11U24 output files for your project.
+* **KL25Z-clean**: Will clean out the KL25Z output files for your project.
 * **deploy**: Deploys the LPC1768 output binary to your device.  Uses the **LPC_DEPLOY** environment variable to specify the commands for executing the copy operation.
 * **LPC1768_deploy**: Same as deploy rule.
 * **LPC11U24_deploy**: Deploys the LPC11U24 output binary to your device.

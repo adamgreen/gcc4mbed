@@ -1,6 +1,15 @@
 #include "test_env.h"
 
-#if defined(TARGET_LPC11U24)
+#if defined(TARGET_K64F) || defined(TARGET_KL05Z)
+#define P1_1    (1 << 16)
+#define P1_2    (1 << 17)
+#define PORT_1  PortC
+
+#define P2_1    (1 << 2)
+#define P2_2    (1 << 3)
+#define PORT_2  PortC
+
+#elif defined(TARGET_LPC11U24)
 #define P1_1    (1 <<  9) // p0.9
 #define P1_2    (1 <<  8) // p0.8
 #define PORT_1  Port0
@@ -9,7 +18,7 @@
 #define P2_2    (1 << 25) // p1.25
 #define PORT_2  Port1
 
-#elif defined(TARGET_LPC1768) || defined(TARGET_LPC2368) 
+#elif defined(TARGET_LPC1768) || defined(TARGET_LPC2368)
 #define P1_1    (1 << 9)  // p0.9  -> p5
 #define P1_2    (1 << 8)  // p0.8  -> p6
 #define PORT_1  Port0
@@ -44,6 +53,24 @@
 #define P2_1    (1 << 5)  // PTC5
 #define P2_2    (1 << 6)  // PTC6
 #define PORT_2  PortC
+
+#elif defined(TARGET_nRF51822)
+#define P1_1    (1 << 4)  // p4
+#define P1_2    (1 << 5)  // p5
+#define PORT_1  Port0
+
+#define P2_1    (1 << 24)  // p24
+#define P2_2    (1 << 25)  // p25
+#define PORT_2  Port0
+
+#elif defined(TARGET_NUCLEO_F103RB)
+#define P1_1    (1 << 6)  // PC_6
+#define P1_2    (1 << 5)  // PC_5
+#define PORT_1  PortC
+
+#define P2_1    (1 << 8)  // PB_8
+#define P2_2    (1 << 9)  // PB_9
+#define PORT_2  PortB
 #endif
 
 #define MASK_1   (P1_1 | P1_2)

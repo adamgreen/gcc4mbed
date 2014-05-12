@@ -26,12 +26,13 @@
 #define DEVICE_ANALOGOUT        0
 
 #define DEVICE_SERIAL           1
+#define DEVICE_SERIAL_FC        1
 
 #define DEVICE_I2C              1
 #define DEVICE_I2CSLAVE         0
 
 #define DEVICE_SPI              1
-#define DEVICE_SPISLAVE         0
+#define DEVICE_SPISLAVE         1
 
 #define DEVICE_CAN              0
 
@@ -44,7 +45,7 @@
 #define DEVICE_SEMIHOST         0
 #define DEVICE_LOCALFILESYSTEM  0
 
-#define DEVICE_SLEEP            0
+#define DEVICE_SLEEP            1
 
 #define DEVICE_DEBUG_AWARENESS  0
 

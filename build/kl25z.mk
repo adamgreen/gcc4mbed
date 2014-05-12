@@ -1,4 +1,4 @@
-# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright (C) 2014 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,24 +19,29 @@
 # SOFTWARE.
 
 # Vendor/device for which the library should be built.
-MBED_TARGET_VENDOR := Freescale
-MBED_TARGET_DEVICE := KL25Z
 MBED_DEVICE        := KL25Z
-MBED_TARGET_FAMILY := M0P
-MBED_MATH          := ARM_MATH_CM0
-MBED_TARGET        := $(MBED_TARGET_VENDOR)_$(MBED_TARGET_DEVICE)
-MBED_CLEAN         := $(MBED_DEVICE)_MBED_clean
+MBED_TARGET        := Freescale_KL25Z
+MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
+
+# Some libraries (mbed and rtos) have device specific source folders.
+HAL_TARGET_SRC   := $(MBED_SRC_ROOT)/targets/hal/TARGET_Freescale/TARGET_KLXX
+HAL_TARGET_SRC   += $(MBED_SRC_ROOT)/targets/hal/TARGET_Freescale/TARGET_KLXX/TARGET_KL25Z
+CMSIS_TARGET_SRC := $(MBED_SRC_ROOT)/targets/cmsis/TARGET_Freescale/TARGET_KLXX/TARGET_KL25Z
+CMSIS_TARGET_SRC += $(MBED_SRC_ROOT)/targets/cmsis/TARGET_Freescale/TARGET_KLXX/TARGET_KL25Z/TOOLCHAIN_GCC_ARM
+RTX_TARGET_SRC   := $(GCC4MBED_DIR)/external/mbed/libraries/rtos/rtx/TARGET_M0P/TOOLCHAIN_GCC
 
 
 # Compiler flags which are specifc to this device.
-MBED_TARGET_C_FLAGS := -mcpu=cortex-m0plus -mthumb
-MBED_ASM_FLAGS      := -mcpu=cortex-m0plus -mthumb
-MBED_DEFINES        := -D__CORTEX_M0PLUS
-MBED_LD_FLAGS       := -mcpu=cortex-m0plus -mthumb
+GCC_DEFINES := -DTARGET_KL25Z -DTARGET_M0P -DTARGET_Freescale -DTARGET_KLXX
+GCC_DEFINES += -D__CORTEX_M0PLUS -DARM_MATH_CM0PLUS
+
+C_FLAGS   := -mcpu=cortex-m0plus -mthumb -mthumb-interwork
+ASM_FLAGS := -mcpu=cortex-m0plus -mthumb
+LD_FLAGS  := -mcpu=cortex-m0plus -mthumb
 
 
-# Linker script to be used for this device.
-MBED_LD_SCRIPT      := MKL25Z4.ld
+# Linker script to be used.  Indicates what code should be placed where in memory.
+LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_Freescale/TARGET_KLXX/TARGET_KL25Z/TOOLCHAIN_GCC_ARM/MKL25Z4.ld
 
 
 include $(GCC4MBED_DIR)/build/device-common.mk

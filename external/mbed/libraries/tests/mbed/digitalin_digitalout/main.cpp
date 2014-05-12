@@ -1,17 +1,16 @@
 #include "test_env.h"
 
-
-#if defined(TARGET_KL25Z)
-DigitalOut out(PTA5);
-DigitalIn  in(PTC6);
-
-#elif defined(TARGET_KL05Z)
-DigitalOut out(PTB11);
-DigitalIn   in(PTB1);
-
-#elif defined(TARGET_LPC1114)
+#if defined(TARGET_LPC1114)
 DigitalOut out(dp1);
 DigitalIn   in(dp2);
+
+#elif defined(TARGET_NUCLEO_F103RB)
+DigitalOut out(PC_6);
+DigitalIn   in(PB_8);
+
+#elif defined(TARGET_FF_ARDUINO)
+DigitalOut out(D7);
+DigitalIn  in(D0);
 
 #else
 DigitalOut out(p5);

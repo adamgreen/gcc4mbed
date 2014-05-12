@@ -1,4 +1,4 @@
-# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright (C) 2014 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,9 +51,6 @@ OBJECTS += $(OUTDIR)/gcc4mbed.o
 # List of the header dependency files, one per object file.
 DEPFILES = $(patsubst %.o,%.d,$(OBJECTS))
 
-# Linker script to be used.  Indicates what code should be placed where in memory.
-LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)/TOOLCHAIN_GCC_ARM/$(MBED_LD_SCRIPT)
-
 # Location of external library and header dependencies.
 EXTERNAL_DIR = $(GCC4MBED_DIR)/external
 
@@ -102,7 +99,7 @@ MRI_WRAPS :=
 endif
 
 # Linker Options.
-$(MBED_DEVICE): LD_FLAGS := $(MBED_LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec
+$(MBED_DEVICE): LD_FLAGS := $(LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec
 $(MBED_DEVICE): LD_FLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
 $(MBED_DEVICE): LD_FLAGS += -u _scanf_float

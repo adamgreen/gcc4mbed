@@ -1,4 +1,4 @@
-# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright (C) 2014 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@
 #                    output floating point values.  Reduces code size.
 #   GCC4MBED_TYPE: Type of build to produce.  Allowed values are:
 #                  Debug - Build for debugging.  Disables optimizations and
-#                          links in debug MRI runtime.  Best debugging 
+#                          links in debug MRI runtime.  Best debugging
 #                          experience.
 #                  Release - Build for release with no debug support.
 #                  Checked - Release build with debug support.  Due to
@@ -52,9 +52,13 @@
 #                  default: Release
 #   MBED_LIBS: Specifies which additional official mbed libraries you would
 #              like to use with your application.  These include:
-#               net/lwip
 #               net/eth
 #               rtos
+#               fs
+#               rpc
+#               dsp
+#               USBDevice
+#               USBHost
 #   INCDIRS: Space delimited list of extra directories to use for #include
 #            searches.
 #   LIBS_PREFIX: List of library/object files to prepend to mbed libs.
@@ -135,21 +139,21 @@ NEWLIB_NANO       ?= 1
 ifeq "$(GCC4MBED_TYPE)" "Release"
 OPTIMIZATION ?= 2
 MRI_ENABLE := 0
-MRI_SEMIHOST_STDIO ?= 0
+MRI_SEMIHOST_STDIO := 0
 endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Debug"
 OPTIMIZATION ?= 0
 MRI_ENABLE ?= 1
-MRI_SEMIHOST_STDIO ?= 1
+MRI_SEMIHOST_STDIO ?= $(MRI_ENABLE)
 endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Checked"
 OPTIMIZATION ?= 2
 MRI_ENABLE := 1
-MRI_SEMIHOST_STDIO ?= 1
+MRI_SEMIHOST_STDIO ?= $(MRI_ENABLE)
 endif
 
 MRI_INIT_PARAMETERS := $(MRI_UART)
@@ -202,6 +206,10 @@ MBED_LIBS := $(patsubst net/eth,net/lwip net/eth rtos,$(MBED_LIBS))
 MBED_LIBS := $(patsubst USBHost,USBHost fs rtos,$(MBED_LIBS))
 
 
+# Root directory for mbed library sources.
+MBED_SRC_ROOT := $(GCC4MBED_DIR)/external/mbed/libraries/mbed
+
+
 # All supported devices that clean-all target should clean.
 ALL_DEVICES := LPC1768 LPC11U24 KL25Z
 
@@ -209,7 +217,7 @@ ALL_DEVICES := LPC1768 LPC11U24 KL25Z
 # Rules for building all of the desired device targets
 all: $(DEVICES)
 clean: $(addsuffix _clean,$(DEVICES))
-clean-all: $(addsuffix _MBED_clean,$(DEVICES)) clean
+clean-all: $(addsuffix -MBED-clean,$(DEVICES)) clean
 deploy: LPC1768_deploy
 
 

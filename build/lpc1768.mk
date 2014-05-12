@@ -1,4 +1,4 @@
-# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright (C) 2014 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,24 +19,30 @@
 # SOFTWARE.
 
 # Vendor/device for which the library should be built.
-MBED_TARGET_VENDOR := NXP
-MBED_TARGET_DEVICE := LPC176X
 MBED_DEVICE        := LPC1768
-MBED_TARGET_FAMILY := M3
-MBED_MATH          := ARM_MATH_CM3
-MBED_TARGET        := $(MBED_TARGET_VENDOR)_$(MBED_TARGET_DEVICE)
-MBED_CLEAN         := $(MBED_DEVICE)_MBED_clean
+MBED_TARGET        := NXP_LPC17XX
+MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
+
+# Some libraries (mbed and rtos) have device specific source folders.
+HAL_TARGET_SRC   := $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC176X
+HAL_TARGET_SRC   += $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC176X/TARGET_MBED_LPC1768
+CMSIS_TARGET_SRC := $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC176X
+CMSIS_TARGET_SRC += $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM
+RTX_TARGET_SRC   := $(GCC4MBED_DIR)/external/mbed/libraries/rtos/rtx/TARGET_M3/TOOLCHAIN_GCC
+ETH_TARGET_SRC   := $(GCC4MBED_DIR)/external/mbed/libraries/net/eth/lwip-eth/arch/TARGET_NXP
 
 
 # Compiler flags which are specifc to this device.
-MBED_TARGET_C_FLAGS := -mcpu=cortex-m3 -mthumb -mthumb-interwork
-MBED_ASM_FLAGS      := -mcpu=cortex-m3 -mthumb
-MBED_DEFINES        := -D__CORTEX_M3
-MBED_LD_FLAGS       := -mcpu=cortex-m3 -mthumb
+GCC_DEFINES := -DTARGET_LPC1768 -DTARGET_M3 -DTARGET_NXP -DTARGET_LPC176X -DTARGET_MBED_LPC1768
+GCC_DEFINES += -D__CORTEX_M3 -DARM_MATH_CM3
+
+C_FLAGS   := -mcpu=cortex-m3 -mthumb -mthumb-interwork
+ASM_FLAGS := -mcpu=cortex-m3 -mthumb
+LD_FLAGS  := -mcpu=cortex-m3 -mthumb
 
 
-# Linker script to be used for this device.
-MBED_LD_SCRIPT      := LPC1768.ld
+# Linker script to be used.  Indicates what code should be placed where in memory.
+LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
 
 
 include $(GCC4MBED_DIR)/build/device-common.mk

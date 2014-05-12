@@ -1,4 +1,4 @@
-# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright (C) 2014 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,30 +24,26 @@ LIBRARY := mbed
 
 
 # Directories where source files are found and output files should be placed.
-ROOT                 :=$(GCC4MBED_DIR)/external/mbed/libraries/mbed
-HAL_TARGET_SRC       :=$(ROOT)/targets/hal/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
-CMSIS_TARGET_SRC     :=$(ROOT)/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)
-CMSIS_TARGET_TOOL    :=$(ROOT)/targets/cmsis/TARGET_$(MBED_TARGET_VENDOR)/TARGET_$(MBED_TARGET_DEVICE)/TOOLCHAIN_GCC_ARM
-COMMON_SRC           :=$(ROOT)/common
-API_HEADERS          :=$(ROOT)/api
-HAL_HEADERS          :=$(ROOT)/hal
-CMSIS_COMMON_HEADERS :=$(ROOT)/targets/cmsis
+ROOT                 :=$(MBED_SRC_ROOT)
+COMMON_SRC           :=$(MBED_SRC_ROOT)/common
+API_HEADERS          :=$(MBED_SRC_ROOT)/api
+HAL_HEADERS          :=$(MBED_SRC_ROOT)/hal
+CMSIS_COMMON_HEADERS :=$(MBED_SRC_ROOT)/targets/cmsis
 
 
 # Build up list of all C, C++, and Assembly Language files to be compiled/assembled.
-HAL_TARGET_SRCS    := $(wildcard $(HAL_TARGET_SRC)/*.c)
-CMSIS_TARGET_SRCS  := $(wildcard $(CMSIS_TARGET_SRC)/*.c)
+HAL_TARGET_SRCS    := $(foreach i,$(HAL_TARGET_SRC),$(wildcard $i/*.c))
+CMSIS_TARGET_SRCS  := $(foreach i,$(CMSIS_TARGET_SRC),$(wildcard $i/*.c $i/*.s))
 COMMON_SRCS        := $(wildcard $(COMMON_SRC)/*.c)
 COMMON_SRCS        += $(wildcard $(COMMON_SRC)/*.cpp)
-CMSIS_TARGET_TOOLS := $(wildcard $(CMSIS_TARGET_TOOL)/*.s)
 
 
 # Convert list of source files to corresponding list of object files to be generated.
 # Debug and Release object files to go into separate sub-directories.
-OBJECTS := $(patsubst $(ROOT)/%.c,__Output__/%.o,$(HAL_TARGET_SRCS))
-OBJECTS += $(patsubst $(ROOT)/%.c,__Output__/%.o,$(CMSIS_TARGET_SRCS))
-OBJECTS += $(patsubst $(ROOT)/%.c,__Output__/%.o,$(patsubst $(ROOT)/%.cpp,__Output__/%.o,$(COMMON_SRCS)))
-OBJECTS += $(patsubst $(ROOT)/%.s,__Output__/%.o,$(CMSIS_TARGET_TOOLS))
+OBJECTS := $(patsubst $(MBED_SRC_ROOT)/%.c,__Output__/%.o,$(HAL_TARGET_SRCS))
+OBJECTS += $(patsubst $(MBED_SRC_ROOT)/%,__Output__/%,$(addsuffix .o,$(basename $(CMSIS_TARGET_SRCS))))
+OBJECTS += $(patsubst $(MBED_SRC_ROOT)/%.c,__Output__/%.o,$(patsubst $(MBED_SRC_ROOT)/%.cpp,__Output__/%.o,$(COMMON_SRCS)))
+
 
 
 # Include directory list.

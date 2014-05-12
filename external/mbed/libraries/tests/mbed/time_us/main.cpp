@@ -3,14 +3,24 @@
 #ifdef TARGET_KL25Z
 DigitalOut out(PTD4);
 
-#elif TARGET_KL05Z
+#elif defined(TARGET_KL05Z)
 DigitalOut out(PTB1);
 
-#elif TARGET_KL46Z
+#elif defined(TARGET_KL46Z)
 DigitalOut out(PTA1);
 
-#elif TARGET_LPC812
+#elif defined(TARGET_K64F)
+DigitalOut out(PTA1);
+
+#elif defined(TARGET_LPC812)
 DigitalOut out(D10);
+
+#elif defined(TARGET_NUCLEO_F103RB) || \
+    defined(TARGET_NUCLEO_L152RE) || \
+    defined(TARGET_NUCLEO_F302R8) || \
+    defined(TARGET_NUCLEO_F030R8) || \
+    defined(TARGET_NUCLEO_F401RE)
+DigitalOut out(LED1);
 
 #else
 DigitalOut out(p5);
@@ -18,12 +28,22 @@ DigitalOut out(p5);
 
 DigitalOut led(LED1);
 
-int main() {
-    printf("Hello World\n");
+#define MS_INTERVALS 1000
 
+void print_char(char c = '*')
+{
+    printf("%c", c);
+    fflush(stdout);
+}
+
+int main()
+{
     while (true) {
-        wait_us(1000);
-        out = !out;
+        for (int i = 0; i < MS_INTERVALS; i++) {
+            wait_us(1000);
+            out = !out;
+        }
         led = !led;
+        print_char();
     }
 }

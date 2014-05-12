@@ -50,7 +50,7 @@ LPC11U24: $(DIRS_LPC11U24)
 KL25Z: $(DIRS_KL25Z)
 
 clean-all: $(DIRSCLEAN)
-	$(Q) $(MAKE) -C HelloWorld LPC1768_MBED_clean LPC11U24_MBED_clean KL25Z_MBED_clean
+	$(Q) $(MAKE) -C HelloWorld LPC1768-MBED-clean LPC11U24-MBED-clean KL25Z-MBED-clean
 
 $(DIRS):
 	@echo Building $@

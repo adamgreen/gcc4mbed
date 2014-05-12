@@ -1,4 +1,4 @@
-# Copyright (C) 2013 - Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright (C) 2014 - Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ ifeq "$(findstring $(LIBRARY),$(MBED_LIBS))" "$(LIBRARY)"
 ROOT                 :=$(GCC4MBED_DIR)/external/mbed/libraries/$(LIBRARY)
 RTOS_SRC             :=$(ROOT)/rtos
 RTX_SRC              :=$(ROOT)/rtx
-RTX_TARGET_SRC       :=$(RTX_SRC)/TARGET_$(MBED_TARGET_FAMILY)/TOOLCHAIN_GCC
 
 
 # Build up list of all C, C++, and Assembly Language files to be compiled/assembled.

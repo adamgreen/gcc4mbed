@@ -48,8 +48,6 @@
 // 32-bit alignment
 #define MEM_ALIGNMENT               4
 
-#define MEM_SIZE                    16362
-
 #define PBUF_POOL_SIZE              5
 #define MEMP_NUM_TCP_PCB_LISTEN     4
 #define MEMP_NUM_TCP_PCB            4
