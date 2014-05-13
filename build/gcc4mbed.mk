@@ -211,7 +211,10 @@ clean-all: $(addsuffix -MBED-clean,$(DEVICES)) clean
 deploy: LPC1768_deploy
 
 
+# Determine supported devices by looking at *-device.mk makefiles.
+ALL_DEVICE_MAKEFILES := $(wildcard $(GCC4MBED_DIR)/build/*-device.mk)
+ALL_DEVICES          := $(patsubst $(GCC4MBED_DIR)/build/%-device.mk,%,$(ALL_DEVICE_MAKEFILES))
+
+
 # Include makefiles that know how to build each of the supported device types.
-include $(GCC4MBED_DIR)/build/lpc1768.mk
-include $(GCC4MBED_DIR)/build/lpc11u24.mk
-include $(GCC4MBED_DIR)/build/kl25z.mk
+include $(ALL_DEVICE_MAKEFILES)

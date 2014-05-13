@@ -13,25 +13,36 @@
 # limitations under the License.
 #
 # Directories to be built
-DIRS=HelloWorld\
-     Blink\
-     Ticker\
-     StdIO\
-     LocalFileSystem\
-     FileTest\
-     SdPerf\
-     TCPSocket_HelloWorld\
-     USBMouse\
-     USBHostMouse\
-     USBHostKeyboard\
-     USBHostMSD\
-     USBHostHub\
-     USBHostSerial
+DIRS := HelloWorld\
+        Blink\
+        Ticker\
+        StdIO\
+        LocalFileSystem\
+        FileTest\
+        SdPerf\
+        TCPSocket_HelloWorld\
+        USBMouse\
+        USBHostMouse\
+        USBHostKeyboard\
+        USBHostMSD\
+        USBHostHub\
+        USBHostSerial
+DIRSCLEAN := $(addsuffix .clean,$(DIRS))
 
-DIRSCLEAN = $(addsuffix .clean,$(DIRS))
-DIRS_LPC1768 = $(addsuffix .lpc1768,$(DIRS))
-DIRS_LPC11U24 = $(addsuffix .lpc11u24,$(DIRS))
-DIRS_KL25Z = $(addsuffix .kl25z,$(DIRS))
+
+# Determine supported devices by looking at *-device.mk makefiles.
+ALL_DEVICES := $(patsubst ../build/%-device.mk,%,$(wildcard ../build/*-device.mk))
+
+
+# Macro to construct device specific rules.
+define device_rule #,DEVICE_NAME
+    .PHONY : $1 $(addsuffix .$1,$(DIRS))
+    $1 : $(addsuffix .$1,$(DIRS))
+    $(addsuffix .$1,$(DIRS)) : %.$1:
+		$(Q) $(MAKE) -C $$* $1
+
+endef
+
 
 # Set VERBOSE make variable to 1 to output all tool commands.
 VERBOSE?=0
@@ -41,16 +52,14 @@ else
 Q=
 endif
 
+
+# Rules
 all: $(DIRS)
 
 clean: $(DIRSCLEAN)
 
-LPC1768: $(DIRS_LPC1768)
-LPC11U24: $(DIRS_LPC11U24)
-KL25Z: $(DIRS_KL25Z)
-
 clean-all: $(DIRSCLEAN)
-	$(Q) $(MAKE) -C HelloWorld LPC1768-MBED-clean LPC11U24-MBED-clean KL25Z-MBED-clean
+	$(Q) $(MAKE) -C HelloWorld $(addsuffix -MBED-clean,$(ALL_DEVICES))
 
 $(DIRS):
 	@echo Building $@
@@ -59,13 +68,7 @@ $(DIRS):
 $(DIRSCLEAN): %.clean:
 	$(Q) $(MAKE) -C $* clean
 
-$(DIRS_LPC1768): %.lpc1768:
-	$(Q) $(MAKE) -C $* LPC1768
+.PHONY: all clean clean-all $(DIRS) $(DIRSCLEAN)
 
-$(DIRS_LPC11U24): %.lpc11u24:
-	$(Q) $(MAKE) -C $* LPC11U24
-
-$(DIRS_KL25Z): %.kl25z:
-	$(Q) $(MAKE) -C $* KL25Z
-
-.PHONY: all clean LPC1768 LPC11U24 KL25Z clean-all $(DIRS) $(DIRSCLEAN) $(DIRS_LPC1768) $(DIRS_LPC11U24) $(DIRS_KL25Z)
+# Rules to build each of the supported devices.
+$(eval $(foreach i,$(ALL_DEVICES),$(call device_rule,$i)))
