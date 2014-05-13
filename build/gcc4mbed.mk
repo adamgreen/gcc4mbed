@@ -204,10 +204,6 @@ MBED_LIBS := $(patsubst USBHost,USBHost fs rtos,$(MBED_LIBS))
 MBED_SRC_ROOT := $(GCC4MBED_DIR)/external/mbed/libraries/mbed
 
 
-# All supported devices that clean-all target should clean.
-ALL_DEVICES := LPC1768 LPC11U24 KL25Z
-
-
 # Rules for building all of the desired device targets
 all: $(DEVICES)
 clean: $(addsuffix _clean,$(DEVICES))
