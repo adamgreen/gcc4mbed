@@ -25,8 +25,6 @@ set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q1-update/+d
 set GCC4ARM_TAR=%ROOTDIR%%GCC4ARM_FILENAME%
 set GCC4ARM_MD5=09c19b3248863074f5498a88f31bee16
 set GCC4ARM_MD5_FILENAME=%ROOTDIR%gcc-arm-none-eabi.md5
-set GCC4ARM_EXTRACT_PARENT=%ROOTDIR%GNU Tools ARM Embedded
-set GCC4ARM_EXTRACT=%GCC4ARM_EXTRACT_PARENT%\4.8 2014q1
 set GCC4ARM_DIR=%ROOTDIR%gcc-arm-none-eabi
 set GCC4ARM_BINDIR=%GCC4ARM_DIR%\bin
 set OUR_MAKE=%ROOTDIR%external\win32\make.exe
@@ -55,12 +53,13 @@ if errorlevel 1 goto ExitOnError
 del "%GCC4ARM_MD5_FILENAME%"
 
 echo Extracting GNU Tools for ARM Embedded Processors...
-call :RunAndLog rd /s /q %GCC4ARM_EXTRACT%
 call :RunAndLog rd /s /q %GCC4ARM_DIR%
-call :RunAndLog external\win32\bsdtar xf %GCC4ARM_TAR%
+call :RunAndLog md %GCC4ARM_DIR%
 if errorlevel 1 goto ExitOnError
-call :RunAndLog move "%GCC4ARM_EXTRACT%" %GCC4ARM_DIR%
+call :RunAndLog cd %GCC4ARM_DIR%
+call :RunAndLog ..\external\win32\bsdtar xf %GCC4ARM_TAR%
 if errorlevel 1 goto ExitOnError
+call :RunAndLog cd ..
 
 echo Creating helper scripts...
 echo @echo off>%BUILDENV_CMD%
@@ -84,7 +83,6 @@ if errorlevel 1 goto ExitOnError
 
 echo Cleaning up intermediate files...
 call :RunAndLog del /f %GCC4ARM_TAR%
-call :RunAndLog rd /s /q "%GCC4ARM_EXTRACT_PARENT%"
 
 echo **************************************************************************
 echo To build gcc4mbed samples, you will first need to run the following batch

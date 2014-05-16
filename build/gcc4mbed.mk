@@ -222,7 +222,7 @@ src_ext     := c cpp S
 ifneq "$(OS)" "Windows_NT"
 src_ext     +=  s
 endif
-recurse_dir = $(sort $(dir $(wildcard $1/* $1/*/* $1/*/*/* $1/*/*/*/* $1/*/*/*/*/* $1/*/*/*/*/*/*)))
+recurse_dir = $(patsubst %/,%,$(sort $(dir $(wildcard $1/* $1/*/* $1/*/*/* $1/*/*/*/* $1/*/*/*/*/* $1/*/*/*/*/*/*))))
 find_srcs   = $(subst //,/,$(foreach i,$(src_ext),$(foreach j,$1,$(wildcard $j/*.$i))))
 srcs2objs   = $(patsubst $2/%,$3/%,$(addsuffix .o,$(basename $(call find_srcs,$1))))
 

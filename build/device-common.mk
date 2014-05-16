@@ -165,7 +165,7 @@ ifdef LPC_DEPLOY
 $(MBED_DEVICE)-deploy: DEPLOY_PREFIX := $(OUTDIR)/$(PROJECT)
 $(MBED_DEVICE)-deploy: $(MBED_DEVICE)
 	@echo Deploying to target.
-	$(Q) $(subst PROJECT,$(DEPLOY_PREFIX),$(LPC_DEPLOY))
+	$(Q) $(subst PROJECT,$(call convert-slash,$(DEPLOY_PREFIX)),$(LPC_DEPLOY))
 endif
 
 $(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c makefile

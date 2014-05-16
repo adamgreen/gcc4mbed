@@ -59,14 +59,14 @@ all: $(DIRS)
 clean: $(DIRSCLEAN)
 
 clean-all: $(DIRSCLEAN)
-	$(Q) $(MAKE) -C HelloWorld clean-all
+	$(Q) $(MAKE) --no-print-directory -C HelloWorld clean-all
 
 $(DIRS):
 	@echo Building $@
-	$(Q) $(MAKE) -C $@ all
+	$(Q) $(MAKE) --no-print-directory -C $@ all
 
 $(DIRSCLEAN): %.clean:
-	$(Q) $(MAKE) -C $* clean
+	$(Q) $(MAKE) --no-print-directory -C $* clean
 
 .PHONY: all clean clean-all $(DIRS) $(DIRSCLEAN)
 
