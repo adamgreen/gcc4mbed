@@ -98,7 +98,7 @@ int __mriPlatform_CommUartIndex(void);
 #define MRI_VERSION_MAJOR       0
 #define MRI_VERSION_MINOR       6
 #define MRI_VERSION_BUILD       20140515
-#define MRI_VERSION_SUBBUILD    1
+#define MRI_VERSION_SUBBUILD    2
 
 #define MRI_STR(X) MRI_STR2(X)
 #define MRI_STR2(X) #X
