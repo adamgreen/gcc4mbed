@@ -21,6 +21,7 @@ These are the quick steps to get gcc4mbed installed on your computer:
 * Files will fail to install to a FAT based file system.  Extract to a more appropriate file system (ie. NTFS on Windows) first and then copy to a FAT drive after installation.
 * If the installation should fail, please refer to win_install.log, linux_install.log, or mac_install.log.  It will contain the details of the installation process and any errors that were encountered.
 * The OS X install only supports 64-bit Intel machines.  The installers for the other platforms only install 32-bit Intel binaries.
+* OS X Mountain Lion and newer will fail to execute mac_install by simply clicking on it.  Instead right click on mac_install in the Finder, select the Open option, and then click the Open button in the resulting security warning dialog.
 * The Linux install only installs 32-bit Intel binaries.  If you are running a 64-bit version of Intel Linux then you may need to install the 32-bit support libraries.  This problem typically shows up as a file not found error when you attempt to run tools such as arm-none-eabi-g++.  On Ubuntu, the necessary libraries can be installed by running {{{sudo apt-get install ia32-libs}}}
 * If you don't need floating point support from scanf() and printf() routines in your program then you can reduce your binary size by setting NO_FLOAT_SCANF and NO_FLOAT_PRINTF make variables to 1.  See samples/HelloWorld/makefile for an example.
 
