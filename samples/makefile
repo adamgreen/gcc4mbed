@@ -59,7 +59,7 @@ all: $(DIRS)
 clean: $(DIRSCLEAN)
 
 clean-all: $(DIRSCLEAN)
-	$(Q) $(MAKE) -C HelloWorld $(addsuffix -MBED-clean,$(ALL_DEVICES))
+	$(Q) $(MAKE) -C HelloWorld clean-all
 
 $(DIRS):
 	@echo Building $@

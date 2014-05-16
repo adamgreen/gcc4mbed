@@ -3,7 +3,6 @@ The GCC4MBED makefiles allow the use of the **-j** or **--jobs** makefile parame
 
 Example: {{{make -j 4 all}}}
 
-
 ==Make Rules
 The GCC4MBED supports the following rules when building your project makefile:
 * **all**: The main rule for building your project and all of its official mbed dependencies.
@@ -13,9 +12,9 @@ The GCC4MBED supports the following rules when building your project makefile:
 * **LPC11U24-clean**: Will clean out the LPC11U24 output files for your project.
 * **KL25Z-clean**: Will clean out the KL25Z output files for your project.
 * **deploy**: Deploys the LPC1768 output binary to your device.  Uses the **LPC_DEPLOY** environment variable to specify the commands for executing the copy operation.
-* **LPC1768_deploy**: Same as deploy rule.
-* **LPC11U24_deploy**: Deploys the LPC11U24 output binary to your device.
-* **KL25Z_deploy**: Deploys the KL25Z output binary to your device.
+* **LPC1768-deploy**: Same as deploy rule.
+* **LPC11U24-deploy**: Deploys the LPC11U24 output binary to your device.
+* **KL25Z-deploy**: Deploys the KL25Z output binary to your device.
 
 
 ==Make Variables
@@ -53,6 +52,9 @@ The **NO_FLOAT_SCANF** variable is an optional variable that an application's ma
 ===NO_FLOAT_PRINTF
 The **NO_FLOAT_PRINTF** variable is an optional variable that an application's makefile can set to 1, indicating that printf() does not need to support floating point values which reduces code size.
 
+===DEFINES
+The **DEFINES** variable can be used by an application's makefile to explicitly define some preprocessor macros that should be set when compiling the files for the main application.  It doesn't get used for building the mbed SDK libraries.
+
 ===INCDIRS
 The **INCDIRS** variable can be used by an application's makefile to prepend a list of directories to the INCLUDE path used by the compiler for finding #included header files.  This list should be space delimited.
 
@@ -68,8 +70,8 @@ The **INCDIRS** variable can be used by an application's makefile to prepend a l
 ===GCFLAGS
 **GCFLAGS** is an optional variable that an application's makefile can use to specify additional flags for compiling C source files.
 
-===AS_FLAGS
-**AS_FLAGS** is an optional variable that an application's makefile can use to specify additional flags for assembling .s assembly language source files.
+===GAFLAGS
+**GAFLAGS** is an optional variable that an application's makefile can use to specify additional flags for assembling .s assembly language source files.
 
 ===VERBOSE
 **VERBOSE** is an optional variable that an application's makefile can set to 1, indicating that all build tool commands should be displayed to the user.  For example this will cause the full GCC command line for each source file to be shown.
@@ -90,7 +92,7 @@ The **GCC4MBED_TYPE** variable is used to specify the type of build to produce. 
 ===MRI Debugging Related Variables
 MRI is a library that can be linked into your application to provide debug monitoring capabilities.  This allows GDB, the GNU Debugger, to connect to your device via a serial port.  It allows for the use of breakpoints, data watchpoints, single-stepping, inspection/modification of variables, etc.
 
-**Note:** Currently the MRI debug monitor is only support on LPC176X targets and will automatically be disabled for other device targets.
+**Note:** Currently the MRI debug monitor is only support on LPC1768 targets and will automatically be disabled for other device targets.
 
 ====MRI_BREAK_ON_INIT
 The **MRI_BREAK_ON_INIT** variable can be set in an application's makefile to a non-zero value to indicate that the MRI debugger should halt and wait for GDB to attach before executing the global constructors and the main() function.  This allows the developer to set breakpoints in areas of interest before the main code starts executing.  The default value for this variable is 1 for Checked and Debug builds while it defaults to 0 for Release builds.
