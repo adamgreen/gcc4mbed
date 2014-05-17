@@ -173,22 +173,22 @@ $(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c makefile
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(C_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : %.cpp makefile
+$(OUTDIR)/%.o : $(SRC)/%.cpp makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GPP) $(CPP_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : %.c makefile
+$(OUTDIR)/%.o : $(SRC)/%.c makefile
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(C_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : %.S makefile
+$(OUTDIR)/%.o : $(SRC)/%.S makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : %.S makefile
+$(OUTDIR)/%.o : $(SRC)/%.S makefile
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
