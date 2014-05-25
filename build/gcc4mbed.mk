@@ -1,27 +1,21 @@
-#Copyright (C) 2011 by Sagar G V
+# Copyright 2014 Adam Green (http://mbed.org/users/AdamGreen/)
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
-#
-# Updates: 
-#    Arthur Wolf & Adam Green in 2011 - Updated to work with mbed.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ###############################################################################
 # USAGE:
+# Summary folows but more information can be found at following link:
+#  https://github.com/adamgreen/gcc4mbed/blob/master/notes/makefile.creole
+#
 # Variables that must be defined in including makefile.
 #   PROJECT: Name to be given to the output binary for this project.
 #   GCC4MBED_DIR: The root directory for where the gcc4mbed sources are located
@@ -29,12 +23,20 @@
 #                 of the build directory which contains this gcc4mbed.mk file.
 #
 # Variables that may be optionally set in makefile.
+#   DEVCICES: Used to specify a space delimited list of target device(s) that
+#             this application should be built for.  Allowed values include:
+#              LPC1768
+#              LPC11U24
+#              KL25Z
+#              default: LPC1768
 #   SRC: The root directory for the sources of your project.  Defaults to '.'.
-#   LIBS_PREFIX: List of library/object files to prepend to mbed.ar capi.ar libs.
-#   LIBS_SUFFIX: List of library/object files to append to mbed.ar capi.ar libs.
+#   NO_FLOAT_SCANF: When set to 1, scanf() will not support %f specifier to
+#                   input floating point values.  Reduces code size.
+#   NO_FLOAT_PRINTF: When set to 1, scanf() will not support %f specifier to
+#                    output floating point values.  Reduces code size.
 #   GCC4MBED_TYPE: Type of build to produce.  Allowed values are:
 #                  Debug - Build for debugging.  Disables optimizations and
-#                          links in debug MRI runtime.  Best debugging 
+#                          links in debug MRI runtime.  Best debugging
 #                          experience.
 #                  Release - Build for release with no debug support.
 #                  Checked - Release build with debug support.  Due to
@@ -42,19 +44,40 @@
 #                            as Debug but might be needed when bugs don't
 #                            reproduce in Debug builds.
 #                  default: Release
+#   MBED_LIBS: Specifies which additional official mbed libraries you would
+#              like to use with your application.  These include:
+#               net/eth
+#               rtos
+#               fs
+#               rpc
+#               dsp
+#               USBDevice
+#               USBHost
+#   DEFINES: Project specific #defines to be set when compiling main
+#            application.  Each macro should start with "-D" as required by
+#            GCC.
+#   INCDIRS: Space delimited list of extra directories to use for #include
+#            searches.
+#   LIBS_PREFIX: List of library/object files to prepend to mbed libs.
+#   LIBS_SUFFIX: List of library/object files to append to mbed libs.
 #   GPFLAGS: Additional compiler flags used when building C++ sources.
 #   GCFLAGS: Additional compiler flags used when building C sources.
-#   AS_GCFLAGS: Additional compiler flags used by GCC when building
-#               preprocessed assembly language sources.
-#   AS_FLAGS: Additional assembler flags used when building assembly language
+#   GAFLAGS: Additional assembler flags used when building assembly language
 #             sources.
-#   NO_FLOAT_SCANF: When set to 1, scanf() will not support %f specifier to
-#                   input floating point values.  Reduces code size.
-#   NO_FLOAT_PRINTF: When set to 1, scanf() will not support %f specifier to
-#                    output floating point values.  Reduces code size.
+#   OPTIMIZATION: Optional variable that can be set to s, 0, 1, 2, or 3 for
+#                 overriding the compiler's optimization level.  It defaults
+#                 to 2 for Checked and Release buillds and is forced to be 0
+#                 for Debug builds.
+#   NEWLIB_NANO: When set to 1, use the smaller newlib-nano C libraries and
+#                use the standard newlib libraries otherwise.  It defaults
+#                to a value of 1 so that smaller builds are produced.
 #   VERBOSE: When set to 1, all build commands will be displayed to console.
 #            It defaults to 0 which suppresses the output of the build tool
 #            command lines themselves.
+#   MRI_ENABLE: Is typically set based on GCC4MBED_TYPE but defaults to 1 for
+#               Debug (non-optimized builds).  User can force it to 0 for
+#               Debug builds so that the MRI debug monitor isn't used.  Useful
+#               for creating builds to use with JTAG debuggers.
 #   MRI_BREAK_ON_INIT: Should the program halt before calling into main(),
 #                      allowing the developer time to set breakpoints in main()
 #                      or in code run from within global constructors.
@@ -66,14 +89,16 @@
 #   MRI_UART: Select the UART to be used by the debugger.  See mri.h for
 #             allowed values.
 #             default: MRI_UART_MBED_USB - Use USB based UART on the mbed.
-# Example makefile:
-#       PROJECT=HelloWorld
-#       SRC=.
-#       GCC4MBED_DIR=../..
-#       LIBS_PREFIX=../agutil/agutil.ar
-#       LIBS_SUFFIX=
 #
-#       include ../../build/gcc4mbed.mk
+# Example makefile:
+#       PROJECT      := HelloWorld
+#       SRC          := .
+#       GCC4MBED_DIR := ../..
+#       INCDIRS      :=
+#       LIBS_PREFIX  :=
+#       LIBS_SUFFIX  :=
+#
+#       include $(GCC4MBED_DIR)/build/gcc4mbed.mk
 #      
 ###############################################################################
 
@@ -86,142 +111,60 @@ ifndef GCC4MBED_DIR
 $(error makefile must set GCC4MBED_DIR.)
 endif
 
+
 # Set VERBOSE make variable to 1 to output all tool commands.
 VERBOSE?=0
 ifeq "$(VERBOSE)" "0"
-Q=@
+Q := @
 else
-Q=
+Q :=
 endif
 
 
 # Default variables.
-SRC ?= .
-GCC4MBED_TYPE ?= Release
+SRC               ?= .
+GCC4MBED_TYPE     ?= Release
+NO_FLOAT_SCANF    ?= 0
+NO_FLOAT_PRINTF   ?= 0
 MRI_BREAK_ON_INIT ?= 1
-MRI_UART ?= MRI_UART_MBED_USB
+MRI_UART          ?= MRI_UART_MBED_USB
+DEVICES           ?= LPC1768
+NEWLIB_NANO       ?= 1
 
 
 # Configure MRI variables based on GCC4MBED_TYPE build type variable.
 ifeq "$(GCC4MBED_TYPE)" "Release"
 OPTIMIZATION ?= 2
-MRI_ENABLE = 0
-MRI_SEMIHOST_STDIO ?= 0
+MRI_ENABLE := 0
+MRI_SEMIHOST_STDIO := 0
 endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Debug"
-OPTIMIZATION = 0
-MRI_ENABLE = 1
-MRI_SEMIHOST_STDIO ?= 1
+OPTIMIZATION ?= 0
+MRI_ENABLE ?= 1
+MRI_SEMIHOST_STDIO ?= $(MRI_ENABLE)
 endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Checked"
 OPTIMIZATION ?= 2
-MRI_ENABLE = 1
-MRI_SEMIHOST_STDIO ?= 1
+MRI_ENABLE := 1
+MRI_SEMIHOST_STDIO ?= $(MRI_ENABLE)
 endif
 
-MRI_INIT_PARAMETERS=$(MRI_UART)
-
-
-# Output Object Directory
-OUTDIR=LPC176x
-
-# List of sources to be compiled/assembled
-CSRCS = $(wildcard $(SRC)/*.c $(SRC)/*/*.c $(SRC)/*/*/*.c $(SRC)/*/*/*/*.c $(SRC)/*/*/*/*/*.c)
-ASRCS =  $(wildcard $(SRC)/*.S $(SRC)/*/*.S $(SRC)/*/*/*.S $(SRC)/*/*/*/*.S $(SRC)/*/*/*/*/*.S)
-ifneq "$(OS)" "Windows_NT"
-ASRCS +=  $(wildcard $(SRC)/*.s $(SRC)/*/*.s $(SRC)/*/*/*.s $(SRC)/*/*/*/*.s $(SRC)/*/*/*/*/*.s)
-endif
-CPPSRCS = $(wildcard $(SRC)/*.cpp $(SRC)/*/*.cpp $(SRC)/*/*/*.cpp $(SRC)/*/*/*/*.cpp $(SRC)/*/*/*/*/*.cpp)
-
-# List of the objects files to be compiled/assembled
-OBJECTS = $(patsubst %.c,$(OUTDIR)/%.o,$(CSRCS)) $(patsubst %.s,$(OUTDIR)/%.o,$(patsubst %.S,$(OUTDIR)/%.o,$(ASRCS))) $(patsubst %.cpp,$(OUTDIR)/%.o,$(CPPSRCS))
-
-# Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
-OBJECTS += $(OUTDIR)/gcc4mbed.o
-
-# List of the header dependency files, one per object file.
-DEPFILES = $(patsubst %.o,%.d,$(OBJECTS))
-
-# Linker script to be used.  Indicates what code should be placed where in memory.
-LSCRIPT=$(GCC4MBED_DIR)/build/mbed.ld
-
-# Location of external library and header dependencies.
-EXTERNAL_DIR = $(GCC4MBED_DIR)/external
-
-# Include path which points to external library headers and to subdirectories of this project which contain headers.
-SUBDIRS = $(wildcard $(SRC)/* $(SRC)/*/* $(SRC)/*/*/* $(SRC)/*/*/*/* $(SRC)/*/*/*/*/*)
-PROJINCS = $(sort $(dir $(SUBDIRS)))
-INCDIRS += $(PROJINCS) $(GCC4MBED_DIR)/mri $(EXTERNAL_DIR)/mbed $(EXTERNAL_DIR)/mbed/LPC1768
-
-# DEFINEs to be used when building C/C++ code
-DEFINES += -DTARGET_LPC1768
-DEFINES += -DMRI_ENABLE=$(MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"' 
-DEFINES += -DMRI_BREAK_ON_INIT=$(MRI_BREAK_ON_INIT) -DMRI_SEMIHOST_STDIO=$(MRI_SEMIHOST_STDIO)
-
-# Libraries to be linked into final binary
-MBED_LIBS = $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/libmbed.a
-SYS_LIBS = -lstdc++_s -lsupc++_s -lm -lgcc -lc_s -lgcc -lc_s -lnosys
-LIBS = $(LIBS_PREFIX) 
-
-ifeq "$(MRI_ENABLE)" "1"
-LIBS += $(GCC4MBED_DIR)/mri/mri.ar
-endif
-
-LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/startup_LPC17xx.o
-LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/cmsis_nvic.o
-LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/core_cm3.o
-LIBS += $(EXTERNAL_DIR)/mbed/LPC1768/GCC_ARM/system_LPC17xx.o
-LIBS += $(MBED_LIBS)
-LIBS += $(SYS_LIBS)
-LIBS += $(LIBS_SUFFIX)
-
-# Compiler flags used to enable creation of header dependencies.
-DEPFLAGS = -MMD -MP
-
-# Compiler Options
-GPFLAGS += -O$(OPTIMIZATION) -g3 -mcpu=cortex-m3 -mthumb -mthumb-interwork 
-GPFLAGS += -ffunction-sections -fdata-sections  -fno-exceptions -fno-delete-null-pointer-checks
-GPFLAGS += $(patsubst %,-I%,$(INCDIRS))
-GPFLAGS += $(DEFINES)
-GPFLAGS += $(DEPFLAGS)
-GPFLAGS += -Wall -Wextra -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wredundant-decls -Wcast-qual -Wcast-align
-
-GCFLAGS += $(GPFLAGS)
-
-AS_GCFLAGS += -g3 -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
-AS_GCFLAGS += $(patsubst %,-I%,$(INCDIRS))
-AS_FLAGS += -g3 -mcpu=cortex-m3 -mthumb
-
-
-# Setup wraps for newlib read/writes to redirect to MRI debugger. 
-ifeq "$(MRI_ENABLE)" "1"
-MRI_WRAPS=,--wrap=_read,--wrap=_write,--wrap=semihost_connected
-else
-MRI_WRAPS=
-endif
-
-# Linker Options.
-LDFLAGS  = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -specs=$(GCC4MBED_DIR)/build/startfile.spec -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty$(MRI_WRAPS) -T$(LSCRIPT)
-ifneq "$(NO_FLOAT_SCANF)" "1"
-LDFLAGS += -u _scanf_float
-endif
-ifneq "$(NO_FLOAT_PRINTF)" "1"
-LDFLAGS += -u _printf_float
-endif
+MRI_INIT_PARAMETERS := $(MRI_UART)
 
 
 #  Compiler/Assembler/Linker Paths
-GCC = arm-none-eabi-gcc
-GPP = arm-none-eabi-g++
-AS = arm-none-eabi-as
-LD = arm-none-eabi-g++
-OBJCOPY = arm-none-eabi-objcopy
-OBJDUMP = arm-none-eabi-objdump
-SIZE = arm-none-eabi-size
+GCC     := arm-none-eabi-gcc
+GPP     := arm-none-eabi-g++
+AS      := arm-none-eabi-as
+AR      :=arm-none-eabi-ar
+LD      := arm-none-eabi-g++
+OBJCOPY := arm-none-eabi-objcopy
+OBJDUMP := arm-none-eabi-objdump
+SIZE    := arm-none-eabi-size
 
 # Some tools are different on Windows in comparison to Unix.
 ifeq "$(OS)" "Windows_NT"
@@ -250,81 +193,148 @@ $1
 endef
 endif
 
-#########################################################################
-.PHONY: all clean deploy size
 
-all:: $(OUTDIR) $(PROJECT).hex $(PROJECT).bin $(OUTDIR)/$(PROJECT).disasm size
+# Make sure that the mbed library always gets linked in.
+MBED_LIBS += mbed
 
-$(OUTDIR):
-	$(Q) $(MKDIR) $(call convert-slash,$@) $(QUIET)
-	
-$(PROJECT).bin: $(PROJECT).elf
-	@echo Extracting $@
-	$(Q) $(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
 
-$(PROJECT).hex: $(PROJECT).elf
-	@echo Extracting $@
-	$(Q) $(OBJCOPY) -R .stack -O ihex $(PROJECT).elf $(PROJECT).hex
-	
-$(OUTDIR)/$(PROJECT).disasm: $(PROJECT).elf
-	@echo Extracting disassembly to $@
-	$(Q) $(OBJDUMP) -d -f -M reg-names-std $(PROJECT).elf >$(OUTDIR)/$(PROJECT).disasm
-	
-$(PROJECT).elf: $(LSCRIPT) $(OBJECTS)
-	@echo Linking $@
-	$(Q) $(LD) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(PROJECT).elf
+# Add in library dependencies.
+MBED_LIBS := $(patsubst net/eth,net/lwip net/eth rtos,$(MBED_LIBS))
+MBED_LIBS := $(patsubst USBHost,USBHost fs rtos,$(MBED_LIBS))
 
-size: $(PROJECT).elf
-	$(Q) $(SIZE) $(PROJECT).elf
-	@$(BLANK_LINE)
 
-clean:
-	@echo Cleaning up all build generated files
-	$(Q) $(REMOVE) -f $(call convert-slash,$(OBJECTS)) $(QUIET)
-	$(Q) $(REMOVE) -f $(call convert-slash,$(DEPFILES)) $(QUIET)
-	$(Q) $(REMOVE_DIR) $(OUTDIR) $(QUIET)
-	$(Q) $(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).map) $(QUIET)
-	$(Q) $(REMOVE) -f $(call convert-slash,$(OUTDIR)/$(PROJECT).disasm) $(QUIET)
-	$(Q) $(REMOVE) -f $(PROJECT).bin $(QUIET)
-	$(Q) $(REMOVE) -f $(PROJECT).hex $(QUIET)
-	$(Q) $(REMOVE) -f $(PROJECT).elf $(QUIET)
+# Directories where non-device specific mbed source files are found.
+MBED_LIB_SRC_ROOT    := $(GCC4MBED_DIR)/external/mbed/libraries
+MBED_SRC_ROOT        := $(MBED_LIB_SRC_ROOT)/mbed
+COMMON_SRC           :=$(MBED_SRC_ROOT)/common
+API_HEADERS          :=$(MBED_SRC_ROOT)/api
+HAL_HEADERS          :=$(MBED_SRC_ROOT)/hal
+CMSIS_COMMON_HEADERS :=$(MBED_SRC_ROOT)/targets/cmsis
 
--include $(DEPFILES)
 
-ifdef LPC_DEPLOY
-DEPLOY_COMMAND = $(subst PROJECT,$(PROJECT),$(LPC_DEPLOY))
-deploy:
-	@echo Deploying to target.
-	$(Q) $(DEPLOY_COMMAND)
+# Root directories for official mbed library output.
+LIB_RELEASE_DIR := $(GCC4MBED_DIR)/external/mbed/Release
+LIB_DEBUG_DIR   := $(GCC4MBED_DIR)/external/mbed/Debug
+
+
+# Macros for selecting sources/objects to be built for a project.
+src_ext     := c cpp S
+ifneq "$(OS)" "Windows_NT"
+src_ext     +=  s
+endif
+recurse_dir = $(patsubst %/,%,$(sort $(dir $(wildcard $1/* $1/*/* $1/*/*/* $1/*/*/*/* $1/*/*/*/*/* $1/*/*/*/*/*/*))))
+find_srcs   = $(subst //,/,$(foreach i,$(src_ext),$(foreach j,$1,$(wildcard $j/*.$i))))
+srcs2objs   = $(patsubst $2/%,$3/%,$(addsuffix .o,$(basename $(call find_srcs,$1))))
+
+# Utility macros to help build mbed SDK libraries.
+define build_lib #,libname,source_dirs,include_dirs
+    # Release and Debug target libraries for C and C++ portions of library.
+    RELEASE_LIB  := $(RELEASE_DIR)/$1.a
+    DEBUG_LIB    := $(DEBUG_DIR)/$1.a
+
+    # Convert list of source files to corresponding list of object files to be generated.
+    OBJECTS         := $(call srcs2objs,$2,$(MBED_LIB_SRC_ROOT),__Output__)
+    DEBUG_OBJECTS   := $$(patsubst __Output__%,$(DEBUG_DIR)%,$$(OBJECTS))
+    RELEASE_OBJECTS := $$(patsubst __Output__%,$(RELEASE_DIR)%,$$(OBJECTS))
+
+    # List of the header dependency files, one per object file.
+    DEPFILES += $$(patsubst %.o,%.d,$$(DEBUG_OBJECTS))
+    DEPFILES += $$(patsubst %.o,%.d,$$(RELEASE_OBJECTS))
+
+    # Append to main project's include path.
+    MBED_INCLUDES += $3
+
+    # Customize C/C++/ASM flags for Debug and Release builds.
+    $$(DEBUG_LIB): C_FLAGS   := $(C_FLAGS) -O$(DEBUG_OPTIMIZATION)
+    $$(DEBUG_LIB): CPP_FLAGS := $(CPP_FLAGS) -O$(DEBUG_OPTIMIZATION)
+    $$(RELEASE_LIB): C_FLAGS   := $(C_FLAGS) -O$(RELEASE_OPTIMIZATION) -DNDEBUG
+    $$(RELEASE_LIB): CPP_FLAGS := $(CPP_FLAGS) -O$(RELEASE_OPTIMIZATION) -DNDEBUG
+    $$(RELEASE_LIB): ASM_FLAGS := $(ASM_FLAGS)
+    $$(DEBUG_LIB):   ASM_FLAGS := $(ASM_FLAGS)
+
+    #########################################################################
+    # High level rules for building Debug and Release versions of library.
+    #########################################################################
+    $$(RELEASE_LIB): $$(RELEASE_OBJECTS)
+		@echo Linking release library $@
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(AR) -rc $$@ $$+
+
+    $$(DEBUG_LIB): $$(DEBUG_OBJECTS)
+		@echo Linking debug library $@
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(AR) -rc $$@ $$+
+
+endef
+
+
+# Directories where library sources files common to all devices are found. Only perform expansion for libraries that
+# are actually required since this isn't a fast operation.
+ifeq "$(findstring rtos,$(MBED_LIBS))" "rtos"
+    RTOS_DIRS := $(MBED_LIB_SRC_ROOT)/rtos/rtos $(MBED_LIB_SRC_ROOT)/rtos/rtx
+else
+    RTOS_DIRS :=
 endif
 
-#########################################################################
-#  Default rules to compile .c and .cpp file to .o
-#  and assemble .s files to .o
+ifeq "$(findstring net/lwip,$(MBED_LIBS))" "net/lwip"
+    LWIP_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/net/lwip)
+else
+    LWIP_DIRS :=
+endif
 
-$(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c
-	@echo Compiling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(GCFLAGS) -c $< -o $@
+ifeq "$(findstring net/eth,$(MBED_LIBS))" "net/eth"
+    ETH_DIRS := $(MBED_LIB_SRC_ROOT)/net/eth/EthernetInterface
+else
+    ETH_DIRS :=
+endif
 
-$(OUTDIR)/%.o : %.cpp
-	@echo Compiling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GPP) $(GPFLAGS) -c $< -o $@
+ifeq "$(findstring fs,$(MBED_LIBS))" "fs"
+    FS_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/fs)
+else
+    FS_DIRS :=
+endif
 
-$(OUTDIR)/%.o : %.c
-	@echo Compiling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(GCFLAGS) -c $< -o $@
+ifeq "$(findstring USBDevice,$(MBED_LIBS))" "USBDevice"
+    USB_DEVICE_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/USBDevice)
+else
+    USB_DEVICE_DIRS :=
+endif
 
-$(OUTDIR)/%.o : %.S
-	@echo Assembling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(GCC) $(AS_GCFLAGS) -c $< -o $@
+ifeq "$(findstring USBHost,$(MBED_LIBS))" "USBHost"
+    USB_HOST_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/USBHost)
+else
+    USB_HOST_DIRS :=
+endif
 
-$(OUTDIR)/%.o : %.s
-	@echo Assembling $<
-	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
-	$(Q) $(AS) $(AS_FLAGS) -o $@ $<
+ifeq "$(findstring rpc,$(MBED_LIBS))" "rpc"
+    RPC_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/rpc)
+else
+    RPC_DIRS :=
+endif
 
-#########################################################################
+ifeq "$(findstring dsp,$(MBED_LIBS))" "dsp"
+    DSP_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/dsp)
+else
+    DSP_DIRS :=
+endif
+
+
+# Rules for building all of the desired device targets
+all: $(DEVICES)
+clean: $(addsuffix -clean,$(DEVICES))
+clean-all: clean
+	@echo Cleaning $(LIB_RELEASE_DIR)
+	$(Q) $(REMOVE_DIR) $(call convert-slash,$(LIB_RELEASE_DIR)) $(QUIET)
+	@echo Cleaning $(LIB_DEBUG_DIR)
+	$(Q) $(REMOVE_DIR) $(call convert-slash,$(LIB_DEBUG_DIR)) $(QUIET)
+
+deploy: LPC1768-deploy
+
+
+# Determine supported devices by looking at *-device.mk makefiles.
+ALL_DEVICE_MAKEFILES := $(wildcard $(GCC4MBED_DIR)/build/*-device.mk)
+ALL_DEVICES          := $(patsubst $(GCC4MBED_DIR)/build/%-device.mk,%,$(ALL_DEVICE_MAKEFILES))
+
+
+# Include makefiles that know how to build each of the supported device types.
+include $(ALL_DEVICE_MAKEFILES)

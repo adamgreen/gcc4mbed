@@ -1,4 +1,4 @@
-# Copyright 2011 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,36 @@
 # limitations under the License.
 #
 # Directories to be built
-DIRS=HelloWorld Blink Ticker StdIO LocalFileSystem FileTest TCPSocket_HelloWorld
+DIRS := HelloWorld\
+        Blink\
+        Ticker\
+        StdIO\
+        LocalFileSystem\
+        FileTest\
+        SdPerf\
+        TCPSocket_HelloWorld\
+        USBMouse\
+        USBHostMouse\
+        USBHostKeyboard\
+        USBHostMSD\
+        USBHostHub\
+        USBHostSerial
+DIRSCLEAN := $(addsuffix .clean,$(DIRS))
+
+
+# Determine supported devices by looking at *-device.mk makefiles.
+ALL_DEVICES := $(patsubst ../build/%-device.mk,%,$(wildcard ../build/*-device.mk))
+
+
+# Macro to construct device specific rules.
+define device_rule #,DEVICE_NAME
+    .PHONY : $1 $(addsuffix .$1,$(DIRS))
+    $1 : $(addsuffix .$1,$(DIRS))
+    $(addsuffix .$1,$(DIRS)) : %.$1:
+		$(Q) $(MAKE) -C $$* $1
+
+endef
+
 
 # Set VERBOSE make variable to 1 to output all tool commands.
 VERBOSE?=0
@@ -23,14 +52,23 @@ else
 Q=
 endif
 
-.PHONY: subdirs $(DIRS)
 
-subdirs: $(DIRS)
+# Rules
+all: $(DIRS)
 
-clean: $(DIRS)
+clean: $(DIRSCLEAN)
 
-# Recurse into each of the specified directories and perform a make
+clean-all: $(DIRSCLEAN)
+	$(Q) $(MAKE) --no-print-directory -C HelloWorld clean-all
+
 $(DIRS):
 	@echo Building $@
-	$(Q) $(MAKE) $(MAKECMDGOALS) -C $@
+	$(Q) $(MAKE) --no-print-directory -C $@ all
 
+$(DIRSCLEAN): %.clean:
+	$(Q) $(MAKE) --no-print-directory -C $* clean
+
+.PHONY: all clean clean-all $(DIRS) $(DIRSCLEAN)
+
+# Rules to build each of the supported devices.
+$(eval $(foreach i,$(ALL_DEVICES),$(call device_rule,$i)))

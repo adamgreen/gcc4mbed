@@ -1,21 +1,23 @@
-/* Copyright 2012 Adam Green (http://mbed.org/users/AdamGreen/)
+/* Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published
-   by the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-   You should have received a copy of the GNU Lesser General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.   
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 */
 /* Provide routines which hook the MRI debug monitor into GCC4MBED projects. */
 #include <string.h>
+#include <sys/types.h>
+#include <errno.h>
 #include <mri.h>
+#include <cmsis.h>
 
 
 extern unsigned int __bss_start__;
@@ -73,6 +75,41 @@ int __wrap__isatty(int file)
 }
 
 
+/* Wrap memory allocation routines to make sure that they aren't being called from interrupt handler. */
+static void breakOnHeapOpFromInterruptHandler(void)
+{
+    /* UNDONE: I don't enable the check for KL25Z since the USBDevice implementation currently makes allocations from
+       its ISR to realize endpoint buffers. */
+#if !defined(TARGET_KL25Z)
+    if (__get_IPSR() != 0)
+        __debugbreak();
+#endif
+}
+
+void* __real_malloc(size_t size);
+void* __wrap_malloc(size_t size)
+{
+    breakOnHeapOpFromInterruptHandler();
+    return __real_malloc(size);
+}
+
+
+void* __real_realloc(void* ptr, size_t size);
+void* __wrap_realloc(void* ptr, size_t size)
+{
+    breakOnHeapOpFromInterruptHandler();
+    return __real_realloc(ptr, size);
+}
+
+
+void __real_free(void* ptr);
+void __wrap_free(void* ptr)
+{
+    breakOnHeapOpFromInterruptHandler();
+    __real_free(ptr);
+}
+
+
 int __wrap_semihost_connected(void)
 {
     /* MRI makes it look like there is no mbed interface attached since it disables the JTAG portion but MRI does
@@ -80,7 +117,6 @@ int __wrap_semihost_connected(void)
        interface is attached. */
     return -1;
 }
-
 
 
 void abort(void)
