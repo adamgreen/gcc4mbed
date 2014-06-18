@@ -69,12 +69,12 @@ int can_filter(can_t *obj, uint32_t id, uint32_t mask, CANFormat format, int32_t
             LPC_CAN->IF1_ARB1 = BFN_PREP(id, CANIFn_ARB1_ID);
             LPC_CAN->IF1_ARB2 = CANIFn_ARB2_MSGVAL | CANIFn_ARB2_XTD | BFN_PREP(id >> 16, CANIFn_ARB2_ID);
             LPC_CAN->IF1_MSK1 = BFN_PREP(mask, CANIFn_MSK1_MSK);
-            LPC_CAN->IF1_MSK2 = CANIFn_MSK2_MXTD | CANIFn_MSK2_MDIR | BFN_PREP(mask >> 16, CANIFn_MSK2_MSK);
+            LPC_CAN->IF1_MSK2 = CANIFn_MSK2_MXTD /* | CANIFn_MSK2_MDIR */ | BFN_PREP(mask >> 16, CANIFn_MSK2_MSK);
         }
         else {
             // Mark message valid, Direction = TX, Set Identifier and mask everything
             LPC_CAN->IF1_ARB2 = CANIFn_ARB2_MSGVAL | BFN_PREP(id << 2, CANIFn_ARB2_ID);
-            LPC_CAN->IF1_MSK2 = CANIFn_MSK2_MDIR | BFN_PREP(mask << 2, CANIFn_MSK2_MSK);
+            LPC_CAN->IF1_MSK2 = /* CANIFn_MSK2_MDIR | */ BFN_PREP(mask << 2, CANIFn_MSK2_MSK);
         }
         
         // Use mask, single message object and set DLC
@@ -87,7 +87,7 @@ int can_filter(can_t *obj, uint32_t id, uint32_t mask, CANFormat format, int32_t
         LPC_CAN->IF1_CMDREQ = BFN_PREP(handle, CANIFn_CMDREQ_MN);
         
         // Wait until transfer to message ram complete - TODO: maybe not block??
-        while( LPC_CAN->IF1_CMDREQ & CANIFn_CMDREQ_BUSY );    
+        while( LPC_CAN->IF1_CMDREQ & CANIFn_CMDREQ_BUSY );
     }
     
     return handle;
@@ -100,7 +100,7 @@ static inline void can_irq() {
 // Register CAN object's irq handler
 void can_irq_init(can_t *obj, can_irq_handler handler, uint32_t id) {
     irq_handler = handler;
-    can_irq_id = id;    
+    can_irq_id = id;
 }
 
 // Unregister CAN object's irq handler
@@ -264,18 +264,20 @@ int can_frequency(can_t *obj, int f) {
     btr = btr & 0xFFFF;
     
     if (btr > 0) {
+        uint32_t cntl_init = LPC_CAN->CNTL | CANCNTL_INIT;
         // Set the bit clock
-        LPC_CAN->CNTL |= CANCNTL_CCE;
+        LPC_CAN->CNTL |= CANCNTL_CCE | CANCNTL_INIT;
         LPC_CAN->CLKDIV = clkdiv;
         LPC_CAN->BT = btr;
         LPC_CAN->BRPE = 0x0000;
-        LPC_CAN->CNTL &= ~CANCNTL_CCE;
+        LPC_CAN->CNTL &= ~(CANCNTL_CCE | CANCNTL_INIT);
+        LPC_CAN->CNTL |= cntl_init;
         return 1;
     }
     return 0;
 }
 
-int can_write(can_t *obj, CAN_Message msg, int cc) {    
+int can_write(can_t *obj, CAN_Message msg, int cc) {
     uint16_t msgnum = 0;
     
     // Make sure controller is enabled
@@ -284,16 +286,22 @@ int can_write(can_t *obj, CAN_Message msg, int cc) {
     // Make sure the interface is available
     while( LPC_CAN->IF1_CMDREQ & CANIFn_CMDREQ_BUSY );
 
+    // Set the direction bit based on the message type
+    uint32_t direction = 0;
+    if (msg.type == CANData) {
+        direction = CANIFn_ARB2_DIR;
+    }
+
     if(msg.format == CANExtended)    {
-        // Mark message valid, Direction = TX, Extended Frame, Set Identifier and mask everything
+        // Mark message valid, Extended Frame, Set Identifier and mask everything
         LPC_CAN->IF1_ARB1 = BFN_PREP(msg.id, CANIFn_ARB1_ID);
-        LPC_CAN->IF1_ARB2 = CANIFn_ARB2_MSGVAL | CANIFn_ARB2_XTD | CANIFn_ARB2_DIR | BFN_PREP(msg.id >> 16, CANIFn_ARB2_ID);
+        LPC_CAN->IF1_ARB2 = CANIFn_ARB2_MSGVAL | CANIFn_ARB2_XTD | direction | BFN_PREP(msg.id >> 16, CANIFn_ARB2_ID);
         LPC_CAN->IF1_MSK1 = BFN_PREP(ID_EXT_MASK, CANIFn_MSK1_MSK);
         LPC_CAN->IF1_MSK2 = CANIFn_MSK2_MXTD | CANIFn_MSK2_MDIR | BFN_PREP(ID_EXT_MASK >> 16, CANIFn_MSK2_MSK);
     }
     else {
-        // Mark message valid, Direction = TX, Set Identifier and mask everything
-        LPC_CAN->IF1_ARB2 = CANIFn_ARB2_MSGVAL | CANIFn_ARB2_DIR | BFN_PREP(msg.id << 2, CANIFn_ARB2_ID);
+        // Mark message valid, Set Identifier and mask everything
+        LPC_CAN->IF1_ARB2 = CANIFn_ARB2_MSGVAL | direction | BFN_PREP(msg.id << 2, CANIFn_ARB2_ID);
         LPC_CAN->IF1_MSK2 = CANIFn_MSK2_MDIR | BFN_PREP(ID_STD_MASK << 2, CANIFn_MSK2_MSK);
     }
     
@@ -352,18 +360,23 @@ int can_read(can_t *obj, CAN_Message *msg, int handle) {
         // Wait until transfer to message ram complete
         while( LPC_CAN->IF2_CMDREQ & CANIFn_CMDREQ_BUSY );
                     
-        if (LPC_CAN->IF2_ARB2 & CANIFn_ARB2_XTD) {  
-            msg->format = CANExtended;    
+        if (LPC_CAN->IF2_ARB2 & CANIFn_ARB2_XTD) {
+            msg->format = CANExtended;
             msg->id = (LPC_CAN->IF2_ARB1 & CANIFn_ARB2_ID_MASK) << 16;
             msg->id |= (LPC_CAN->IF2_ARB2 & CANIFn_ARB2_ID_MASK);
         }
         else {
-            msg->format = CANStandard;  
+            msg->format = CANStandard;
             msg->id = (LPC_CAN->IF2_ARB2 & CANIFn_ARB2_ID_MASK) >> 2;
         }
 
-        // TODO: Remote frame support
-        msg->type       = CANData;
+        if (LPC_CAN->IF2_ARB2 & CANIFn_ARB2_DIR) {
+            msg->type   = CANRemote;
+        }
+        else {
+            msg->type   = CANData;
+        }
+
         msg->len        = BFN_GET(LPC_CAN->IF2_MCTRL, CANIFn_MCTRL_DLC); // TODO: If > 8, len = 8
         msg->data[0]    = BFN_GET(LPC_CAN->IF2_DA1, CANIFn_DA1_DATA0);
         msg->data[1]    = BFN_GET(LPC_CAN->IF2_DA1, CANIFn_DA1_DATA1);
