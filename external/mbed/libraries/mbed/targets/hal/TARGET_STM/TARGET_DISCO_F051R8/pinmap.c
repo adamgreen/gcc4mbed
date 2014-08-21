@@ -27,9 +27,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
  */
-#include "device.h"
+#include "mbed_assert.h"
 #include "pinmap.h"
-#include "error.h"
+#include "PortNames.h"
+#include "mbed_error.h"
 
 // Enable GPIO clock and return GPIO base address
 uint32_t Set_GPIO_Clock(uint32_t port_idx) {
@@ -66,8 +67,7 @@ uint32_t Set_GPIO_Clock(uint32_t port_idx) {
  * Configure pin (mode, speed, output type and pull-up/pull-down)
  */
 void pin_function(PinName pin, int data) {
-    if (pin == NC) return;
-
+    MBED_ASSERT(pin != (PinName)NC);
     // Get the pin informations
     uint32_t mode  = STM_PIN_MODE(data);
     uint32_t otype = STM_PIN_OTYPE(data);
@@ -104,15 +104,14 @@ void pin_function(PinName pin, int data) {
     //}
     //if ((pin == PA_15) || (pin == PB_3) || (pin == PB_4)) {
     //
-    //}    
+    //}
 }
 
 /**
  * Configure pin pull-up/pull-down
  */
 void pin_mode(PinName pin, PinMode mode) {
-    if (pin == NC) return;
-
+    MBED_ASSERT(pin != (PinName)NC);
     uint32_t port_index = STM_PORT(pin);
     uint32_t pin_index  = STM_PIN(pin);
 

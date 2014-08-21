@@ -27,13 +27,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
  */
+#include "mbed_assert.h"
 #include "i2c_api.h"
 
 #if DEVICE_I2C
 
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
+
 
 /* Timeout values for flags and events waiting loops. These timeouts are
    not based on accurate values, they just guarantee that the application will
@@ -61,10 +62,7 @@ void i2c_init(i2c_t *obj, PinName sda, PinName scl) {
     I2CName i2c_scl = (I2CName)pinmap_peripheral(scl, PinMap_I2C_SCL);
 
     obj->i2c = (I2CName)pinmap_merge(i2c_sda, i2c_scl);
-
-    if (obj->i2c == (I2CName)NC) {
-        error("I2C pin mapping failed");
-    }
+    MBED_ASSERT(obj->i2c != (I2CName)NC);
 
     // Enable I2C clock
     if (obj->i2c == I2C_1) {
@@ -160,8 +158,6 @@ int i2c_read(i2c_t *obj, int address, char *data, int length, int stop) {
     int count;
     int value;
 
-    if (length == 0) return 0;
-
     i2c_start(obj);
 
     // Send slave address for read
@@ -172,7 +168,7 @@ int i2c_read(i2c_t *obj, int address, char *data, int length, int stop) {
     while (I2C_CheckEvent(i2c, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED) == ERROR) {
         timeout--;
         if (timeout == 0) {
-            return 0;
+            return -1;
         }
     }
 
@@ -210,14 +206,14 @@ int i2c_write(i2c_t *obj, int address, const char *data, int length, int stop) {
     while (I2C_CheckEvent(i2c, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED) == ERROR) {
         timeout--;
         if (timeout == 0) {
-            return 0;
+            return -1;
         }
     }
 
     for (count = 0; count < length; count++) {
         if (i2c_byte_write(obj, data[count]) != 1) {
             i2c_stop(obj);
-            return 0;
+            return -1;
         }
     }
 
@@ -247,7 +243,7 @@ int i2c_byte_read(i2c_t *obj, int last) {
     while (I2C_GetFlagStatus(i2c, I2C_FLAG_RXNE) == RESET) {
         timeout--;
         if (timeout == 0) {
-            return 0;
+            return -1;
         }
     }
 

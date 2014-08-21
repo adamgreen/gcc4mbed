@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_assert.h"
 #include "analogin_api.h"
 
 #if DEVICE_ANALOGIN
 
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
+#include "mbed_error.h"
 
 #define ADC_10BIT_RANGE             0x3FF
 #define ADC_12BIT_RANGE             0xFFF
@@ -48,9 +49,7 @@ static const PinMap PinMap_ADC[] = {
 
 void analogin_init(analogin_t *obj, PinName pin) {
     obj->adc = (ADCName)pinmap_peripheral(pin, PinMap_ADC);
-    if (obj->adc == (uint32_t)NC) {
-        error("ADC pin mapping failed");
-    }
+    MBED_ASSERT(obj->adc != (uint32_t)NC);
 
     // ensure power is turned on
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN |

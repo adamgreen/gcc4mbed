@@ -27,10 +27,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
  */
+#include "mbed_assert.h"
 #include "serial_api.h"
+
+#if DEVICE_SERIAL
+
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
 #include <string.h>
 
 static const PinMap PinMap_UART_TX[] = {
@@ -85,27 +88,27 @@ static void init_usart(serial_t *obj) {
     USART_Cmd(usart, ENABLE);
 }
 
-void serial_init(serial_t *obj, PinName tx, PinName rx) {  
+void serial_init(serial_t *obj, PinName tx, PinName rx) {
     // Determine the UART to use
     UARTName uart_tx = (UARTName)pinmap_peripheral(tx, PinMap_UART_TX);
     UARTName uart_rx = (UARTName)pinmap_peripheral(rx, PinMap_UART_RX);
   
     // Get the peripheral name from the pin and assign it to the object
     obj->uart = (UARTName)pinmap_merge(uart_tx, uart_rx);
-
-    if (obj->uart == (UARTName)NC) {
-        error("Serial pinout mapping failed");
-    }
+    MBED_ASSERT(obj->uart != (UARTName)NC);
 
     // Enable USART clock
     if (obj->uart == UART_1) {
-        RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); 
+        RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+        obj->index = 0;
     }
     if (obj->uart == UART_2) {
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE); 
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+        obj->index = 1;
     }
     if (obj->uart == UART_3) {
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE); 
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+        obj->index = 2;
     }
     
     // Configure the UART pins
@@ -118,14 +121,12 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     obj->baudrate = 9600;
     obj->databits = USART_WordLength_8b;
     obj->stopbits = USART_StopBits_1;
-    obj->parity = USART_Parity_No;    
+    obj->parity = USART_Parity_No;
+
+    obj->pin_tx = tx;
+    obj->pin_rx = rx;
 
     init_usart(obj);
-
-    // The index is used by irq
-    if (obj->uart == UART_1) obj->index = 0;
-    if (obj->uart == UART_2) obj->index = 1;
-    if (obj->uart == UART_3) obj->index = 2;
     
     // For stdio management
     if (obj->uart == STDIO_UART) {
@@ -136,6 +137,27 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
 }
 
 void serial_free(serial_t *obj) {
+    // Reset UART and disable clock
+    if (obj->uart == UART_1) {
+        RCC_APB2PeriphResetCmd(RCC_APB2Periph_USART1, ENABLE);
+        RCC_APB2PeriphResetCmd(RCC_APB2Periph_USART1, DISABLE);
+        RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, DISABLE);
+    }
+    if (obj->uart == UART_2) {
+        RCC_APB1PeriphResetCmd(RCC_APB1Periph_USART2, ENABLE);
+        RCC_APB1PeriphResetCmd(RCC_APB1Periph_USART2, DISABLE);
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, DISABLE);
+    }
+    if (obj->uart == UART_3) {
+        RCC_APB1PeriphResetCmd(RCC_APB1Periph_USART3, ENABLE);
+        RCC_APB1PeriphResetCmd(RCC_APB1Periph_USART3, DISABLE);
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, DISABLE);
+    }
+
+    // Configure GPIOs
+    pin_function(obj->pin_tx, STM_PIN_DATA(GPIO_Mode_IN, 0, GPIO_PuPd_NOPULL, 0xFF));
+    pin_function(obj->pin_rx, STM_PIN_DATA(GPIO_Mode_IN, 0, GPIO_PuPd_NOPULL, 0xFF));
+
     serial_irq_ids[obj->index] = 0;
 }
 
@@ -157,7 +179,7 @@ void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_b
           obj->parity = USART_Parity_Odd;
       break;
       case ParityEven:
-      case ParityForced1:        
+      case ParityForced1:
           obj->parity = USART_Parity_Even;
       break;
       default: // ParityNone
@@ -233,7 +255,7 @@ void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
             USART_ITConfig(usart, USART_IT_RXNE, ENABLE);
         } else { // TxIrq
             USART_ITConfig(usart, USART_IT_TC, ENABLE);
-        }        
+        }
         
         NVIC_SetVector(irq_n, vector);
         NVIC_EnableIRQ(irq_n);
@@ -249,12 +271,12 @@ void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
         } else { // TxIrq
             USART_ITConfig(usart, USART_IT_TXE, DISABLE);
             // Check if RxIrq is disabled too
-            if ((usart->CR1 & USART_CR1_RXNEIE) == 0) all_disabled = 1;          
+            if ((usart->CR1 & USART_CR1_RXNEIE) == 0) all_disabled = 1;
         }
         
         if (all_disabled) NVIC_DisableIRQ(irq_n);
         
-    }    
+    }
 }
 
 /******************************************************************************
@@ -309,3 +331,5 @@ void serial_break_clear(serial_t *obj) {
     USART_RequestCmd(usart, USART_Request_SBKRQ, DISABLE);
     USART_ClearFlag(usart, USART_FLAG_SBK);
 }
+
+#endif

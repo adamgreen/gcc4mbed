@@ -27,13 +27,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
  */
+#include "mbed_assert.h"
 #include "i2c_api.h"
 
 #if DEVICE_I2C
 
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
+#include "mbed_error.h"
 
 /* Timeout values for flags and events waiting loops. These timeouts are
    not based on accurate values, they just guarantee that the application will
@@ -68,10 +69,7 @@ void i2c_init(i2c_t *obj, PinName sda, PinName scl) {
     I2CName i2c_scl = (I2CName)pinmap_peripheral(scl, PinMap_I2C_SCL);
 
     obj->i2c = (I2CName)pinmap_merge(i2c_sda, i2c_scl);
-
-    if (obj->i2c == (I2CName)NC) {
-        error("I2C pin mapping failed");
-    }
+    MBED_ASSERT(obj->i2c != (I2CName)NC);
 
     // Enable I2C clock
     if (obj->i2c == I2C_1) {
@@ -221,8 +219,6 @@ int i2c_read(i2c_t *obj, int address, char *data, int length, int stop) {
     int timeout;
     int value;
 
-    if (length == 0) return 0;
-
     // Configure slave address, nbytes, reload, end mode and start or stop generation
     I2C_TransferHandling(i2c, address, length, I2C_SoftEnd_Mode, I2C_Generate_Start_Read);
 
@@ -235,7 +231,7 @@ int i2c_read(i2c_t *obj, int address, char *data, int length, int stop) {
     timeout = FLAG_TIMEOUT;
     while (!I2C_GetFlagStatus(i2c, I2C_FLAG_TC)) {
         timeout--;
-        if (timeout == 0) return 0;
+        if (timeout == 0) return -1;
     }
 
     if (stop) i2c_stop(obj);
@@ -249,8 +245,6 @@ int i2c_write(i2c_t *obj, int address, const char *data, int length, int stop) {
     int timeout;
     int count;
 
-    if (length == 0) return 0;
-
     // Configure slave address, nbytes, reload, end mode and start generation
     I2C_TransferHandling(i2c, address, length, I2C_SoftEnd_Mode, I2C_Generate_Start_Write);
 
@@ -262,7 +256,7 @@ int i2c_write(i2c_t *obj, int address, const char *data, int length, int stop) {
     timeout = FLAG_TIMEOUT;
     while (!I2C_GetFlagStatus(i2c, I2C_FLAG_TC)) {
         timeout--;
-        if (timeout == 0) return 0;
+        if (timeout == 0) return -1;
     }
 
     if (stop) i2c_stop(obj);
@@ -280,7 +274,7 @@ int i2c_byte_read(i2c_t *obj, int last) {
     while (I2C_GetFlagStatus(i2c, I2C_ISR_RXNE) == RESET) {
         timeout--;
         if (timeout == 0) {
-            return 0;
+            return -1;
         }
     }
 

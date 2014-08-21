@@ -13,41 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_assert.h"
 #include "pwmout_api.h"
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
+#include "PeripheralPins.h" // For the Peripheral to Pin Definitions found in the individual Target's Platform
 
 #define TCR_CNT_EN       0x00000001
 #define TCR_RESET        0x00000002
-
-/* To have a PWM where we can change both the period and the duty cycle,
- * we need an entire timer. With the following conventions:
- *   * MR3 is used for the PWM period
- *   * MR0, MR1, MR2 are used for the duty cycle
- */
-static const PinMap PinMap_PWM[] = {
-    /* CT16B0 */
-    {P0_8 , PWM_1, 2}, {P1_13, PWM_1, 2},    /* MR0 */
-    {P0_9 , PWM_2, 2}, {P1_14, PWM_2, 2},   /* MR1 */
-    {P0_10, PWM_3, 3}, {P1_15, PWM_3, 2},   /* MR2 */
-
-    /* CT16B1 */
-    {P0_21, PWM_4, 1},                      /* MR0 */
-    {P0_22, PWM_5, 2}, {P1_23, PWM_5, 1},   /* MR1 */
-
-    /* CT32B0 */
-    {P0_18, PWM_6, 2}, {P1_24, PWM_6, 1},   /* MR0 */
-    {P0_19, PWM_7, 2}, {P1_25, PWM_7, 1},   /* MR1 */
-    {P0_1 , PWM_8, 2}, {P1_26, PWM_8, 1},   /* MR2 */
-
-    /* CT32B1 */
-    {P0_13, PWM_9 , 3}, {P1_0, PWM_9 , 1},  /* MR0 */
-    {P0_14, PWM_10, 3}, {P1_1, PWM_10, 1},  /* MR1 */
-    {P0_15, PWM_11, 3}, {P1_2, PWM_11, 1},  /* MR2 */
-
-    {NC, NC, 0}
-};
 
 typedef struct {
     uint8_t timer;
@@ -69,9 +42,8 @@ static LPC_CTxxBx_Type *Timers[4] = {
 void pwmout_init(pwmout_t* obj, PinName pin) {
     // determine the channel
     PWMName pwm = (PWMName)pinmap_peripheral(pin, PinMap_PWM);
-    if (pwm == (PWMName)NC)
-        error("PwmOut pin mapping failed");
-    
+    MBED_ASSERT(pwm != (PWMName)NC);
+
     obj->pwm = pwm;
     
     // Timer registers
@@ -143,7 +115,7 @@ void pwmout_period_us(pwmout_t* obj, int us) {
 
     // for 16bit timer, set prescaler to avoid overflow
     if (timer == LPC_CT16B0 || timer == LPC_CT16B1) {
-        uint16_t high_period_ticks = period_ticks >> 16; 
+        uint16_t high_period_ticks = period_ticks >> 16;
         timer->PR = high_period_ticks;
         period_ticks /= (high_period_ticks + 1);
     }
