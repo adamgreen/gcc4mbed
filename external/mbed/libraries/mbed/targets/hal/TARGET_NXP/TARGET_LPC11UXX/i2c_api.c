@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_assert.h"
 #include "i2c_api.h"
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
-
-static const PinMap PinMap_I2C_SDA[] = {
-    {P0_5, I2C_0, 1},
-    {NC  , NC   , 0}
-};
-
-static const PinMap PinMap_I2C_SCL[] = {
-    {P0_4, I2C_0, 1},
-    {NC  , NC,    0}
-};
+#include "PeripheralPins.h" // For the Peripheral to Pin Definitions found in the individual Target's Platform
 
 #define I2C_CONSET(x)       (x->i2c->CONSET)
 #define I2C_CONCLR(x)       (x->i2c->CONCLR)
@@ -87,10 +78,7 @@ void i2c_init(i2c_t *obj, PinName sda, PinName scl) {
     I2CName i2c_sda = (I2CName)pinmap_peripheral(sda, PinMap_I2C_SDA);
     I2CName i2c_scl = (I2CName)pinmap_peripheral(scl, PinMap_I2C_SCL);
     obj->i2c = (LPC_I2C_Type *)pinmap_merge(i2c_sda, i2c_scl);
-    
-    if ((int)obj->i2c == NC) {
-        error("I2C pin mapping failed");
-    }
+    MBED_ASSERT((int)obj->i2c != NC);
     
     // enable power
     i2c_power_enable(obj);

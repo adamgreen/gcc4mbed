@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 // math.h required for floating point operations for baud rate calculation
+#include "mbed_assert.h"
 #include <math.h>
 #include <string.h>
 
 #include "serial_api.h"
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
+#include "mbed_error.h"
 
 /******************************************************************************
  * INITIALIZATION
@@ -88,10 +89,10 @@ static void switch_pin(const SWM_Map *swm, PinName pn)
     if (pn != NC)
     {
         // check if we have any function mapped to this pin already and remove it
-        for (int n = 0; n < sizeof(LPC_SWM->PINASSIGN)/sizeof(*LPC_SWM->PINASSIGN); n ++) {
+        for (uint32_t n = 0; n < sizeof(LPC_SWM->PINASSIGN)/sizeof(*LPC_SWM->PINASSIGN); n ++) {
             regVal = LPC_SWM->PINASSIGN[n];
-            for (int j = 0; j <= 24; j += 8) {
-                if (((regVal >> j) & 0xFF) == pn) 
+            for (uint32_t j = 0; j <= 24; j += 8) {
+                if (((regVal >> j) & 0xFF) == (uint32_t)pn)
                     regVal |= (0xFF << j);
             }
             LPC_SWM->PINASSIGN[n] = regVal;
@@ -104,7 +105,7 @@ static void switch_pin(const SWM_Map *swm, PinName pn)
 
 void serial_init(serial_t *obj, PinName tx, PinName rx) {
     int is_stdio_uart = 0;
-  
+    
     int uart_n = get_available_uart();
     if (uart_n == -1) {
         error("No available UART");
@@ -126,9 +127,8 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     LPC_SYSCON->SYSAHBCLKCTRL1 |= (1 << (17 + uart_n));
     
     /* Peripheral reset control to UART, a "1" bring it out of reset. */
-//    LPC_SYSCON->PRESETCTRL1 &= ~(0x1 << (17 + uart_n));
     LPC_SYSCON->PRESETCTRL1 |=  (0x1 << (17 + uart_n));
-    LPC_SYSCON->PRESETCTRL1 ^=  (0x1 << (17 + uart_n));
+    LPC_SYSCON->PRESETCTRL1 &= ~(0x1 << (17 + uart_n));
     
     UARTSysClk = SystemCoreClock / LPC_SYSCON->UARTCLKDIV;
     
@@ -141,9 +141,6 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     
     /* enable uart interrupts */
     NVIC_EnableIRQ((IRQn_Type)(UART0_IRQn + uart_n));
-    
-    /* Enable UART interrupt */
-    // obj->uart->INTENSET = RXRDY | TXRDY | DELTA_RXBRK;
     
     /* Enable UART */
     obj->uart->CFG |= UART_EN;
@@ -195,16 +192,11 @@ void serial_baud(serial_t *obj, int baudrate) {
 }
 
 void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_bits) {
-    // 0: 1 stop bits, 1: 2 stop bits
-    if (stop_bits != 1 && stop_bits != 2) {
-        error("Invalid stop bits specified");
-    }
+    MBED_ASSERT((stop_bits == 1) || (stop_bits == 2)); // 0: 1 stop bits, 1: 2 stop bits
+    MBED_ASSERT((data_bits > 6) && (data_bits < 10)); // 0: 7 data bits ... 2: 9 data bits
+    MBED_ASSERT((parity == ParityNone) || (parity == ParityEven) || (parity == ParityOdd));
+
     stop_bits -= 1;
-    
-    // 0: 7 data bits ... 2: 9 data bits
-    if (data_bits < 7 || data_bits > 9) {
-        error("Invalid number of bits (%d) in serial format, should be 7..9", data_bits);
-    }
     data_bits -= 7;
     
     int paritysel;
@@ -213,8 +205,7 @@ void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_b
         case ParityEven: paritysel = 2; break;
         case ParityOdd : paritysel = 3; break;
         default:
-            error("Invalid serial parity setting");
-            return;
+            break;
     }
     
     obj->uart->CFG = (data_bits << 2)

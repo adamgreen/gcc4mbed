@@ -13,41 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_assert.h"
 #include <math.h>
 #include "spi_api.h"
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
-
-static const PinMap PinMap_SPI_SCLK[] = {
-    {P0_6 , SPI_0, 0x02},
-    {P0_10, SPI_0, 0x02},
-    {P1_29, SPI_0, 0x01},
-    {P1_15, SPI_1, 0x03},
-    {P1_20, SPI_1, 0x02},
-    {NC   , NC   , 0}
-};
-
-static const PinMap PinMap_SPI_MOSI[] = {
-    {P0_9 , SPI_0, 0x01},
-    {P0_21, SPI_1, 0x02},
-    {P1_22, SPI_1, 0x02},
-    {NC   , NC   , 0}
-};
-
-static const PinMap PinMap_SPI_MISO[] = {
-    {P0_8 , SPI_0, 0x01},
-    {P0_22, SPI_1, 0x03},
-    {P1_21, SPI_1, 0x02},
-    {NC   , NC   , 0}
-};
-
-static const PinMap PinMap_SPI_SSEL[] = {
-    {P0_2 , SPI_0, 0x01},
-    {P1_19, SPI_1, 0x02},
-    {P1_23, SPI_1, 0x02},
-    {NC   , NC   , 0}
-};
+#include "mbed_error.h"
+#include "PeripheralPins.h" // For the Peripheral to Pin Definitions found in the individual Target's Platform
 
 static inline int ssp_disable(spi_t *obj);
 static inline int ssp_enable(spi_t *obj);
@@ -62,10 +34,7 @@ void spi_init(spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel
     SPIName spi_cntl = (SPIName)pinmap_merge(spi_sclk, spi_ssel);
     
     obj->spi = (LPC_SSPx_Type*)pinmap_merge(spi_data, spi_cntl);
-    
-    if ((int)obj->spi == NC) {
-        error("SPI pinout mapping failed");
-    }
+    MBED_ASSERT((int)obj->spi != NC);
     
     // enable power and clocking
     switch ((int)obj->spi) {
@@ -104,11 +73,9 @@ void spi_init(spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel
 void spi_free(spi_t *obj) {}
 
 void spi_format(spi_t *obj, int bits, int mode, int slave) {
+    MBED_ASSERT((bits >= 4 && bits <= 16) || (mode >= 0 && mode <= 3));
+
     ssp_disable(obj);
-    
-    if (!(bits >= 4 && bits <= 16) || !(mode >= 0 && mode <= 3)) {
-        error("SPI format error");
-    }
     
     int polarity = (mode & 0x2) ? 1 : 0;
     int phase = (mode & 0x1) ? 1 : 0;

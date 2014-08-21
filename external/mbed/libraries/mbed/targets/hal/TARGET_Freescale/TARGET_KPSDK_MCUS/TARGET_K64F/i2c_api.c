@@ -13,46 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_assert.h"
 #include "i2c_api.h"
+
+#if DEVICE_I2C
 
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
 #include "fsl_clock_manager.h"
 #include "fsl_i2c_hal.h"
 #include "fsl_port_hal.h"
 #include "fsl_sim_hal.h"
-
-static const PinMap PinMap_I2C_SDA[] = {
-    {PTE25, I2C_0, 5},
-    {PTB1 , I2C_0, 2},
-    {PTB3 , I2C_0, 2},
-    {PTC11, I2C_1, 2},
-    {PTA13, I2C_2, 5},
-    {PTD3 , I2C_0, 7},
-    {PTE0 , I2C_1, 6},
-    {NC   , NC   , 0}
-};
-
-static const PinMap PinMap_I2C_SCL[] = {
-    {PTE24, I2C_0, 5},
-    {PTB0 , I2C_0, 2},
-    {PTB2 , I2C_0, 2},
-    {PTC10, I2C_1, 2},
-    {PTA12, I2C_2, 5},
-    {PTA14, I2C_2, 5},
-    {PTD2 , I2C_0, 7},
-    {PTE1 , I2C_1, 6},
-    {NC   , NC   , 0}
-};
+#include "PeripheralPins.h"
 
 void i2c_init(i2c_t *obj, PinName sda, PinName scl) {
     uint32_t i2c_sda = pinmap_peripheral(sda, PinMap_I2C_SDA);
     uint32_t i2c_scl = pinmap_peripheral(scl, PinMap_I2C_SCL);
     obj->instance = pinmap_merge(i2c_sda, i2c_scl);
-    if ((int)obj->instance == NC) {
-        error("I2C pin mapping failed");
-    }
+    MBED_ASSERT((int)obj->instance != NC);
 
     clock_manager_set_gate(kClockModuleI2C, obj->instance, true);
     clock_manager_set_gate(kClockModulePORT, sda >> GPIO_PORT_SHIFT, true);
@@ -331,3 +309,4 @@ void i2c_slave_address(i2c_t *obj, int idx, uint32_t address, uint32_t mask) {
 }
 #endif
 
+#endif

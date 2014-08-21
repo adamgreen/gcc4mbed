@@ -27,6 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
  */
+#include "mbed_assert.h"
 #include "spi_api.h"
 
 #if DEVICE_SPI
@@ -34,7 +35,6 @@
 #include <math.h>
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
 
 static const PinMap PinMap_SPI_MOSI[] = {
     {PA_7,  SPI_1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF0_SPI1)},
@@ -105,10 +105,7 @@ void spi_init(spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel
     SPIName spi_cntl = (SPIName)pinmap_merge(spi_sclk, spi_ssel);
 
     obj->spi = (SPIName)pinmap_merge(spi_data, spi_cntl);
-
-    if (obj->spi == (SPIName)NC) {
-        error("SPI error: pinout mapping failed.");
-    }
+    MBED_ASSERT(obj->spi != (SPIName)NC);
 
     // Enable SPI clock
     if (obj->spi == SPI_1) {
@@ -169,10 +166,10 @@ void spi_free(spi_t *obj) {
 
 void spi_format(spi_t *obj, int bits, int mode, int slave) {
     // Save new values
-    if (bits == 8) {
-        obj->bits = SPI_DATASIZE_8BIT;
-    } else {
+    if (bits == 16) {
         obj->bits = SPI_DATASIZE_16BIT;
+    } else {
+        obj->bits = SPI_DATASIZE_8BIT;
     }
 
     switch (mode) {
@@ -268,7 +265,7 @@ int spi_master_write(spi_t *obj, int value) {
 }
 
 int spi_slave_receive(spi_t *obj) {
-    return (ssp_readable(obj)) ? (1) : (0);
+    return (ssp_readable(obj) ? 1 : 0);
 };
 
 int spi_slave_read(spi_t *obj) {

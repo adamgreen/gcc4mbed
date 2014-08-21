@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "mbed_assert.h"
 #include "pwmout_api.h"
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
+#include "mbed_error.h"
 
 static LPC_SCT0_Type *SCTs[4] = {
     (LPC_SCT0_Type*)LPC_SCT0,
@@ -38,9 +38,8 @@ static int get_available_sct(void) {
 }
 
 void pwmout_init(pwmout_t* obj, PinName pin) {
-	if (pin == (uint32_t)NC)
-		error("PwmOut pin mapping failed");
-	
+    MBED_ASSERT(pin != (uint32_t)NC);
+
     int sct_n = get_available_sct();
     if (sct_n == -1) {
         error("No available SCT");
@@ -129,7 +128,6 @@ void pwmout_write(pwmout_t* obj, float value) {
     } else if (value > 1.0f) {
         value = 1.0;
     }
-    uint32_t t_off = pwm->MATCHREL0 - (uint32_t)((float)(pwm->MATCHREL0) * value);
     uint32_t t_on = (uint32_t)((float)(pwm->MATCHREL0) * value);
     pwm->MATCHREL1 = t_on;
 }

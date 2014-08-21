@@ -15,35 +15,60 @@
  *
  * Ported to NXP LPC43XX by Micromint USA <support@micromint.com>
  */
+#include "mbed_assert.h"
 #include <math.h>
 
 #include "spi_api.h"
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
+#include "mbed_error.h"
+
+// SCU mode for SPI pins
+#define SCU_PINIO_SPI       SCU_PINIO_FAST
 
 static const PinMap PinMap_SPI_SCLK[] = {
-    {P3_0 , SPI_0, (SCU_PINIO_FAST | 2)},
-    {PF_4 , SPI_1, (SCU_PINIO_FAST | 2)},
-    {NC   , NC   , 0}
+    {P1_19, SPI_1, (SCU_PINIO_SPI | 1)},
+    {P3_0,  SPI_0, (SCU_PINIO_SPI | 4)},
+    {P3_3,  SPI_0, (SCU_PINIO_SPI | 2)},
+    {PF_0,  SPI_0, (SCU_PINIO_SPI | 0)},
+    {PF_4,  SPI_1, (SCU_PINIO_SPI | 0)},
+    {NC,    NC,    0}
 };
 
 static const PinMap PinMap_SPI_MOSI[] = {
-    {P1_2 , SPI_0, (SCU_PINIO_FAST | 2)},
-    {P1_4 , SPI_1, (SCU_PINIO_FAST | 2)},
-    {NC   , NC   , 0}
+    {P0_1,  SPI_1, (SCU_PINIO_SPI | 1)},
+    {P1_2,  SPI_0, (SCU_PINIO_SPI | 5)},
+    {P1_4,  SPI_1, (SCU_PINIO_SPI | 5)},
+    {P3_7,  SPI_0, (SCU_PINIO_SPI | 5)},
+    {P3_8,  SPI_0, (SCU_PINIO_SPI | 2)},
+    {P9_2,  SPI_0, (SCU_PINIO_SPI | 7)},
+    {PF_3,  SPI_0, (SCU_PINIO_SPI | 2)},
+    {PF_7,  SPI_1, (SCU_PINIO_SPI | 2)},
+    {NC,    NC,    0}
 };
 
 static const PinMap PinMap_SPI_MISO[] = {
-    {P1_1 , SPI_0, (SCU_PINIO_FAST | 2)},
-    {P1_3 , SPI_1, (SCU_PINIO_FAST | 2)},
-    {NC   , NC   , 0}
+    {P0_0,  SPI_1, (SCU_PINIO_SPI | 1)},
+    {P1_1,  SPI_0, (SCU_PINIO_SPI | 5)},
+    {P1_3,  SPI_1, (SCU_PINIO_SPI | 5)},
+    {P3_6,  SPI_0, (SCU_PINIO_SPI | 5)},
+    {P3_7,  SPI_0, (SCU_PINIO_SPI | 2)},
+    {P9_1,  SPI_0, (SCU_PINIO_SPI | 7)},
+    {PF_2,  SPI_0, (SCU_PINIO_SPI | 2)},
+    {PF_6,  SPI_1, (SCU_PINIO_SPI | 2)},
+    {NC,    NC,    0}
 };
 
 static const PinMap PinMap_SPI_SSEL[] = {
-    {P1_0 , SPI_0, (SCU_PINIO_FAST | 2)},
-    {P1_5 , SPI_1, (SCU_PINIO_FAST | 2)},
-    {NC   , NC   , 0}
+    {P1_0,  SPI_0, (SCU_PINIO_SPI | 5)},
+    {P1_5,  SPI_1, (SCU_PINIO_SPI | 5)},
+    {P1_20, SPI_1, (SCU_PINIO_SPI | 2)},
+    {P3_6,  SPI_0, (SCU_PINIO_SPI | 2)},
+    {P3_8,  SPI_0, (SCU_PINIO_SPI | 5)},
+    {P9_0,  SPI_0, (SCU_PINIO_SPI | 7)},
+    {PF_1,  SPI_0, (SCU_PINIO_SPI | 2)},
+    {PF_5,  SPI_1, (SCU_PINIO_SPI | 2)},
+    {NC,    NC,    0}
 };
 
 static inline int ssp_disable(spi_t *obj);
@@ -59,8 +84,12 @@ void spi_init(spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel
     SPIName spi_cntl = (SPIName)pinmap_merge(spi_sclk, spi_ssel);
 
     obj->spi = (LPC_SSP_T*)pinmap_merge(spi_data, spi_cntl);
-    if ((int)obj->spi == NC) {
-        error("SPI pinout mapping failed");
+    MBED_ASSERT((int)obj->spi != NC);
+    
+    // enable clocking
+    switch ((int)obj->spi) {
+        case SPI_0: LPC_CGU->BASE_CLK[CLK_BASE_SSP0] = (1 << 11) | (CLKIN_MAINPLL << 24); break;
+        case SPI_1: LPC_CGU->BASE_CLK[CLK_BASE_SSP1] = (1 << 11) | (CLKIN_MAINPLL << 24); break;
     }
 
     // set default format and frequency
@@ -86,11 +115,8 @@ void spi_init(spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel
 void spi_free(spi_t *obj) {}
 
 void spi_format(spi_t *obj, int bits, int mode, int slave) {
+    MBED_ASSERT(((bits >= 4) && (bits <= 16)) || ((mode >= 0) && (mode <= 3)));
     ssp_disable(obj);
-    
-    if (!(bits >= 4 && bits <= 16) || !(mode >= 0 && mode <= 3)) {
-        error("SPI format error");
-    }
     
     int polarity = (mode & 0x2) ? 1 : 0;
     int phase = (mode & 0x1) ? 1 : 0;

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_assert.h"
 #include "pwmout_api.h"
 
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
 #include "clk_freqs.h"
 #include "PeripheralPins.h"
 
@@ -26,9 +26,8 @@ static float pwm_clock;
 void pwmout_init(pwmout_t* obj, PinName pin) {
     // determine the channel
     PWMName pwm = (PWMName)pinmap_peripheral(pin, PinMap_PWM);
-    if (pwm == (PWMName)NC)
-        error("PwmOut pin mapping failed");
-    
+    MBED_ASSERT(pwm != (PWMName)NC);
+
     uint32_t clkdiv = 0;
     float clkval;
     if (mcgpllfll_frequency()) {
@@ -37,11 +36,11 @@ void pwmout_init(pwmout_t* obj, PinName pin) {
     } else {
         SIM->SOPT2 |= SIM_SOPT2_TPMSRC(2); // Clock source: ExtOsc
         clkval = extosc_frequency() / 1000000.0f;
-    } 
+    }
     
     while (clkval > 1) {
         clkdiv++;
-        clkval /= 2.0;  
+        clkval /= 2.0;
         if (clkdiv == 7)
             break;
     }
@@ -79,12 +78,12 @@ void pwmout_write(pwmout_t* obj, float value) {
         value = 1.0;
     }
 
-    *obj->CnV = (uint32_t)((float)(*obj->MOD) * value);
+    *obj->CnV = (uint32_t)((float)(*obj->MOD + 1) * value);
     *obj->CNT = 0;
 }
 
 float pwmout_read(pwmout_t* obj) {
-    float v = (float)(*obj->CnV) / (float)(*obj->MOD);
+    float v = (float)(*obj->CnV) / (float)(*obj->MOD + 1);
     return (v > 1.0) ? (1.0) : (v);
 }
 
@@ -99,7 +98,7 @@ void pwmout_period_ms(pwmout_t* obj, int ms) {
 // Set the PWM period, keeping the duty cycle the same.
 void pwmout_period_us(pwmout_t* obj, int us) {
     float dc = pwmout_read(obj);
-    *obj->MOD = (uint32_t)(pwm_clock * (float)us);
+    *obj->MOD = (uint32_t)(pwm_clock * (float)us) - 1;
     pwmout_write(obj, dc);
 }
 

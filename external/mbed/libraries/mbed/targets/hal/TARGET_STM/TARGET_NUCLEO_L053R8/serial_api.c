@@ -27,13 +27,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
  */
+#include "mbed_assert.h"
 #include "serial_api.h"
 
 #if DEVICE_SERIAL
 
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
 #include <string.h>
 
 static const PinMap PinMap_UART_TX[] = {
@@ -101,10 +101,7 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
 
     // Get the peripheral name (UART_1, UART_2, ...) from the pin and assign it to the object
     obj->uart = (UARTName)pinmap_merge(uart_tx, uart_rx);
-
-    if (obj->uart == (UARTName)NC) {
-        error("Serial error: pinout mapping failed.");
-    }
+    MBED_ASSERT(obj->uart != (UARTName)NC);
 
     // Enable UART clock
     if (obj->uart == UART_1) {
@@ -178,10 +175,10 @@ void serial_baud(serial_t *obj, int baudrate) {
 }
 
 void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_bits) {
-    if (data_bits == 8) {
-        obj->databits = UART_WORDLENGTH_8B;
-    } else {
+    if (data_bits == 9) {
         obj->databits = UART_WORDLENGTH_9B;
+    } else {
+        obj->databits = UART_WORDLENGTH_8B;
     }
 
     switch (parity) {
@@ -306,7 +303,7 @@ int serial_getc(serial_t *obj) {
 void serial_putc(serial_t *obj, int c) {
     USART_TypeDef *uart = (USART_TypeDef *)(obj->uart);
     while (!serial_writable(obj));
-    uart->TDR = (uint32_t)(c & 0xFF);
+    uart->TDR = (uint16_t)(c & 0xFF);
 }
 
 int serial_readable(serial_t *obj) {

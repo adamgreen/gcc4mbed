@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_assert.h"
 #include "pwmout_api.h"
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
 
 #define TCR_CNT_EN       0x00000001
 #define TCR_RESET        0x00000002
@@ -64,9 +64,8 @@ static LPC_TMR_TypeDef *Timers[3] = {
 void pwmout_init(pwmout_t* obj, PinName pin) {
     // determine the channel
     PWMName pwm = (PWMName)pinmap_peripheral(pin, PinMap_PWM);
-    if (pwm == (uint32_t)NC)
-        error("PwmOut pin mapping failed");
-    
+    MBED_ASSERT(pwm != (uint32_t)NC);
+
     obj->pwm = pwm;
     
     // Timer registers
@@ -110,11 +109,15 @@ void pwmout_write(pwmout_t* obj, float value) {
     } else if (value > 1.0f) {
         value = 1.0;
     }
-    
+
     timer_mr tid = pwm_timer_map[obj->pwm];
     LPC_TMR_TypeDef *timer = Timers[tid.timer];
     uint32_t t_off = timer->MR3 - (uint32_t)((float)(timer->MR3) * value);
-    
+    // to avoid spike pulse when duty is 0%
+    if (value == 0) {
+        t_off++;
+    }
+
     timer->TCR = TCR_RESET;
     timer->MR[tid.mr] = t_off;
     timer->TCR = TCR_CNT_EN;
@@ -125,6 +128,9 @@ float pwmout_read(pwmout_t* obj) {
     LPC_TMR_TypeDef *timer = Timers[tid.timer];
     
     float v = (float)(timer->MR3 - timer->MR[tid.mr]) / (float)(timer->MR3);
+    if (timer->MR[tid.mr] > timer->MR3) {
+        v = 0.0f;
+    }
     return (v > 1.0f) ? (1.0f) : (v);
 }
 

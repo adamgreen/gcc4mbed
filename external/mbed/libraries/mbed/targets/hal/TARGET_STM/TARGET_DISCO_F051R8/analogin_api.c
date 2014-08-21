@@ -25,22 +25,33 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "mbed_assert.h"
 #include "analogin_api.h"
-#include "wait_api.h"
 
 #if DEVICE_ANALOGIN
 
 #include "cmsis.h"
 #include "pinmap.h"
-#include "error.h"
+#include "mbed_error.h"
+#include "wait_api.h"
 
 static const PinMap PinMap_ADC[] = {
     {PA_0, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN0
     {PA_1, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN1
+    {PA_2, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN2
+    {PA_3, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN3
     {PA_4, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN4
+    {PA_5, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN5
+    {PA_6, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN6
+    {PA_7, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN7
     {PB_0, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN8
-    {PC_1, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN11
+    {PB_1, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN9
     {PC_0, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN10
+    {PC_1, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN11
+    {PC_2, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN12
+    {PC_3, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN13
+    {PC_4, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN14
+    {PC_5, ADC_1, STM_PIN_DATA(GPIO_Mode_AN, GPIO_OType_PP, GPIO_PuPd_NOPULL, 0xFF)}, // ADC_IN15
     {NC,   NC,    0}
 };
 
@@ -53,10 +64,7 @@ void analogin_init(analogin_t *obj, PinName pin) {
   
     // Get the peripheral name (ADC_1, ADC_2...) from the pin and assign it to the object
     obj->adc = (ADCName)pinmap_peripheral(pin, PinMap_ADC);
- 
-    if (obj->adc == (ADCName)NC) {
-      error("ADC pin mapping failed");
-    }
+    MBED_ASSERT(obj->adc != (ADCName)NC);
 
     // Configure GPIO
     pinmap_pinout(pin, PinMap_ADC);
@@ -76,7 +84,7 @@ void analogin_init(analogin_t *obj, PinName pin) {
                
         // Configure ADC
         ADC_InitStructure.ADC_Resolution           = ADC_Resolution_12b;
-        ADC_InitStructure.ADC_ContinuousConvMode   = DISABLE; 
+        ADC_InitStructure.ADC_ContinuousConvMode   = DISABLE;
         ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
         ADC_InitStructure.ADC_ExternalTrigConv     = ADC_ExternalTrigConv_T1_TRGO;
         ADC_InitStructure.ADC_DataAlign            = ADC_DataAlign_Right;
@@ -105,33 +113,63 @@ static inline uint16_t adc_read(analogin_t *obj) {
       case PA_1:
           ADC_ChannelConfig(adc, ADC_Channel_1, ADC_SampleTime_7_5Cycles);
           break;
+        case PA_2:
+            ADC_ChannelConfig(adc, ADC_Channel_2, ADC_SampleTime_7_5Cycles);
+            break;
+        case PA_3:
+            ADC_ChannelConfig(adc, ADC_Channel_3, ADC_SampleTime_7_5Cycles);
+            break;
       case PA_4:
           ADC_ChannelConfig(adc, ADC_Channel_4, ADC_SampleTime_7_5Cycles);
           break;
+        case PA_5:
+            ADC_ChannelConfig(adc, ADC_Channel_5, ADC_SampleTime_7_5Cycles);
+            break;
+        case PA_6:
+            ADC_ChannelConfig(adc, ADC_Channel_6, ADC_SampleTime_7_5Cycles);
+            break;
+        case PA_7:
+            ADC_ChannelConfig(adc, ADC_Channel_7, ADC_SampleTime_7_5Cycles);
+            break;
       case PB_0:
           ADC_ChannelConfig(adc, ADC_Channel_8, ADC_SampleTime_7_5Cycles);
           break;
-      case PC_1:
-          ADC_ChannelConfig(adc, ADC_Channel_11, ADC_SampleTime_7_5Cycles);
+        case PB_1:
+            ADC_ChannelConfig(adc, ADC_Channel_9, ADC_SampleTime_7_5Cycles);
           break;
       case PC_0:
           ADC_ChannelConfig(adc, ADC_Channel_10, ADC_SampleTime_7_5Cycles);
           break;
+        case PC_1:
+            ADC_ChannelConfig(adc, ADC_Channel_11, ADC_SampleTime_7_5Cycles);
+            break;
+        case PC_2:
+            ADC_ChannelConfig(adc, ADC_Channel_12, ADC_SampleTime_7_5Cycles);
+            break;
+        case PC_3:
+            ADC_ChannelConfig(adc, ADC_Channel_13, ADC_SampleTime_7_5Cycles);
+            break;
+        case PC_4:
+            ADC_ChannelConfig(adc, ADC_Channel_14, ADC_SampleTime_7_5Cycles);
+            break;
+        case PC_5:
+            ADC_ChannelConfig(adc, ADC_Channel_15, ADC_SampleTime_7_5Cycles);
+            break;
       default:
           return 0;
   }
 
-  while(!ADC_GetFlagStatus(adc, ADC_FLAG_ADRDY)); // Wait ADC ready
+    while (!ADC_GetFlagStatus(adc, ADC_FLAG_ADRDY)); // Wait ADC ready
 
   ADC_StartOfConversion(adc); // Start conversion
   
-  while(ADC_GetFlagStatus(adc, ADC_FLAG_EOC) == RESET); // Wait end of conversion
+    while (ADC_GetFlagStatus(adc, ADC_FLAG_EOC) == RESET); // Wait end of conversion
   
-  return(ADC_GetConversionValue(adc)); // Get conversion value
+    return (ADC_GetConversionValue(adc)); // Get conversion value
 }
 
 uint16_t analogin_read_u16(analogin_t *obj) {
-  return(adc_read(obj));
+    return (adc_read(obj));
 }
 
 float analogin_read(analogin_t *obj) {
