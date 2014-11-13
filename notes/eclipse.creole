@@ -1,6 +1,6 @@
-I first want to thank [[http://mbed.org/users/dcabanis/|David Cabanis]] for the e-mail that he sent me a few months ago.  It forms the core of this documentation.  David, You Rock!
+I first want to thank [[http://developer.mbed.org/users/dcabanis/|David Cabanis]] for the e-mail that he sent me a few months ago.  It forms the core of this documentation.  David, You Rock!
 
-**Important Notes for Windows Users:** The [[http://mbed.org/cookbook/eclipse-for-building-and-debugging#additional-notes-for-windows-users1523|related cookbook page on the mbed website]] contains updated notes for configuring Eclipse on Windows.
+**Important Notes for Windows Users:** The [[http://developer.mbed.org/cookbook/eclipse-for-building-and-debugging#additional-notes-for-windows-users1523|related cookbook page on the mbed website]] contains updated notes for configuring Eclipse on Windows.
 
 == Install GCC4MBED Project
 Refer to the following link to install GCC4MBED on your machine: [[https://github.com/adamgreen/gcc4mbed#quick-start]]
@@ -142,7 +142,7 @@ Now comes the really fun part.  Not only can we build our GCC4MBED samples in Ec
 * Change **GDB debugger:** from **gdb** to **arm-none-eabi-gdb**
 * Click on the **Connection** sub-tab.
 * Set **Type:** to **Serial**
-* Set **Device:** to a value appropriate for your environment.  You can learn more about determining your serial port [[http://mbed.org/handbook/SerialPC|here]].
+* Set **Device:** to a value appropriate for your environment.  You can learn more about determining your serial port [[http://developer.mbed.org/handbook/SerialPC|here]].
 * Click on the **Common** tab.
 * In the **Display in favorites menu**, check the **Debug** option.
 * Click the **Close** button to dismiss the **Debug Configurations** 
