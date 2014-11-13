@@ -34,6 +34,10 @@ ASM_FLAGS := -mcpu=cortex-m0plus -mthumb
 LD_FLAGS  := -mcpu=cortex-m0plus -mthumb
 
 
+# Extra platform specific object files to link into file binary.
+DEVICE_OBJECTS :=
+
+
 # Linker script to be used.  Indicates what code should be placed where in memory.
 LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_Freescale/TARGET_KLXX/TARGET_KL25Z/TOOLCHAIN_GCC_ARM/MKL25Z4.ld
 

@@ -8,6 +8,7 @@
 *.d
 *.a
 mri.log
+pyocd.log
 deploy
 debug
 /BuildShell

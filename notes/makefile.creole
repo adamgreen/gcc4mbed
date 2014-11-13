@@ -31,6 +31,7 @@ The **DEVICES** variable is used in an application's makefile to specify a space
 * LPC1768
 * LPC11U24
 * KL25Z
+* NRF51822
 \\The default target device is LPC1768.
 
 ===SRC

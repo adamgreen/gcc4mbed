@@ -26,7 +26,8 @@ DIRS := HelloWorld\
         USBHostKeyboard\
         USBHostMSD\
         USBHostHub\
-        USBHostSerial
+        USBHostSerial\
+        BLEHeartRate
 DIRSCLEAN := $(addsuffix .clean,$(DIRS))
 
 
