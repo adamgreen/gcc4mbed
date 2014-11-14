@@ -40,6 +40,8 @@ These are the quick steps to get gcc4mbed installed on your computer:
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/makefile.creole#make-variables|Makefile Configuration]]:**  Information about makefile options to customize your project's binary.\\
 \\
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/porting.creole#readme|Porting]]:**  Notes on porting applications from mbed cloud compiler to offline GCC4MBED project.\\
+\\
+**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/new_devices.creole#adding-new-devices-to-gcc4mbed|Adding Devices]]:**  Notes on how to add new device support to GCC4MBED.\\
 
 ==Thanks
 The author wants to thank Arthur Wolf for the [[http://developer.mbed.org/forum/mbed/topic/2336/|posting]] he made back in May on 2011 which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
