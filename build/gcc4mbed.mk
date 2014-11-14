@@ -329,7 +329,7 @@ clean-all: clean
 	@echo Cleaning $(LIB_DEBUG_DIR)
 	$(Q) $(REMOVE_DIR) $(call convert-slash,$(LIB_DEBUG_DIR)) $(QUIET)
 
-deploy: LPC1768-deploy
+deploy: (DEVICES)-deploy$
 
 
 # Determine supported devices by looking at *-device.mk makefiles.
