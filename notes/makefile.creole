@@ -27,11 +27,16 @@ The **PROJECT** variable is used in an application's makefile to indicate the na
 The **GCC4MBED_DIR** variable is used in an application's makefile to specify the root directory location of the GCC4MBED project.  This directory will be the directory which contains the GCC4MBED install scripts such as win_install.cmd, linux_install, and mac_install.  The application's makefile must specify a value for this variable.
 
 ===DEVICES
-The **DEVICES** variable is used in an application's makefile to specify a space delimited list of target devices for which the code should be built.  The supported devices for this list include:
+The **DEVICES** variable is used in an application's makefile to specify a space delimited list of target devices for which the code should be built.  The officially supported devices for this list include:
 * LPC1768
 * LPC11U24
 * KL25Z
+
+These devices are currently in beta:
 * NRF51822
+
+These devices were added by the community.  I make sure that they build during a release but I don't test on actual hardware:
+* NUCLEO_F401RE (added by [[https://developer.mbed.org/users/svkatielee/ | Larry Littlefield]])
 \\The default target device is LPC1768.
 
 ===SRC
