@@ -28,6 +28,7 @@
 #              LPC1768
 #              LPC11U24
 #              KL25Z
+#              NRF51822
 #              default: LPC1768
 #   SRC: The root directory for the sources of your project.  Defaults to '.'.
 #   NO_FLOAT_SCANF: When set to 1, scanf() will not support %f specifier to
@@ -64,9 +65,9 @@
 #   GCFLAGS: Additional compiler flags used when building C sources.
 #   GAFLAGS: Additional assembler flags used when building assembly language
 #             sources.
-#   OPTIMIZATION: Optional variable that can be set to s, 0, 1, 2, or 3 for
+#   OPTIMIZATION: Optional variable that can be set to s, g, 0, 1, 2, or 3 for
 #                 overriding the compiler's optimization level.  It defaults
-#                 to 2 for Checked and Release buillds and is forced to be 0
+#                 to 2 for Checked and Release buillds and is forced to be g
 #                 for Debug builds.
 #   NEWLIB_NANO: When set to 1, use the smaller newlib-nano C libraries and
 #                use the standard newlib libraries otherwise.  It defaults
@@ -141,7 +142,7 @@ endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Debug"
-OPTIMIZATION ?= 0
+OPTIMIZATION ?= g
 MRI_ENABLE ?= 1
 MRI_SEMIHOST_STDIO ?= $(MRI_ENABLE)
 endif

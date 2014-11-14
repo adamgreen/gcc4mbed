@@ -21,7 +21,7 @@ ifeq "$(findstring $(MBED_DEVICE),$(DEVICES))" "$(MBED_DEVICE)"
 # Setup flags that are common across the different pieces of code to be built.
 ###############################################################################
 # Optimization levels to be used for Debug and Release versions of libraries.
-DEBUG_OPTIMIZATION   := 0
+DEBUG_OPTIMIZATION   := g
 RELEASE_OPTIMIZATION := 2
 
 # Compiler flags used to enable creation of header dependency files.
@@ -71,6 +71,9 @@ OBJECTS := $(call srcs2objs,$(call recurse_dir,$(SRC)),$(SRC),$(OUTDIR))
 
 # Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
 OBJECTS += $(OUTDIR)/gcc4mbed.o
+
+# Add in device specific object file(s).
+OBJECTS += $(DEVICE_OBJECTS)
 
 # Initialize list of the header dependency files, one per object file. Each mbed SDK library will append to this list.
 DEPFILES := $(patsubst %.o,%.d,$(OBJECTS))

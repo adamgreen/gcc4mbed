@@ -1,0 +1,1 @@
+These files are common to all implementations of the BLE_API.

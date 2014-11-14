@@ -1,8 +1,9 @@
 ==Current Version
 **GCC Version:**  [[https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q1-update | GCC ARM Embedded 4.8-2014-q1-update]]\\
-**mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev88 | Revision 88]]\\
+**mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev91 | Revision 91]]\\
 
 ==Previous Versions
+[[https://github.com/adamgreen/gcc4mbed/tree/gcc4.8-2014-q1_mbed88|GCC ARM Embedded 4.8-2014-q1-update with mbed SDK revision 88]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.8-2014-q1_mbed85|GCC ARM Embedded 4.8-2014-q1-update with mbed SDK revision 85]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.8-2014-q1_mbed84|GCC ARM Embedded 4.8-2014-q1-update with mbed SDK revision 84]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.7-2012-q4_mbed54|GCC ARM Embedded 4.7-2012-q4-major with mbed SDK revision 54]]\\
@@ -39,12 +40,14 @@ These are the quick steps to get gcc4mbed installed on your computer:
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/makefile.creole#make-variables|Makefile Configuration]]:**  Information about makefile options to customize your project's binary.\\
 \\
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/porting.creole#readme|Porting]]:**  Notes on porting applications from mbed cloud compiler to offline GCC4MBED project.\\
+\\
+**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/new_devices.creole#adding-new-devices-to-gcc4mbed|Adding Devices]]:**  Notes on how to add new device support to GCC4MBED.\\
 
 ==Thanks
-The author wants to thank Arthur Wolf for the [[http://mbed.org/forum/mbed/topic/2336/|posting]] he made back in May on 2011 which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
+The author wants to thank Arthur Wolf for the [[http://developer.mbed.org/forum/mbed/topic/2336/|posting]] he made back in May on 2011 which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
 
 Thanks to Felyza Wishbringer for writing the first Windows install script which provided the inspiration for the Windows, Mac, and Linux scripts that are now included in the gcc4mbed project.
 
-Thanks for all of the others who have provided valuable feedback since this project was first released.  Much of that feedback can be found in this [[http://mbed.org/forum/mbed/topic/2701/|mbed forum thread]]
+Thanks for all of the others who have provided valuable feedback since this project was first released.  Much of that feedback can be found in this [[http://developer.mbed.org/forum/mbed/topic/2701/|mbed forum thread]]
 
 ==Have fun!!

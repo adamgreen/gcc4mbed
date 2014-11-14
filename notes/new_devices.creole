@@ -1,0 +1,78 @@
+==Adding New Devices to GCC4MBED
+The initial version of GCC4MBED which took advantage of the open source mbed SDK only supported the LPC1768, LPC11U24,
+and KL25Z platforms.  It is however possible to add support for any of the other devices already supported by the
+mbed SDK for the TOOLCHAIN_GCC_ARM set of tools.  This page describes the steps necessary to enable a new device in the
+GCC4MBED makefiles.
+
+==github Pull Requests
+If you add support to GCC4MBED and you want to see it included in future GCC4MBED updates, then please issue a pull
+request on github.  During future updates I will make sure that things still build for these platforms but the resulting
+binaries will not be tested since I don't have the necessary hardware.
+
+==Example Walkthrough
+I will now show adding LPC1347 device support to walk you through the process to add support for new devices.
+
+First let's go into the build/ subdirectory of the GCC4MBED project and copy LPC1768-device.mk to LPC1347-device.mk
+since it is the closest platform already supported (same vendor and same Cortex-M3 family).  I recommend using uppercase
+characters for the LPC1347 prefix as it is used by some of the makefiles to determine all of the supported platforms and
+you want it to match the case of the symbols actually defined for this device.
+
+To get an idea of what preprocessor defines should be set for building code for this platform, I kick off a build of the
+mbed SDK using their Python based build system in verbose mode so that I can look at the command line params they pass
+into GCC when performing the build.  For example, I ran the following command:
+{{{
+workspace_tools/build.py -m LPC1347 -t GCC_ARM -v
+}}}
+
+I grabbed one of the GCC command lines from the console output and pulled out the defines onto their own line so that I
+could look at them more closely:
+
+{{{
+/depots/gcc4mbed/gcc-arm-none-eabi/bin/arm-none-eabi-gcc -std=gnu99 -c
+    -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
+    -fmessage-length=0 -fno-exceptions -fno-builtin -ffunction-sections -fdata-sections -MMD -fno-delete-null-pointer-checks
+    -mcpu=cortex-m3 -mthumb -O2
+    -DTARGET_LPC1347 -DTARGET_M3 -DTARGET_NXP -DTARGET_LPC13XX -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC -D__CORTEX_M3 -DARM_MATH_CM3 -DMBED_BUILD_TIMESTAMP=1401077038.66 -D__MBED__=1
+    -I/depots/gcc4mbed/external/mbed/libraries/mbed/targets/hal -I/depots/gcc4mbed/external/mbed/libraries/mbed/targets/hal/TARGET_NXP -I/depots/gcc4mbed/external/mbed/libraries/mbed/targets/hal/TARGET_NXP/TARGET_LPC13XX -I/depots/gcc4mbed/external/mbed/build/mbed -I/depots/gcc4mbed/external/mbed/build/mbed/TARGET_LPC1347 -I/depots/gcc4mbed/external/mbed/build/mbed/TARGET_LPC1347/TARGET_NXP -I/depots/gcc4mbed/external/mbed/build/mbed/TARGET_LPC1347/TARGET_NXP/TARGET_LPC13XX -I/depots/gcc4mbed/external/mbed/build/mbed/TARGET_LPC1347/TOOLCHAIN_GCC_ARM
+    -o /depots/gcc4mbed/external/mbed/build/mbed/.temp/TARGET_LPC1347/TOOLCHAIN_GCC_ARM/TARGET_NXP/TARGET_LPC13XX/analogin_api.o /depots/gcc4mbed/external/mbed/libraries/mbed/targets/hal/TARGET_NXP/TARGET_LPC13XX/analogin_api.c
+}}}
+
+Based on this output, I modified the newly created LPC1347-device.mk like so:
+
+{{{
+16,17c16,17
+< MBED_DEVICE        := LPC1768
+< MBED_TARGET        := NXP_LPC17XX
+---
+> MBED_DEVICE        := LPC1347
+> MBED_TARGET        := NXP_LPC1347
+21,24c21,23
+< HAL_TARGET_SRC   := $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC176X
+< HAL_TARGET_SRC   += $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC176X/TARGET_MBED_LPC1768
+< CMSIS_TARGET_SRC := $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC176X
+< CMSIS_TARGET_SRC += $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM
+---
+> HAL_TARGET_SRC   := $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC13XX
+> CMSIS_TARGET_SRC := $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC13XX
+> CMSIS_TARGET_SRC += $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC13XX/TOOLCHAIN_GCC_ARM
+30c29
+< GCC_DEFINES := -DTARGET_LPC1768 -DTARGET_M3 -DTARGET_NXP -DTARGET_LPC176X -DTARGET_MBED_LPC1768
+---
+> GCC_DEFINES := -DTARGET_LPC1347 -DTARGET_M3 -DTARGET_NXP -DTARGET_LPC13XX
+32d30
+<
+39c37
+< LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
+---
+> LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC13XX/TOOLCHAIN_GCC_ARM/LPC1347.ld
+}}}
+
+I then modified the samples/HelloWorld/makefile so that it DEVICES variable now contained LPC1347 as well:
+
+{{{
+-DEVICES         := LPC1768 LPC11U24 KL25Z
++DEVICES         := LPC1768 LPC11U24 KL25Z LPC1347
+}}}
+
+Running {{{make}}} in the HelloWorld directory will build for all 4 supported platforms.  Running {{{make LPC1347}}}
+will just build for the LPC1347 target.
