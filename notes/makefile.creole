@@ -37,7 +37,8 @@ These devices are currently in beta:
 
 These devices were added by the community.  I make sure that they build during a release but I don't test on actual hardware:
 * NUCLEO_F401RE (added by [[https://developer.mbed.org/users/svkatielee/ | Larry Littlefield]])
-\\The default target device is LPC1768.
+
+The default target device is LPC1768.
 
 ===SRC
 The **SRC** variable is used in an application's makefile to specify the root directory of the sources for this project.  If not explicitly set by the application's makefile then it defaults to the directory in which the makefile is located.  However it can be set to a different directory name if it happens that the project's source code is found in a different directory than the makefile.
