@@ -142,7 +142,7 @@ endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Debug"
-OPTIMIZATION ?= g
+OPTIMIZATION ?= 0
 MRI_ENABLE ?= 1
 MRI_SEMIHOST_STDIO ?= $(MRI_ENABLE)
 endif
