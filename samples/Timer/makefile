@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-PROJECT         := HelloWorld
-DEVICES         := LPC1768 LPC11U24 KL25Z NRF51822 NUCLEO_F401RE NUCLEO_F411RE
+PROJECT         := Timer
+DEVICES         := NUCLEO_F411RE
 GCC4MBED_DIR    := ../..
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
+MBED_LIBS       := rtos
 
 include $(GCC4MBED_DIR)/build/gcc4mbed.mk
