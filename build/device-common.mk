@@ -21,14 +21,14 @@ ifeq "$(findstring $(MBED_DEVICE),$(DEVICES))" "$(MBED_DEVICE)"
 # Setup flags that are common across the different pieces of code to be built.
 ###############################################################################
 # Optimization levels to be used for Debug and Release versions of libraries.
-DEBUG_OPTIMIZATION   := g
+DEBUG_OPTIMIZATION   := 0
 RELEASE_OPTIMIZATION := 2
 
 # Compiler flags used to enable creation of header dependency files.
 DEP_FLAGS := -MMD -MP
 
 # Preprocessor defines to use when compiling/assembling code with GCC.
-GCC_DEFINES += -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC -D__MBED__=1
+GCC_DEFINES += $(TOOLCHAIN_DEFINES) -D__MBED__=1
 
 # Flags to be used with C/C++ compiler that are shared between Debug and Release builds.
 C_FLAGS += -g3 -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
@@ -67,7 +67,7 @@ else
 endif
 
 # List of the objects files to be compiled/assembled based on source files in SRC.
-OBJECTS := $(call srcs2objs,$(call recurse_dir,$(SRC)),$(SRC),$(OUTDIR))
+OBJECTS := $(call srcs2objs,$(call filter_dirs,$(call recurse_dir,$(SRC)),$(TARGETS_FOR_DEVICE)),$(SRC),$(OUTDIR))
 
 # Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
 OBJECTS += $(OUTDIR)/gcc4mbed.o
@@ -82,7 +82,7 @@ DEPFILES := $(patsubst %.o,%.d,$(OBJECTS))
 EXTERNAL_DIR = $(GCC4MBED_DIR)/external
 
 # Include path which points to subdirectories of this project, MRI, and user specified directory.
-INCLUDE_DIRS := $(patsubst %,-I%,$(INCDIRS) $(SRC) $(call recurse_dir,$(SRC)) $(GCC4MBED_DIR)/mri)
+INCLUDE_DIRS := $(patsubst %,-I%,$(INCDIRS) $(SRC) $(call filter_dirs,$(call recurse_dir,$(SRC)),$(TARGETS_FOR_DEVICE)) $(GCC4MBED_DIR)/mri)
 
 # DEFINEs to be used when building C/C++ code
 MAIN_DEFINES := $(DEFINES) -DMRI_ENABLE=$(DEVICE_MRI_ENABLE) -DMRI_INIT_PARAMETERS='"$(MRI_INIT_PARAMETERS)"'
@@ -200,52 +200,74 @@ $(OUTDIR)/%.o : $(SRC)/%.S makefile
 ###############################################################################
 # Library mbed.a
 ###############################################################################
+MBED_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_SRC_ROOT)),$(TARGETS_FOR_DEVICE))
 $(eval $(call build_lib,mbed,\
-                       $(HAL_TARGET_SRC) $(CMSIS_TARGET_SRC) $(COMMON_SRC),\
-                       $(API_HEADERS) $(HAL_HEADERS) $(CMSIS_COMMON_HEADERS) $(HAL_TARGET_SRC) $(CMSIS_TARGET_SRC)))
+                       $(MBED_DIRS),\
+                       $(MBED_DIRS)))
 
 ###############################################################################
 # Library rtos.a
 ###############################################################################
-$(eval $(call build_lib,rtos,\
-                       $(RTOS_DIRS) $(RTX_TARGET_SRC),\
-                       $(RTOS_DIRS)))
+ifeq "$(findstring rtos,$(MBED_LIBS))" "rtos"
+    RTOS_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_LIB_SRC_ROOT)/rtos),$(TARGETS_FOR_DEVICE))
+    $(eval $(call build_lib,rtos,$(RTOS_DIRS),$(RTOS_DIRS)))
+endif
 
 ###############################################################################
 # Library net/lwip.a
 ###############################################################################
-$(eval $(call build_lib,net/lwip,$(LWIP_DIRS),$(LWIP_DIRS)))
+ifeq "$(findstring net/lwip,$(MBED_LIBS))" "net/lwip"
+    LWIP_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_LIB_SRC_ROOT)/net/lwip),$(TARGETS_FOR_DEVICE))
+    $(eval $(call build_lib,net/lwip,$(LWIP_DIRS),$(LWIP_DIRS)))
+endif
 
 ###############################################################################
 # Library net/eth.a
 ###############################################################################
-$(eval $(call build_lib,net/eth,$(ETH_DIRS) $(ETH_TARGET_SRC),$(ETH_DIRS) $(ETH_TARGET_SRC)))
+ifeq "$(findstring net/eth,$(MBED_LIBS))" "net/eth"
+    ETH_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_LIB_SRC_ROOT)/net/eth),$(TARGETS_FOR_DEVICE))
+    $(eval $(call build_lib,net/eth,$(ETH_DIRS),$(ETH_DIRS)))
+endif
 
 ###############################################################################
 # Library fs.a
 ###############################################################################
-$(eval $(call build_lib,fs,$(FS_DIRS),$(FS_DIRS)))
+ifeq "$(findstring fs,$(MBED_LIBS))" "fs"
+    FS_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_LIB_SRC_ROOT)/fs),$(TARGETS_FOR_DEVICE))
+    $(eval $(call build_lib,fs,$(FS_DIRS),$(FS_DIRS)))
+endif
 
 ###############################################################################
 # Library USBDevice.a
 ###############################################################################
-$(eval $(call build_lib,USBDevice,$(USB_DEVICE_DIRS),$(USB_DEVICE_DIRS)))
+ifeq "$(findstring USBDevice,$(MBED_LIBS))" "USBDevice"
+    USB_DEVICE_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_LIB_SRC_ROOT)/USBDevice),$(TARGETS_FOR_DEVICE))
+    $(eval $(call build_lib,USBDevice,$(USB_DEVICE_DIRS),$(USB_DEVICE_DIRS)))
+endif
 
 ###############################################################################
 # Library USBHost.a
 ###############################################################################
-$(eval $(call build_lib,USBHost,$(USB_HOST_DIRS),$(USB_HOST_DIRS)))
+ifeq "$(findstring USBHost,$(MBED_LIBS))" "USBHost"
+    USB_HOST_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_LIB_SRC_ROOT)/USBHost),$(TARGETS_FOR_DEVICE))
+    $(eval $(call build_lib,USBHost,$(USB_HOST_DIRS),$(USB_HOST_DIRS)))
+endif
 
 ###############################################################################
 # Library rpc.a
 ###############################################################################
-$(eval $(call build_lib,rpc,$(RPC_DIRS),$(RPC_DIRS)))
+ifeq "$(findstring rpc,$(MBED_LIBS))" "rpc"
+    RPC_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_LIB_SRC_ROOT)/rpc),$(TARGETS_FOR_DEVICE))
+    $(eval $(call build_lib,rpc,$(RPC_DIRS),$(RPC_DIRS)))
+endif
 
 ###############################################################################
 # Library dsp.a
 ###############################################################################
-$(eval $(call build_lib,dsp,$(DSP_DIRS),$(DSP_DIRS)))
-
+ifeq "$(findstring dsp,$(MBED_LIBS))" "dsp"
+    DSP_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_LIB_SRC_ROOT)/dsp),$(TARGETS_FOR_DEVICE))
+    $(eval $(call build_lib,dsp,$(DSP_DIRS),$(DSP_DIRS)))
+endif
 
 #########################################################################
 #  Default rules to compile c/c++/assembly language sources to objects.

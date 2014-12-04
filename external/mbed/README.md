@@ -73,12 +73,17 @@ STMicroelectronics:
 * STM32F3-Discovery (Cortex-M4F)
 * STM32F4-Discovery (Cortex-M4F)
 * STM32F429-Discovery (Cortex-M4F)
+* STM32L0-Discovery (Cortex-M0+)
 * [Arch Max](https://developer.mbed.org/platforms/Seeed-Arch-Max/) (Cortex-M4F)
 
 
 Nordic:
 * [nRF51822-mKIT](https://developer.mbed.org/platforms/Nordic-nRF51822/) (Cortex-M0)
 * [Arch BLE](https://developer.mbed.org/platforms/Seeed-Arch-BLE/) (Cortex-M0)
+
+Renesas:
+* [RZ-A1H](http://developer.mbed.org/platforms/Renesas-GR-PEACH/) (Cortex-A9)
+
 
 Supported Toolchains and IDEs
 -----------------------------
