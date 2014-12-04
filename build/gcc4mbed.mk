@@ -223,9 +223,11 @@ TOOLCHAIN_DEFINES := $(patsubst %,-D%,$(TOOLCHAINS))
 src_ext     := c cpp S
 ifneq "$(OS)" "Windows_NT"
 src_ext     +=  s
-endif
-#UNDONE: Need to make next line work on Windows as well!
 recurse_dir = $(patsubst %/,%,$(sort $1 $(shell find $1 -type d)))
+else
+win32_find = $(patsubst $(shell cmd /v:on /c "pushd $1 && echo !CD!&& popd")%,$1%,$(shell dir /s /ad /b $1))
+recurse_dir = $(patsubst %/,%,$(sort $1 $(subst \,/,$(call win32_find,$(call convert-slash,$1)))))
+endif
 find_srcs   = $(subst //,/,$(foreach i,$(src_ext),$(foreach j,$1,$(wildcard $j/*.$i))))
 srcs2objs   = $(patsubst $2/%,$3/%,$(addsuffix .o,$(basename $(call find_srcs,$1))))
 all_targets = $(sort $(filter TARGET_%,$(notdir $1)))
