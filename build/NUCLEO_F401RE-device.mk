@@ -18,14 +18,14 @@ MBED_TARGET        := STM_NUCLEO_F401RE
 MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 
 # Compiler flags which are specifc to this device.
-TARGETS_FOR_DEVICE := TARGET_NUCLEO_F401RE TARGET_M4 TARGET_STM TARGET_STM32F4 TARGET_NUCLEO_F401RE
-TARGETS_FOR_DEVICE += TARGET_MBED_NUCLEO_F401RE TARGET_FF_ARDUINO TARGET_FF_MORPHO TARGET_CORTEX_M
+TARGETS_FOR_DEVICE := TARGET_NUCLEO_F401RE TARGET_M4 TARGET_CORTEX_M TARGET_STM TARGET_STM32F4 TARGET_STM32F401RE
+TARGETS_FOR_DEVICE += TARGET_FF_ARDUINO TARGET_FF_MORPHO
 GCC_DEFINES := $(patsubst %,-D%,$(TARGETS_FOR_DEVICE))
 GCC_DEFINES += -D__CORTEX_M4 -DARM_MATH_CM4 -D__FPU_PRESENT=1
 
-C_FLAGS   := -mcpu=cortex-m4 -mthumb -mthumb-interwork
-ASM_FLAGS := -mcpu=cortex-m4 -mthumb
-LD_FLAGS  := -mcpu=cortex-m4 -mthumb
+C_FLAGS   := -mcpu=cortex-m4 -mthumb -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
+ASM_FLAGS := -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16
+LD_FLAGS  := -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16
 
 
 # Extra platform specific object files to link into file binary.
