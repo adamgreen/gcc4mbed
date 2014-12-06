@@ -149,7 +149,7 @@ $(OUTDIR)/$(PROJECT).disasm: $(OUTDIR)/$(PROJECT).elf
 
 $(OUTDIR)/$(PROJECT).elf: $(LSCRIPT) $(OBJECTS) $(LIBS)
 	@echo Linking $@
-	$(Q) $(LD) $(LD_FLAGS) -T$(patsubst %mbed.a,$(WHOLE_ARCHIVE) %mbed.a $(NOWHOLE_ARCHIVE),$+) $(SYS_LIBS) -o $@
+	$(Q) $(LD) $(LD_FLAGS) -T$(call all_objs_from_mbed,$+) $(SYS_LIBS) -o $@
 
 $(MBED_DEVICE)-size: $(OUTDIR)/$(PROJECT).elf
 	$(Q) $(SIZE) $<

@@ -202,6 +202,7 @@ MBED_LIBS += mbed
 # Used on linker command line to pull all object files from mbed.a.  Unused modules will be garbage collected away.
 WHOLE_ARCHIVE   := -Wl,-whole-archive
 NOWHOLE_ARCHIVE := -Wl,-no-whole-archive
+all_objs_from_mbed = $(patsubst %mbed.a,$(WHOLE_ARCHIVE) %mbed.a $(NOWHOLE_ARCHIVE),$1)
 
 
 # Add in library dependencies.
