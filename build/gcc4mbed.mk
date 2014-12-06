@@ -199,6 +199,11 @@ endif
 MBED_LIBS += mbed
 
 
+# Used on linker command line to pull all object files from mbed.a.  Unused modules will be garbage collected away.
+WHOLE_ARCHIVE   := -Wl,-whole-archive
+NOWHOLE_ARCHIVE := -Wl,-no-whole-archive
+
+
 # Add in library dependencies.
 MBED_LIBS := $(patsubst net/eth,net/lwip net/eth rtos,$(MBED_LIBS))
 MBED_LIBS := $(patsubst USBHost,USBHost fs rtos,$(MBED_LIBS))

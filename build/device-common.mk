@@ -119,7 +119,7 @@ MRI_WRAPS :=
 endif
 
 # Linker Options.
-$(MBED_DEVICE): LD_FLAGS := $(LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec -u mbed_sdk_init -u mbed_main
+$(MBED_DEVICE): LD_FLAGS := $(LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec
 $(MBED_DEVICE): LD_FLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free,--wrap=main$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
 $(MBED_DEVICE): LD_FLAGS += -u _scanf_float
@@ -149,7 +149,7 @@ $(OUTDIR)/$(PROJECT).disasm: $(OUTDIR)/$(PROJECT).elf
 
 $(OUTDIR)/$(PROJECT).elf: $(LSCRIPT) $(OBJECTS) $(LIBS)
 	@echo Linking $@
-	$(Q) $(LD) $(LD_FLAGS) -T$+ $(SYS_LIBS) -o $@
+	$(Q) $(LD) $(LD_FLAGS) -T$(patsubst %mbed.a,$(WHOLE_ARCHIVE) %mbed.a $(NOWHOLE_ARCHIVE),$+) $(SYS_LIBS) -o $@
 
 $(MBED_DEVICE)-size: $(OUTDIR)/$(PROJECT).elf
 	$(Q) $(SIZE) $<
