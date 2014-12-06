@@ -26,7 +26,7 @@ GCC_DEFINES += -D__CORTEX_M0 -DARM_MATH_CM0
 
 C_FLAGS   := -mcpu=cortex-m0 -mthumb -mthumb-interwork
 ASM_FLAGS := -mcpu=cortex-m0 -mthumb
-LD_FLAGS  := -mcpu=cortex-m0 -mthumb
+LD_FLAGS  := -mcpu=cortex-m0 -mthumb -Wl,--no-warn-mismatch
 
 
 # Extra platform specific object files to link into file binary.
