@@ -1,4 +1,4 @@
-# Copyright 2014 Larry Littlefield (https://developer.mbed.org/users/svkatielee/)
+# Copyright 2014 weyoui (https://github.com/weyoui)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
 
 # Vendor/device for which the library should be built.
 MBED_DEVICE        := NUCLEO_F411RE
-MBED_TARGET        := NUCLEO_F411RE
+MBED_TARGET        := STM_NUCLEO_F411RE
 MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
-
-# Some libraries (mbed and rtos) have device specific source folders.
-HAL_TARGET_SRC   := $(MBED_SRC_ROOT)/targets/hal/TARGET_STM/TARGET_NUCLEO_F411RE
-HAL_TARGET_SRC   += $(MBED_SRC_ROOT)/targets/hal/TARGET_STM/TARGET_NUCLEO_F411RE/TARGET_MBED_NUCLEO_F411RE
-CMSIS_TARGET_SRC := $(MBED_SRC_ROOT)/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F411RE
-CMSIS_TARGET_SRC += $(MBED_SRC_ROOT)/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F411RE/TOOLCHAIN_GCC_ARM
-RTX_TARGET_SRC   := $(GCC4MBED_DIR)/external/mbed/libraries/rtos/rtx/TARGET_M4/TOOLCHAIN_GCC
 
 
 # Compiler flags which are specifc to this device.
-GCC_DEFINES := -DTARGET_NUCLEO_F401RE -DTARGET_M4 -DTARGET_STM -DTARGET_STM32F4 -DTARGET_STM32F411RE
-GCC_DEFINES += -D__CORTEX_M4 -DARM_MATH_CM4 -D__FPU_PRESENT=1 -DTARGET_FF_ARDUINO -DTARGET_FF_MORPHO
+TARGETS_FOR_DEVICE := TARGET_NUCLEO_F411RE TARGET_M4 TARGET_CORTEX_M TARGET_STM TARGET_STM32F4 TARGET_STM32F411RE
+TARGETS_FOR_DEVICE += TARGET_FF_ARDUINO TARGET_FF_MORPHO
+GCC_DEFINES := $(patsubst %,-D%,$(TARGETS_FOR_DEVICE))
+GCC_DEFINES += -D__CORTEX_M4 -DARM_MATH_CM4 -D__FPU_PRESENT=1
 
 C_FLAGS   := -mcpu=cortex-m4 -mthumb -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
 ASM_FLAGS := -mcpu=cortex-m4 -mthumb  -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
@@ -39,7 +34,6 @@ DEVICE_OBJECTS :=
 
 
 # Linker script to be used.  Indicates what code should be placed where in memory.
-LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F411RE/TOOLCHAIN_GCC_ARM/NUCLEO_F411RE.ld
-
+LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_STM/TARGET_STM32F4/TARGET_NUCLEO_F411RE/TOOLCHAIN_GCC_ARM/NUCLEO_F411RE.ld
 
 include $(GCC4MBED_DIR)/build/device-common.mk
