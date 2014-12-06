@@ -142,7 +142,7 @@ endif
 
 
 ifeq "$(GCC4MBED_TYPE)" "Debug"
-OPTIMIZATION ?= g
+OPTIMIZATION ?= 0
 MRI_ENABLE ?= 1
 MRI_SEMIHOST_STDIO ?= $(MRI_ENABLE)
 endif
@@ -204,13 +204,9 @@ MBED_LIBS := $(patsubst net/eth,net/lwip net/eth rtos,$(MBED_LIBS))
 MBED_LIBS := $(patsubst USBHost,USBHost fs rtos,$(MBED_LIBS))
 
 
-# Directories where non-device specific mbed source files are found.
+# Directories where mbed source files are found.
 MBED_LIB_SRC_ROOT    := $(GCC4MBED_DIR)/external/mbed/libraries
 MBED_SRC_ROOT        := $(MBED_LIB_SRC_ROOT)/mbed
-COMMON_SRC           :=$(MBED_SRC_ROOT)/common
-API_HEADERS          :=$(MBED_SRC_ROOT)/api
-HAL_HEADERS          :=$(MBED_SRC_ROOT)/hal
-CMSIS_COMMON_HEADERS :=$(MBED_SRC_ROOT)/targets/cmsis
 
 
 # Root directories for official mbed library output.
@@ -218,14 +214,32 @@ LIB_RELEASE_DIR := $(GCC4MBED_DIR)/external/mbed/Release
 LIB_DEBUG_DIR   := $(GCC4MBED_DIR)/external/mbed/Debug
 
 
+# Toolchain sub-directories to be built with GCC.
+TOOLCHAINS := TOOLCHAIN_GCC TOOLCHAIN_GCC_ARM
+TOOLCHAIN_DEFINES := $(patsubst %,-D%,$(TOOLCHAINS))
+
+
 # Macros for selecting sources/objects to be built for a project.
 src_ext     := c cpp S
 ifneq "$(OS)" "Windows_NT"
 src_ext     +=  s
+recurse_dir = $(patsubst %/,%,$(sort $1 $(shell find $1 -type d)))
+else
+win32_find = $(patsubst $(shell cmd /v:on /c "pushd $1 && echo !CD!&& popd")%,$1%,$(shell dir /s /ad /b $1))
+recurse_dir = $(patsubst %/,%,$(sort $1 $(subst \,/,$(call win32_find,$(call convert-slash,$1)))))
 endif
-recurse_dir = $(patsubst %/,%,$(sort $(dir $(wildcard $1/* $1/*/* $1/*/*/* $1/*/*/*/* $1/*/*/*/*/* $1/*/*/*/*/*/*))))
 find_srcs   = $(subst //,/,$(foreach i,$(src_ext),$(foreach j,$1,$(wildcard $j/*.$i))))
 srcs2objs   = $(patsubst $2/%,$3/%,$(addsuffix .o,$(basename $(call find_srcs,$1))))
+all_targets = $(sort $(filter TARGET_%,$(notdir $1)))
+unsupported_targets = $(filter-out $2,$(call all_targets,$1))
+unsupported_target_dirs = $(filter $(addprefix %/,$(call unsupported_targets,$1,$2)),$1)
+filter_targets = $(filter-out $(addsuffix %,$(call unsupported_target_dirs,$1,$2)),$1)
+all_toolchains = $(sort $(filter TOOLCHAIN_%,$(notdir $1)))
+unsupported_toolchains = $(filter-out $2,$(call all_toolchains,$1))
+unsupported_toolchain_dirs = $(filter $(addprefix %/,$(call unsupported_toolchains,$1,$2)),$1)
+filter_toolchains = $(filter-out $(addsuffix %,$(call unsupported_toolchain_dirs,$1,$(TOOLCHAINS))),$1)
+filter_dirs = $(call filter_toolchains,$(call filter_targets,$1,$2))
+
 
 # Utility macros to help build mbed SDK libraries.
 define build_lib #,libname,source_dirs,include_dirs
@@ -267,57 +281,6 @@ define build_lib #,libname,source_dirs,include_dirs
 		$(Q) $(AR) -rc $$@ $$+
 
 endef
-
-
-# Directories where library sources files common to all devices are found. Only perform expansion for libraries that
-# are actually required since this isn't a fast operation.
-ifeq "$(findstring rtos,$(MBED_LIBS))" "rtos"
-    RTOS_DIRS := $(MBED_LIB_SRC_ROOT)/rtos/rtos $(MBED_LIB_SRC_ROOT)/rtos/rtx
-else
-    RTOS_DIRS :=
-endif
-
-ifeq "$(findstring net/lwip,$(MBED_LIBS))" "net/lwip"
-    LWIP_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/net/lwip)
-else
-    LWIP_DIRS :=
-endif
-
-ifeq "$(findstring net/eth,$(MBED_LIBS))" "net/eth"
-    ETH_DIRS := $(MBED_LIB_SRC_ROOT)/net/eth/EthernetInterface
-else
-    ETH_DIRS :=
-endif
-
-ifeq "$(findstring fs,$(MBED_LIBS))" "fs"
-    FS_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/fs)
-else
-    FS_DIRS :=
-endif
-
-ifeq "$(findstring USBDevice,$(MBED_LIBS))" "USBDevice"
-    USB_DEVICE_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/USBDevice)
-else
-    USB_DEVICE_DIRS :=
-endif
-
-ifeq "$(findstring USBHost,$(MBED_LIBS))" "USBHost"
-    USB_HOST_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/USBHost)
-else
-    USB_HOST_DIRS :=
-endif
-
-ifeq "$(findstring rpc,$(MBED_LIBS))" "rpc"
-    RPC_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/rpc)
-else
-    RPC_DIRS :=
-endif
-
-ifeq "$(findstring dsp,$(MBED_LIBS))" "dsp"
-    DSP_DIRS := $(call recurse_dir,$(MBED_LIB_SRC_ROOT)/dsp)
-else
-    DSP_DIRS :=
-endif
 
 
 # Rules for building all of the desired device targets

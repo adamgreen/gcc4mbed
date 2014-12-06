@@ -46,22 +46,11 @@ Based on this output, I modified the newly created LPC1347-device.mk like so:
 ---
 > MBED_DEVICE        := LPC1347
 > MBED_TARGET        := NXP_LPC1347
-21,24c21,23
-< HAL_TARGET_SRC   := $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC176X
-< HAL_TARGET_SRC   += $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC176X/TARGET_MBED_LPC1768
-< CMSIS_TARGET_SRC := $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC176X
-< CMSIS_TARGET_SRC += $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM
+22c22
+< TARGETS_FOR_DEVICE := TARGET_LPC1768 TARGET_M3 TARGET_NXP TARGET_LPC176X TARGET_MBED_LPC1768 TARGET_CORTEX_M
 ---
-> HAL_TARGET_SRC   := $(MBED_SRC_ROOT)/targets/hal/TARGET_NXP/TARGET_LPC13XX
-> CMSIS_TARGET_SRC := $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC13XX
-> CMSIS_TARGET_SRC += $(MBED_SRC_ROOT)/targets/cmsis/TARGET_NXP/TARGET_LPC13XX/TOOLCHAIN_GCC_ARM
-30c29
-< GCC_DEFINES := -DTARGET_LPC1768 -DTARGET_M3 -DTARGET_NXP -DTARGET_LPC176X -DTARGET_MBED_LPC1768
----
-> GCC_DEFINES := -DTARGET_LPC1347 -DTARGET_M3 -DTARGET_NXP -DTARGET_LPC13XX
-32d30
-<
-39c37
+> TARGETS_FOR_DEVICE := TARGET_LPC1347 TARGET_M3 TARGET_NXP TARGET_LPC13XX TARGET_CORTEX_M
+36c36
 < LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
 ---
 > LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC13XX/TOOLCHAIN_GCC_ARM/LPC1347.ld
@@ -70,8 +59,15 @@ Based on this output, I modified the newly created LPC1347-device.mk like so:
 I then modified the samples/HelloWorld/makefile so that it DEVICES variable now contained LPC1347 as well:
 
 {{{
--DEVICES         := LPC1768 LPC11U24 KL25Z
-+DEVICES         := LPC1768 LPC11U24 KL25Z LPC1347
+@@ -12,7 +12,7 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ PROJECT         := HelloWorld
+-DEVICES         := LPC1768 LPC11U24 KL25Z NRF51822 NUCLEO_F401RE
++DEVICES         := LPC1768 LPC11U24 KL25Z NRF51822 NUCLEO_F401RE LPC1347
+ GCC4MBED_DIR    := ../..
+ NO_FLOAT_SCANF  := 1
+ NO_FLOAT_PRINTF := 1
 }}}
 
 Running {{{make}}} in the HelloWorld directory will build for all 4 supported platforms.  Running {{{make LPC1347}}}
