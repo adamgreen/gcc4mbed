@@ -14,17 +14,17 @@
 
 # Vendor/device for which the library should be built.
 MBED_DEVICE        := DISCO_F407VG
-MBED_TARGET        := STM_DISCO_F407VG
+MBED_TARGET        := STM_F407VG
 MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 
 # Compiler flags which are specifc to this device.
 TARGETS_FOR_DEVICE := TARGET_DISCO_F407VG TARGET_M4 TARGET_CORTEX_M TARGET_STM TARGET_STM32F4 TARGET_STM32F407VG
-TARGETS_FOR_DEVICE += TARGET_FF_MORPHO
+TARGETS_FOR_DEVICE += TARGET_FF_MORPHO TARGET_F407VG
 GCC_DEFINES := $(patsubst %,-D%,$(TARGETS_FOR_DEVICE))
 GCC_DEFINES += -D__CORTEX_M4 -DARM_MATH_CM4 -D__FPU_PRESENT=1
 
-C_FLAGS   := -mcpu=cortex-m4 -mthumb -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
-ASM_FLAGS := -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
+C_FLAGS   := -mcpu=cortex-m4 -mthumb -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -fsingle-precision-constant
+ASM_FLAGS := -mcpu=cortex-m4 -mthumb -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -fsingle-precision-constant
 LD_FLAGS  := -mcpu=cortex-m4 -mthumb
 
 
