@@ -24,9 +24,9 @@ TARGETS_FOR_DEVICE += TARGET_FF_ARDUINO TARGET_FF_MORPHO
 GCC_DEFINES := $(patsubst %,-D%,$(TARGETS_FOR_DEVICE))
 GCC_DEFINES += -D__CORTEX_M4 -DARM_MATH_CM4 -D__FPU_PRESENT=1
 
-C_FLAGS   := -mcpu=cortex-m4 -mthumb -mthumb-interwork -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
-ASM_FLAGS := -mcpu=cortex-m4 -mthumb  -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
-LD_FLAGS  := -mcpu=cortex-m4 -mthumb
+C_FLAGS   := -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -mthumb-interwork
+ASM_FLAGS := -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
+LD_FLAGS  := -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
 
 
 # Extra platform specific object files to link into file binary.
