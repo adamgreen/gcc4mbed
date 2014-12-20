@@ -239,11 +239,11 @@ srcs2objs   = $(patsubst $2/%,$3/%,$(addsuffix .o,$(basename $(call find_srcs,$1
 all_targets = $(sort $(filter TARGET_%,$(notdir $1)))
 unsupported_targets = $(filter-out $2,$(call all_targets,$1))
 unsupported_target_dirs = $(filter $(addprefix %/,$(call unsupported_targets,$1,$2)),$1)
-filter_targets = $(filter-out $(addsuffix %,$(call unsupported_target_dirs,$1,$2)),$1)
+filter_targets = $(patsubst %/,%,$(filter-out $(addsuffix /%,$(call unsupported_target_dirs,$1,$2)),$(addsuffix /,$1)))
 all_toolchains = $(sort $(filter TOOLCHAIN_%,$(notdir $1)))
 unsupported_toolchains = $(filter-out $2,$(call all_toolchains,$1))
 unsupported_toolchain_dirs = $(filter $(addprefix %/,$(call unsupported_toolchains,$1,$2)),$1)
-filter_toolchains = $(filter-out $(addsuffix %,$(call unsupported_toolchain_dirs,$1,$(TOOLCHAINS))),$1)
+filter_toolchains = $(patsubst %/,%,$(filter-out $(addsuffix /%,$(call unsupported_toolchain_dirs,$1,$(TOOLCHAINS))),$(addsuffix /,$1)))
 filter_dirs = $(call filter_toolchains,$(call filter_targets,$1,$2))
 
 
