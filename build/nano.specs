@@ -1,10 +1,18 @@
-%rename link                nano_link_backup
+%rename link                nano_link
+%rename link_gcc_c_sequence                nano_link_gcc_c_sequence
+
+*nano_libc:
+-lc_nano
+
+*nano_libgloss:
+%{specs=rdimon.specs:-lrdimon_nano} %{specs=nosys.specs:-lnosys}
 
 *link_gcc_c_sequence:
---start-group -lgcc -lc_s --end-group
+%(nano_link_gcc_c_sequence) --start-group %G %(nano_libc) %(nano_libgloss) --end-group
 
 *link:
-%(nano_link_backup) %:replace-outfile(-lc -lc_s) %:replace-outfile(-lg -lg_s) %:replace-outfile(-lrdimon -lrdimon_s) %:replace-outfile(-lstdc++ -lstdc++_s) %:replace-outfile(-lsupc++ -lsupc++_s)
+%(nano_link) %:replace-outfile(-lc -lc_nano) %:replace-outfile(-lg -lg_nano) %:replace-outfile(-lrdimon -lrdimon_nano) %:replace-outfile(-lstdc++ -lstdc++_nano) %:replace-outfile(-lsupc++ -lsupc++_nano)
 
 *lib:
-%{!shared:%{g*:-lg_s} %{!p:%{!pg:-lc_s}}%{p:-lc_p}%{pg:-lc_p}}
+%{!shared:%{g*:-lg_nano} %{!p:%{!pg:-lc_nano}}%{p:-lc_p}%{pg:-lc_p}}
+
