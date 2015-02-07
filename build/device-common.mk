@@ -60,7 +60,7 @@ OUTDIR := $(MBED_DEVICE)
 TARGET_BIN := $(OUTDIR)/$(PROJECT).bin
 
 # Only allow the MRI debug monitor to be enabled for LPC1768 devices.
-ifeq "$(MBED_DEVICE)" "LPC1768"
+ifneq "$(DEVICE_MRI_LIB)" ""
     DEVICE_MRI_ENABLE := $(MRI_ENABLE)
 else
     DEVICE_MRI_ENABLE := 0
@@ -101,7 +101,7 @@ MAIN_DEFINES   += -DNDEBUG
 endif
 
 ifeq "$(DEVICE_MRI_ENABLE)" "1"
-LIBS      += $(GCC4MBED_DIR)/mri/mri.ar
+LIBS      += $(DEVICE_MRI_LIB)
 endif
 LIBS      += $(MBED_LIBRARIES)
 LIBS      += $(LIBS_SUFFIX)

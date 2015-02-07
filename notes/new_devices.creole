@@ -51,6 +51,10 @@ Based on this output, I modified the newly created LPC1347-device.mk like so:
 ---
 > TARGETS_FOR_DEVICE := TARGET_LPC1347 TARGET_M3 TARGET_NXP TARGET_LPC13XX TARGET_CORTEX_M
 36c36
+< DEVICE_MRI_LIB := $(GCC4MBED_DIR)/mri/libmri_mbed1768.a
+---
+> DEVICE_MRI_LIB :=
+40c40
 < LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
 ---
 > LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC13XX/TOOLCHAIN_GCC_ARM/LPC1347.ld

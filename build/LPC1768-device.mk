@@ -1,4 +1,4 @@
-# Copyright 2014 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,6 +30,10 @@ LD_FLAGS  := -mcpu=cortex-m3 -mthumb
 
 # Extra platform specific object files to link into file binary.
 DEVICE_OBJECTS :=
+
+
+# Version of MRI library to use for this device.
+DEVICE_MRI_LIB := $(GCC4MBED_DIR)/mri/libmri_mbed1768.a
 
 
 # Linker script to be used.  Indicates what code should be placed where in memory.

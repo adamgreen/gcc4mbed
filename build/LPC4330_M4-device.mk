@@ -32,6 +32,9 @@ LD_FLAGS  := -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
 DEVICE_OBJECTS :=
 
 
+# Version of MRI library to use for this device.
+DEVICE_MRI_LIB := $(GCC4MBED_DIR)/mri/libmri_bambino210.a
+
 # Linker script to be used.  Indicates what code should be placed where in memory.
 LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC43XX/TOOLCHAIN_GCC_ARM/LPC4330.ld
 

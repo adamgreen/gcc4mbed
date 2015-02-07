@@ -1,4 +1,4 @@
-# Copyright 2014 Larry Littlefield (https://developer.mbed.org/users/svkatielee/)
+# Copyright 2015 Larry Littlefield (https://developer.mbed.org/users/svkatielee/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,6 +30,10 @@ LD_FLAGS  := -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
 
 # Extra platform specific object files to link into file binary.
 DEVICE_OBJECTS :=
+
+
+# Version of MRI library to use for this device.
+DEVICE_MRI_LIB :=
 
 
 # Linker script to be used.  Indicates what code should be placed where in memory.

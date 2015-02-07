@@ -1,4 +1,4 @@
-# Copyright 2014 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,10 @@ LD_FLAGS  := -mcpu=cortex-m0 -mthumb -Wl,--no-warn-mismatch
 # Extra platform specific object files to link into file binary.
 # For NRF51 parts, we add in the softdevice.
 DEVICE_OBJECTS := $(MBED_DEVICE)/s110_nrf51822_7.1.0_softdevice.o
+
+
+# Version of MRI library to use for this device.
+DEVICE_MRI_LIB :=
 
 
 # Linker script to be used.  Indicates what code should be placed where in memory.
