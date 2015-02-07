@@ -62,3 +62,8 @@ Windows:
 Those build rules (clean all deploy) will force all of the output files to be deleted, then rebuilt from a clean start, and then copied up to your mbed device.  Pressing the reset button on the mbed device should result in the blinking LED.
 
 If you just want to deploy a binary that has already been built, you can just run "make deploy"
+
+
+==Uninstall
+All of the files required by gcc4mbed, including the GNU Tools for ARM Embedded Processors, are installed under the
+same directory.  To uninstall you just need to delete the gcc4mbed directory.
