@@ -1,6 +1,6 @@
 ==Current Version
 **GCC Version:**  [[https://launchpad.net/gcc-arm-embedded/4.9/4.9-2014-q4-major | GCC ARM Embedded 4.9-2014-q4-major]]\\
-**mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev93 | Revision 93]]\\
+**mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev94 | Revision 94]]\\
 
 ==Previous Versions
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.8-2014-q1_mbed92|GCC ARM Embedded 4.8-2014-q1-update with mbed SDK revision 92]]\\
