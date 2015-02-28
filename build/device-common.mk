@@ -60,7 +60,7 @@ OUTDIR := $(MBED_DEVICE)
 TARGET_BIN := $(OUTDIR)/$(PROJECT).bin
 
 # Only allow the MRI debug monitor to be enabled for LPC1768 devices.
-ifeq "$(MBED_DEVICE)" "LPC1768"
+ifneq "$(DEVICE_MRI_LIB)" ""
     DEVICE_MRI_ENABLE := $(MRI_ENABLE)
 else
     DEVICE_MRI_ENABLE := 0
@@ -101,7 +101,7 @@ MAIN_DEFINES   += -DNDEBUG
 endif
 
 ifeq "$(DEVICE_MRI_ENABLE)" "1"
-LIBS      += $(GCC4MBED_DIR)/mri/mri.ar
+LIBS      += $(DEVICE_MRI_LIB)
 endif
 LIBS      += $(MBED_LIBRARIES)
 LIBS      += $(LIBS_SUFFIX)
@@ -119,7 +119,7 @@ MRI_WRAPS :=
 endif
 
 # Linker Options.
-$(MBED_DEVICE): LD_FLAGS := $(LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec -u mbed_sdk_init -u mbed_main
+$(MBED_DEVICE): LD_FLAGS := $(LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec
 $(MBED_DEVICE): LD_FLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free,--wrap=main$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
 $(MBED_DEVICE): LD_FLAGS += -u _scanf_float
@@ -149,7 +149,7 @@ $(OUTDIR)/$(PROJECT).disasm: $(OUTDIR)/$(PROJECT).elf
 
 $(OUTDIR)/$(PROJECT).elf: $(LSCRIPT) $(OBJECTS) $(LIBS)
 	@echo Linking $@
-	$(Q) $(LD) $(LD_FLAGS) -T$+ $(SYS_LIBS) -o $@
+	$(Q) $(LD) $(LD_FLAGS) -T$(call all_objs_from_mbed,$+) $(SYS_LIBS) -o $@
 
 $(MBED_DEVICE)-size: $(OUTDIR)/$(PROJECT).elf
 	$(Q) $(SIZE) $<

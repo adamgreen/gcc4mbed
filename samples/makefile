@@ -20,6 +20,7 @@ DIRS := HelloWorld\
         LocalFileSystem\
         FileTest\
         SdPerf\
+        rtos_basic\
         TCPSocket_HelloWorld\
         USBMouse\
         USBHostMouse\

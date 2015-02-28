@@ -265,30 +265,24 @@ static inline  t __##f (t1 a1, t2 a2, t3 a3, t4 a4) {                          \
 
 #define __NO_RETURN __noreturn
 
-#define RET_osEvent        "=r"(ret.status), "=r"(ret.value), "=r"(ret.def)
-#define RET_osCallback     "=r"(ret.fp), "=r"(ret.arg)
-
 #define osEvent_type       osEvent
 #define osEvent_ret_status ret
 #define osEvent_ret_value  ret
 #define osEvent_ret_msg    ret
 #define osEvent_ret_mail   ret
 
-#define osCallback_type    uint64_t
-#define osCallback_ret     ((uint64_t)ret.fp | ((uint64_t)ret.arg)<<32)
+#define osCallback_type    osCallback
+#define osCallback_ret     ret
+
+#define RET_osEvent     osEvent
+#define RET_osCallback  osCallback
 
 #define SVC_Setup(f)                                                           \
-  __asm(                                                                         \
+  __asm(                                                                       \
     "mov r12,%0\n"                                                             \
     :: "r"(&f): "r12"                                                          \
   );
 
-#define SVC_Ret3()                                                             \
-  __asm(                                                                         \
-    "ldr r0,[sp,#0]\n"                                                         \
-    "ldr r1,[sp,#4]\n"                                                         \
-    "ldr r2,[sp,#8]\n"                                                         \
-  );
 
 #define SVC_0_1(f,t,...)                                                       \
 t f (void);                                                                    \
@@ -330,46 +324,9 @@ static inline t __##f (t1 a1, t2 a2, t3 a3, t4 a4) {                           \
   return _##f(a1,a2,a3,a4);                                                    \
 }
 
-#define SVC_1_2(f,t,t1,rr)                                                     \
-uint64_t f (t1 a1);                                                            \
-_Pragma("swi_number=0") __swi uint64_t _##f (t1 a1);                           \
-static inline t __##f (t1 a1) {                                                \
-  t ret;                                                                       \
-  SVC_Setup(f);                                                                \
-  _##f(a1);                                                                    \
-  __asm("" : rr : :);                                                            \
-  return ret;                                                                  \
-}
-
-#define SVC_1_3(f,t,t1,rr)                                                     \
-t f (t1 a1);                                                                   \
-void f##_ (t1 a1) {                                                            \
-  f(a1);                                                                       \
-  SVC_Ret3();                                                                  \
-}                                                                              \
-_Pragma("swi_number=0") __swi void _##f (t1 a1);                               \
-static inline t __##f (t1 a1) {                                                \
-  t ret;                                                                       \
-  SVC_Setup(f##_);                                                             \
-  _##f(a1);                                                                    \
-  __asm("" : rr : :);                                                            \
-  return ret;                                                                  \
-}
-
-#define SVC_2_3(f,t,t1,t2,rr)                                                  \
-t f (t1 a1, t2 a2);                                                            \
-void f##_ (t1 a1, t2 a2) {                                                     \
-  f(a1,a2);                                                                    \
-  SVC_Ret3();                                                                  \
-}                                                                              \
-_Pragma("swi_number=0") __swi void _##f (t1 a1, t2 a2);                        \
-static inline t __##f (t1 a1, t2 a2) {                                         \
-  t ret;                                                                       \
-  SVC_Setup(f##_);                                                             \
-  _##f(a1,a2);                                                                 \
-  __asm("" : rr : :);                                                            \
-  return ret;                                                                  \
-}
+#define SVC_1_2 SVC_1_1
+#define SVC_1_3 SVC_1_1
+#define SVC_2_3 SVC_2_1
 
 #endif
 
@@ -590,18 +547,19 @@ osThreadId svcThreadCreate (osThreadDef_t *thread_def, void *argument) {
   U8 priority = thread_def->tpriority - osPriorityIdle + 1;
   P_TCB task_context = &thread_def->tcb;
 
-  /* If "size != 0" use a private user provided stack. */
+  /* Utilize the user provided stack. */
   task_context->stack      = (U32*)thread_def->stack_pointer;
   task_context->priv_stack = thread_def->stacksize;
-  /* Pass parameter 'argv' to 'rt_init_context' */
-  task_context->msg = argument;
-  /* For 'size == 0' system allocates the user stack from the memory pool. */
-  rt_init_context (task_context, priority, (FUNCP)thread_def->pthread);
-
   /* Find a free entry in 'os_active_TCB' table. */
   OS_TID tsk = rt_get_TID ();
   os_active_TCB[tsk-1] = task_context;
   task_context->task_id = tsk;
+  /* Pass parameter 'argv' to 'rt_init_context' */
+  task_context->msg = argument;
+  /* Initialize thread context structure, including the thread's stack. */
+  rt_init_context (task_context, priority, (FUNCP)thread_def->pthread);
+
+  /* Dispatch this task to the scheduler for execution. */
   DBG_TASK_NOTIFY(task_context, __TRUE);
   rt_dispatch (task_context);
 

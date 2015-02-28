@@ -17,7 +17,7 @@ You are now ready to try building and deploying GCC built mbed samples.
     make
 Windows:
     cd c:\gcc4mbed
-    cs-make
+    external\win32\make
 }}}
 This will have built various programs in the samples directory off of the root of the gcc4mbed project.
 {{{
@@ -25,7 +25,6 @@ This will have built various programs in the samples directory off of the root o
 ./gcc4mbed/samples/CTest/
 ./gcc4mbed/samples/FileTest/
 ./gcc4mbed/samples/HelloWorld/
-./gcc4mbed/samples/HTTPServer/
 ./gcc4mbed/samples/LocalFileSystem/
 ./gcc4mbed/samples/StdIO/
 ./gcc4mbed/samples/Ticker/
@@ -58,8 +57,13 @@ After all of the that work, wouldn't it be great to see something actually run o
     make clean all deploy
 Windows:
     cd c:\gcc4mbed\samples\HelloWorld
-    cmake clean all deploy
+    external\win32\make clean all deploy
 }}}
 Those build rules (clean all deploy) will force all of the output files to be deleted, then rebuilt from a clean start, and then copied up to your mbed device.  Pressing the reset button on the mbed device should result in the blinking LED.
 
 If you just want to deploy a binary that has already been built, you can just run "make deploy"
+
+
+==Uninstall
+All of the files required by gcc4mbed, including the GNU Tools for ARM Embedded Processors, are installed under the
+same directory.  To uninstall you just need to delete the gcc4mbed directory.

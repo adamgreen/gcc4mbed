@@ -115,7 +115,7 @@ used throughout the whole project.
 #define CMSIS_OS_RTX
 
 // The stack space occupied is mainly dependent on the underling C standard library
-#if defined(TOOLCHAIN_GCC) || defined(TOOLCHAIN_ARM_STD)
+#if defined(TOOLCHAIN_GCC) || defined(TOOLCHAIN_ARM_STD) || defined(TOOLCHAIN_IAR)
 #    define WORDS_STACK_SIZE   512
 #elif defined(TOOLCHAIN_ARM_MICRO)
 #    define WORDS_STACK_SIZE   128
@@ -134,6 +134,8 @@ used throughout the whole project.
 #define osFeature_Wait         0       ///< osWait function: 1=available, 0=not available
 
 #if defined (__CC_ARM)
+#define os_InRegs __value_in_regs      // Compiler specific: force struct in registers
+#elif defined (__ICCARM__)
 #define os_InRegs __value_in_regs      // Compiler specific: force struct in registers
 #else
 #define os_InRegs
@@ -241,7 +243,7 @@ typedef struct os_thread_def  {
   os_pthread               pthread;      ///< start address of thread function
   osPriority             tpriority;      ///< initial thread priority
   uint32_t               stacksize;      ///< stack size requirements in bytes
-  unsigned char         *stack_pointer;  ///< pointer to the stack memory block
+  uint32_t               *stack_pointer;  ///< pointer to the stack memory block
   struct OS_TCB          tcb;
 } osThreadDef_t;
 
@@ -335,7 +337,7 @@ int32_t osKernelRunning(void);
 extern osThreadDef_t os_thread_def_##name
 #else                            // define the object
 #define osThreadDef(name, priority, stacksz)  \
-unsigned char os_thread_def_stack_##name [stacksz]; \
+uint32_t os_thread_def_stack_##name [stacksz / sizeof(uint32_t)]; \
 osThreadDef_t os_thread_def_##name = \
 { (name), (priority), (stacksz), (os_thread_def_stack_##name)}
 #endif
