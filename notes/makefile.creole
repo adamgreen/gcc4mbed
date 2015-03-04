@@ -40,6 +40,7 @@ These devices were added by the community.  I make sure that they build during a
 * DISCO_F407VG (added by [[https://developer.mbed.org/users/svkatielee/ | Larry Littlefield]])
 * NUCLEO_F401RE (added by [[https://developer.mbed.org/users/svkatielee/ | Larry Littlefield]])
 * NUCLEO_F411RE (added by [[https://github.com/weyoui | weyoui]])
+* NUCLEO_F072RB (added by [[https://github.com/aftermathew | aftermathew]])
 
 The default target device is LPC1768.
 
