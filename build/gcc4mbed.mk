@@ -23,7 +23,7 @@
 #                 of the build directory which contains this gcc4mbed.mk file.
 #
 # Variables that may be optionally set in makefile.
-#   DEVCICES: Used to specify a space delimited list of target device(s) that
+#   DEVICES: Used to specify a space delimited list of target device(s) that
 #             this application should be built for.  Allowed values include:
 #              LPC1768
 #              LPC11U24
@@ -31,6 +31,7 @@
 #              NRF51822
 #              default: LPC1768
 #   SRC: The root directory for the sources of your project.  Defaults to '.'.
+#   EXCLUDE: Patterns of file to exclude from the root directory of sources 
 #   NO_FLOAT_SCANF: When set to 1, scanf() will not support %f specifier to
 #                   input floating point values.  Reduces code size.
 #   NO_FLOAT_PRINTF: When set to 1, scanf() will not support %f specifier to
