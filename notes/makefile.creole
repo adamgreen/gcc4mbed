@@ -48,6 +48,9 @@ The default target device is LPC1768.
 ===SRC
 The **SRC** variable is used in an application's makefile to specify the root directory of the sources for this project.  If not explicitly set by the application's makefile then it defaults to the directory in which the makefile is located.  However it can be set to a different directory name if it happens that the project's source code is found in a different directory than the makefile.
 
+===EXCLUDE
+The **EXCLUDE** variable is used in an application's makefile to specify a pattern to exclude files from **SRC** variable. This allows more flexible build without having to move directories to avoid building them. This variable is a space-separated list of patterns to exclude from build.
+
 ===MBED_LIBS
 The **MBED_LIBS** variable is an optional variable that an application's makefile can use to provide a space delimited list of additional official mbed libraries to be used.  The order of the libraries in this list will matter since they dictate link order.  The supported libraries include:
 * **net/eth**: Pulls in the ethernet version of the TCP/IP networking stack and its dependencies (ie. rtos).

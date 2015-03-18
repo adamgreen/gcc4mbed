@@ -68,6 +68,9 @@ endif
 
 # List of the objects files to be compiled/assembled based on source files in SRC.
 OBJECTS := $(call srcs2objs,$(call filter_dirs,$(call recurse_dir,$(SRC)),$(TARGETS_FOR_DEVICE)),$(SRC),$(OUTDIR))
+PAT_MATCH = $(foreach v,$(2),$(if $(findstring $(1),$(v)),$(v),))
+EXCL_OBJECTS := $(foreach e,$(EXCLUDE),$(call PAT_MATCH,$(e),$(OBJECTS)))
+OBJECTS := $(filter-out $(EXCL_OBJECTS),$(OBJECTS))
 
 # Add in the GCC4MBED stubs which allow hooking in the MRI debug monitor.
 OBJECTS += $(OUTDIR)/gcc4mbed.o
