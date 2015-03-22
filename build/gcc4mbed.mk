@@ -112,6 +112,7 @@ ifndef GCC4MBED_DIR
 $(error makefile must set GCC4MBED_DIR.)
 endif
 
+GCC4MBED_DIR := $(patsubst %/,%,$(GCC4MBED_DIR))
 
 # Set VERBOSE make variable to 1 to output all tool commands.
 VERBOSE?=0
