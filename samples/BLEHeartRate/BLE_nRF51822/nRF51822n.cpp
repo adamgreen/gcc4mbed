@@ -21,6 +21,8 @@
 #include "btle/btle.h"
 #include "nrf_delay.h"
 
+#include "softdevice_handler.h"
+
 /**
  * The singleton which represents the nRF51822 transport for the BLEDevice.
  */
@@ -36,33 +38,30 @@ createBLEDeviceInstance(void)
     return (&deviceInstance);
 }
 
-/**************************************************************************/
-/*!
-    @brief  Constructor
-*/
-/**************************************************************************/
 nRF51822n::nRF51822n(void)
 {
 }
 
-/**************************************************************************/
-/*!
-    @brief  Destructor
-*/
-/**************************************************************************/
 nRF51822n::~nRF51822n(void)
 {
 }
 
 const char *nRF51822n::getVersion(void)
 {
-    static char versionString[10];
+    static char versionString[32];
     static bool versionFetched = false;
 
     if (!versionFetched) {
         ble_version_t version;
-        if (sd_ble_version_get(&version) == NRF_SUCCESS) {
-            snprintf(versionString, sizeof(versionString), "%u.%u", version.version_number, version.subversion_number);
+        if ((sd_ble_version_get(&version) == NRF_SUCCESS) && (version.company_id == 0x0059)) {
+            switch (version.version_number) {
+                case 0x07:
+                    snprintf(versionString, sizeof(versionString), "Nordic BLE4.1 fw:%04x", version.subversion_number);
+                    break;
+                default:
+                    snprintf(versionString, sizeof(versionString), "Nordic (spec unknown) fw:%04x", version.subversion_number);
+                    break;
+            }
             versionFetched = true;
         } else {
             strncpy(versionString, "unknown", sizeof(versionString));
@@ -89,22 +88,16 @@ ble_error_t nRF51822n::setTxPower(int8_t txPower)
     return BLE_ERROR_NONE;
 }
 
-/**************************************************************************/
-/*!
-    @brief  Initialises anything required to start using BLE
+void nRF51822n::getPermittedTxPowerValues(const int8_t **valueArrayPP, size_t *countP)
+{
+    static const int8_t permittedTxValues[] = {
+        -40, -30, -20, -16, -12, -8, -4, 0, 4
+    };
 
-    @returns    ble_error_t
+    *valueArrayPP = permittedTxValues;
+    *countP = sizeof(permittedTxValues) / sizeof(int8_t);
+}
 
-    @retval     BLE_ERROR_NONE
-                Everything executed properly
-
-    @section EXAMPLE
-
-    @code
-
-    @endcode
-*/
-/**************************************************************************/
 ble_error_t nRF51822n::init(void)
 {
     /* ToDo: Clear memory contents, reset the SD, etc. */
@@ -115,23 +108,11 @@ ble_error_t nRF51822n::init(void)
     return BLE_ERROR_NONE;
 }
 
-/**************************************************************************/
-/*!
-    @brief  Resets the BLE HW, removing any existing services and
-            characteristics
+ble_error_t nRF51822n::shutdown(void)
+{
+    return (softdevice_handler_sd_disable() == NRF_SUCCESS) ? BLE_ERROR_NONE : BLE_STACK_BUSY;
+}
 
-    @returns    ble_error_t
-
-    @retval     BLE_ERROR_NONE
-                Everything executed properly
-
-    @section EXAMPLE
-
-    @code
-
-    @endcode
-*/
-/**************************************************************************/
 ble_error_t nRF51822n::reset(void)
 {
     nrf_delay_us(500000);

@@ -37,11 +37,11 @@ pushd $ROOTDIR
 ROOTDIR=$PWD
 LOGFILE=$ROOTDIR/mac_install.log
 ERRORFILE=$ROOTDIR/mac_install.err
-GCC4ARM_VERSION=gcc-arm-none-eabi-4_9-2014q4
-GCC4ARM_FILENAME=gcc-arm-none-eabi-4_9-2014q4-20141203-mac.tar.bz2
-GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.9/4.9-2014-q4-major/+download/$GCC4ARM_FILENAME
+GCC4ARM_VERSION=gcc-arm-none-eabi-4_9-2015q1
+GCC4ARM_FILENAME=gcc-arm-none-eabi-4_9-2015q1-20150306-mac.tar.bz2
+GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q1-update/+download/$GCC4ARM_FILENAME
 GCC4ARM_TAR=$ROOTDIR/$GCC4ARM_FILENAME
-GCC4ARM_MD5=a3b0ab5bd08ba5ad840b7cb5f17becb0
+GCC4ARM_MD5=e3d92e5eaac7f9b0c20bf69822a434dd
 GCC4ARM_EXTRACT=$ROOTDIR/$GCC4ARM_VERSION
 GCC4ARM_DIR=$ROOTDIR/gcc-arm-none-eabi
 GCC4ARM_BINDIR=$GCC4ARM_DIR/bin
@@ -88,7 +88,7 @@ echo "SCRIPT_PATH=\$0">>$BUILDSHELL_CMD
 echo "SCRIPT_PATH=\${SCRIPT_PATH%/*}">>$BUILDSHELL_CMD
 echo "cd \$SCRIPT_PATH">>$BUILDSHELL_CMD
 echo "SCRIPT_PATH=\$PWD">>$BUILDSHELL_CMD
-echo "export PATH=\$SCRIPT_PATH/gcc-arm-none-eabi/bin:\$SCRIPT_PATH/external/osx64:\$PATH">>$BUILDSHELL_CMD
+echo "export PATH=\$SCRIPT_PATH/external/osx64:\$SCRIPT_PATH/gcc-arm-none-eabi/bin:\$PATH">>$BUILDSHELL_CMD
 echo "exec bash">>$BUILDSHELL_CMD
 chmod +x $BUILDSHELL_CMD
 
@@ -100,7 +100,7 @@ echo "SCRIPT_PATH=\$0">>$BUILDSHELL_DEBUG_CMD
 echo "SCRIPT_PATH=\${SCRIPT_PATH%/*}">>$BUILDSHELL_DEBUG_CMD
 echo "cd \$SCRIPT_PATH">>$BUILDSHELL_DEBUG_CMD
 echo "SCRIPT_PATH=\$PWD">>$BUILDSHELL_DEBUG_CMD
-echo "export PATH=\$SCRIPT_PATH/gcc-arm-none-eabi/bin:\$SCRIPT_PATH/external/osx64:\$PATH">>$BUILDSHELL_DEBUG_CMD
+echo "export PATH=\$SCRIPT_PATH/external/osx64:\$SCRIPT_PATH/gcc-arm-none-eabi/bin:\$PATH">>$BUILDSHELL_DEBUG_CMD
 echo "export GCC4MBED_TYPE=Debug">>$BUILDSHELL_DEBUG_CMD
 echo "exec bash">>$BUILDSHELL_DEBUG_CMD
 chmod +x $BUILDSHELL_DEBUG_CMD

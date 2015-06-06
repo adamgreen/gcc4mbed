@@ -19,11 +19,11 @@ setlocal
 set ROOTDIR=%~dp0
 set LOGFILE=%ROOTDIR%win_install.log
 set ERRORFILE=%ROOTDIR%win_install.err
-set GCC4ARM_VERSION=gcc-arm-none-eabi-4_9-2014q4
-set GCC4ARM_FILENAME=gcc-arm-none-eabi-4_9-2014q4-20141203-win32.zip
-set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.9/4.9-2014-q4-major/+download/%GCC4ARM_FILENAME%
+set GCC4ARM_VERSION=gcc-arm-none-eabi-4_9-2015q1
+set GCC4ARM_FILENAME=gcc-arm-none-eabi-4_9-2015q1-20150306-win32.zip
+set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q1-update/+download/%GCC4ARM_FILENAME%
 set GCC4ARM_TAR=%ROOTDIR%%GCC4ARM_FILENAME%
-set GCC4ARM_MD5=fe043db84c6c6ff423496f5e3ebd33e4
+set GCC4ARM_MD5=ef2df916f1ea4c5cc1022fa9aaf338a1
 set GCC4ARM_MD5_FILENAME=%ROOTDIR%gcc-arm-none-eabi.md5
 set GCC4ARM_DIR=%ROOTDIR%gcc-arm-none-eabi
 set GCC4ARM_BINDIR=%GCC4ARM_DIR%\bin

@@ -134,13 +134,13 @@ ble_error_t nRF51Gap::startAdvertising(const GapAdvertisingParams &params)
     /* Check interval range */
     if (params.getAdvertisingType() == GapAdvertisingParams::ADV_NON_CONNECTABLE_UNDIRECTED) {
         /* Min delay is slightly longer for unconnectable devices */
-        if ((params.getInterval() < GAP_ADV_PARAMS_INTERVAL_MIN_NONCON) ||
-            (params.getInterval() > GAP_ADV_PARAMS_INTERVAL_MAX)) {
+        if ((params.getInterval() < GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MIN_NONCON) ||
+            (params.getInterval() > GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MAX)) {
             return BLE_ERROR_PARAM_OUT_OF_RANGE;
         }
     } else {
-        if ((params.getInterval() < GAP_ADV_PARAMS_INTERVAL_MIN) ||
-            (params.getInterval() > GAP_ADV_PARAMS_INTERVAL_MAX)) {
+        if ((params.getInterval() < GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MIN) ||
+            (params.getInterval() > GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MAX)) {
             return BLE_ERROR_PARAM_OUT_OF_RANGE;
         }
     }
@@ -154,7 +154,7 @@ ble_error_t nRF51Gap::startAdvertising(const GapAdvertisingParams &params)
 
     /* Check timeout for other advertising types */
     if ((params.getAdvertisingType() != GapAdvertisingParams::ADV_CONNECTABLE_DIRECTED) &&
-        (params.getTimeout() > GAP_ADV_PARAMS_TIMEOUT_MAX)) {
+        (params.getTimeout() > GapAdvertisingParams::GAP_ADV_PARAMS_TIMEOUT_MAX)) {
         return BLE_ERROR_PARAM_OUT_OF_RANGE;
     }
 
@@ -304,7 +304,7 @@ uint16_t nRF51Gap::getConnectionHandle(void)
     @endcode
 */
 /**************************************************************************/
-ble_error_t nRF51Gap::setAddress(addr_type_t type, const uint8_t address[ADDR_LEN])
+ble_error_t nRF51Gap::setAddress(addr_type_t type, const address_t address)
 {
     if (type > ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE) {
         return BLE_ERROR_PARAM_OUT_OF_RANGE;
@@ -319,7 +319,7 @@ ble_error_t nRF51Gap::setAddress(addr_type_t type, const uint8_t address[ADDR_LE
     return BLE_ERROR_NONE;
 }
 
-ble_error_t nRF51Gap::getAddress(addr_type_t *typeP, uint8_t addressP[ADDR_LEN])
+ble_error_t nRF51Gap::getAddress(addr_type_t *typeP, address_t address)
 {
     ble_gap_addr_t dev_addr;
     if (sd_ble_gap_address_get(&dev_addr) != NRF_SUCCESS) {
@@ -329,8 +329,8 @@ ble_error_t nRF51Gap::getAddress(addr_type_t *typeP, uint8_t addressP[ADDR_LEN])
     if (typeP != NULL) {
         *typeP = static_cast<addr_type_t>(dev_addr.addr_type);
     }
-    if (addressP != NULL) {
-        memcpy(addressP, dev_addr.addr, ADDR_LEN);
+    if (address != NULL) {
+        memcpy(address, dev_addr.addr, ADDR_LEN);
     }
     return BLE_ERROR_NONE;
 }

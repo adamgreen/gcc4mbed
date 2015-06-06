@@ -17,13 +17,14 @@
 #ifndef _CUSTOM_HELPER_H_
 #define _CUSTOM_HELPER_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "common/common.h"
 #include "ble.h"
 #include "UUID.h"
+#include "GattCharacteristic.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 uint8_t custom_add_uuid_base(uint8_t const *const p_uuid_base);
 error_t custom_decode_uuid(uint8_t const *const p_uuid_base,
@@ -33,9 +34,14 @@ ble_uuid_t custom_convert_to_nordic_uuid(const UUID &uuid);
 error_t custom_add_in_characteristic(uint16_t                  service_handle,
                                      ble_uuid_t               *p_uuid,
                                      uint8_t                   properties,
+                                     Gap::SecurityMode_t       requiredSecurity,
                                      uint8_t                  *p_data,
                                      uint16_t                  min_length,
                                      uint16_t                  max_length,
+                                     const uint8_t            *userDescriptionDescriptorValuePtr,
+                                     uint16_t                  userDescriptionDescriptorValueLen,
+                                     bool                      readAuthorization,
+                                     bool                      writeAuthorization,
                                      ble_gatts_char_handles_t *p_char_handle);
 
 error_t custom_add_in_descriptor(uint16_t                      char_handle,

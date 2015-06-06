@@ -15,7 +15,6 @@
  */
 #include "common/common.h"
 
-#include "app_timer.h"
 #include "ble_gap.h"
 #include "ble_conn_params.h"
 

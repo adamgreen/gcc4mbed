@@ -17,16 +17,13 @@
 #ifndef __NRF51822_H__
 #define __NRF51822_H__
 
-#define NRF51
-#define DEBUG_NRF_USER
-#define BLE_STACK_SUPPORT_REQD
-#define BOARD_PCA10001
-
 #include "mbed.h"
 #include "blecommon.h"
 #include "BLEDevice.h"
 #include "nRF51Gap.h"
 #include "nRF51GattServer.h"
+#include "btle.h"
+#include "btle_security.h"
 
 class nRF51822n : public BLEDeviceInstanceBase
 {
@@ -44,9 +41,17 @@ public:
     };
 
     virtual ble_error_t setTxPower(int8_t txPower);
+    virtual void        getPermittedTxPowerValues(const int8_t **valueArrayPP, size_t *countP);
 
     virtual ble_error_t init(void);
+    virtual ble_error_t shutdown(void);
     virtual ble_error_t reset(void);
+    virtual ble_error_t initializeSecurity(bool                          enableBonding = true,
+                                           bool                          requireMITM   = true,
+                                           Gap::SecurityIOCapabilities_t iocaps        = Gap::IO_CAPS_NONE,
+                                           const Gap::Passkey_t          passkey       = NULL) {
+        return btle_initializeSecurity(enableBonding, requireMITM, iocaps, passkey);
+    }
     virtual void        waitForEvent(void);
 };
 

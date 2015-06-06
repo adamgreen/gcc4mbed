@@ -19,39 +19,43 @@
 
 #include "BLEDevice.h"
 
-/* Health Thermometer Service */
-/* Service:  https://developer.bluetooth.org/gatt/profiles/Pages/ProfileViewer.aspx?u=org.bluetooth.profile.health_thermometer.xml */
-/* Temperature Measurement: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_measurement.xml */
-/* Temperature Type: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_type.xml */
+/**
+* @class HealthThermometerService
+* @brief BLE Health Thermometer Service. This service provides the location of the thermometer and the temperature.  <br>
+* Service:  https://developer.bluetooth.org/gatt/profiles/Pages/ProfileViewer.aspx?u=org.bluetooth.profile.health_thermometer.xml <br>
+* Temperature Measurement: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_measurement.xml <br>
+* Temperature Type: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_type.xml
+*/
 class HealthThermometerService {
 public:
-    enum {
-        LOCATION_ARMPIT = 1,
-        LOCATION_BODY,
-        LOCATION_EAR,
-        LOCATION_FINGER,
-        LOCATION_GI_TRACT,
-        LOCATION_MOUTH,
-        LOCATION_RECTUM,
-        LOCATION_TOE,
-        LOCATION_EAR_DRUM,
+    /**
+    * @enum Sensor Location
+    * @brief Location of sensor on the body
+    */
+    enum SensorLocation_t {
+        LOCATION_ARMPIT = 1,    /*!< armpit */
+        LOCATION_BODY,          /*!< body */
+        LOCATION_EAR,           /*!< ear */
+        LOCATION_FINGER,        /*!< finger */
+        LOCATION_GI_TRACT,      /*!< GI tract */
+        LOCATION_MOUTH,         /*!< mouth */
+        LOCATION_RECTUM,        /*!< rectum */
+        LOCATION_TOE,           /*!< toe */
+        LOCATION_EAR_DRUM,      /*!< ear drum */
     };
 
 public:
-
     /**
-     * @param[in] _ble         reference to the BLE device
+     * @brief Add the Health Thermometer Service to an existing ble object, initialize with temperature and location.
+     * @param[ref] _ble         reference to the BLE device
      * @param[in] initialTemp  initial value in celsius
      * @param[in] _location
      */
     HealthThermometerService(BLEDevice &_ble, float initialTemp, uint8_t _location) :
         ble(_ble),
         valueBytes(initialTemp),
-        tempMeasurement(GattCharacteristic::UUID_TEMPERATURE_MEASUREMENT_CHAR, valueBytes.getPointer(),
-                        sizeof(TemperatureValueBytes), sizeof(TemperatureValueBytes),
-                        GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY),
-        tempLocation(GattCharacteristic::UUID_TEMPERATURE_TYPE_CHAR, (uint8_t *)&_location, sizeof(_location), sizeof(_location),
-                     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ) {
+        tempMeasurement(GattCharacteristic::UUID_TEMPERATURE_MEASUREMENT_CHAR, (TemperatureValueBytes *)valueBytes.getPointer(), GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY),
+        tempLocation(GattCharacteristic::UUID_TEMPERATURE_TYPE_CHAR, &_location) {
 
         GattCharacteristic *hrmChars[] = {&tempMeasurement, &tempLocation, };
         GattService         hrmService(GattService::UUID_HEALTH_THERMOMETER_SERVICE, hrmChars, sizeof(hrmChars) / sizeof(GattCharacteristic *));
@@ -59,11 +63,27 @@ public:
         ble.addService(hrmService);
     }
 
+    /**
+    * @brief Update the temperature being broadcast
+    *
+    * @param[in] temperature
+    *                   Floating point value of the temperature
+    *
+    */
     void updateTemperature(float temperature) {
         if (ble.getGapState().connected) {
             valueBytes.updateTemperature(temperature);
             ble.updateCharacteristicValue(tempMeasurement.getValueAttribute().getHandle(), valueBytes.getPointer(), sizeof(TemperatureValueBytes));
         }
+    }
+
+    /**
+     * @brief Update the location.
+     * @param loc
+     *        new location value.
+     */
+    void updateLocation(SensorLocation_t loc) {
+        ble.updateCharacteristicValue(tempLocation.getValueHandle(), reinterpret_cast<uint8_t *>(&loc), sizeof(uint8_t));
     }
 
 private:
@@ -77,8 +97,8 @@ private:
         static const unsigned TIMESTAMP_FLAG_POS         = 1;
         static const unsigned TEMPERATURE_TYPE_FLAG_POS  = 2;
 
-        static const uint8_t TEMPERATURE_UNITS_CELSIUS    = 0;
-        static const uint8_t TEMPERATURE_UNITS_FAHRENHEIT = 1;
+        static const uint8_t  TEMPERATURE_UNITS_CELSIUS    = 0;
+        static const uint8_t  TEMPERATURE_UNITS_FAHRENHEIT = 1;
 
         TemperatureValueBytes(float initialTemperature) : bytes() {
             /* assumption: temperature values are expressed in Celsius */
@@ -93,7 +113,7 @@ private:
             memcpy(&bytes[OFFSET_OF_VALUE], &temp_ieee11073, sizeof(float));
         }
 
-        uint8_t *getPointer(void) {
+        uint8_t       *getPointer(void) {
             return bytes;
         }
 
@@ -101,7 +121,7 @@ private:
             return bytes;
         }
 
-    private:
+private:
         /**
          * @brief A very quick conversion between a float temperature and 11073-20601 FLOAT-Type.
          * @param temperature The temperature as a float.
@@ -114,18 +134,17 @@ private:
             return (((uint32_t)exponent) << 24) | mantissa;
         }
 
-
-    private:
+private:
         /* First byte = 8-bit flags, Second field is a float holding the temperature value. */
         /* See --> https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_measurement.xml */
         uint8_t bytes[SIZEOF_VALUE_BYTES];
     };
 
 private:
-    BLEDevice             &ble;
-    TemperatureValueBytes  valueBytes;
-    GattCharacteristic     tempMeasurement;
-    GattCharacteristic     tempLocation;
+    BLEDevice                                         &ble;
+    TemperatureValueBytes                              valueBytes;
+    ReadOnlyGattCharacteristic<TemperatureValueBytes>  tempMeasurement;
+    ReadOnlyGattCharacteristic<uint8_t>                tempLocation;
 };
 
 #endif /* #ifndef __BLE_HEALTH_THERMOMETER_SERVICE_H__*/

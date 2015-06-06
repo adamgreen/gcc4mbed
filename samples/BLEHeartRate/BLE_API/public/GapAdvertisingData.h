@@ -17,6 +17,8 @@
 #ifndef __GAP_ADVERTISING_DATA_H__
 #define __GAP_ADVERTISING_DATA_H__
 
+#include <string.h>
+
 #include "blecommon.h"
 
 #define GAP_ADVERTISING_DATA_MAX_PAYLOAD        (31)
@@ -188,17 +190,115 @@ public:
         OUTDOOR_LOCATION_AND_NAVIGATION_POD            = 5188   /**< Outdoor Location and Navigation Pod */
     };
 
-    GapAdvertisingData(void);
-    virtual ~GapAdvertisingData(void);
+    GapAdvertisingData(void) : _payload(), _payloadLen(0), _appearance(GENERIC_TAG) {
+        /* empty */
+    }
 
-    ble_error_t addData(DataType, const uint8_t *, uint8_t);
-    ble_error_t addAppearance(Appearance appearance = GENERIC_TAG);
-    ble_error_t addFlags(uint8_t flags = LE_GENERAL_DISCOVERABLE);
-    ble_error_t addTxPower(int8_t txPower);
-    void        clear(void);
-    const uint8_t *getPayload(void) const;
-    uint8_t     getPayloadLen(void) const;
-    uint16_t    getAppearance(void) const;
+    /**
+     * Adds advertising data based on the specified AD type (see DataType)
+     *
+     * @param  advDataType The Advertising 'DataType' to add
+     * @param  payload     Pointer to the payload contents
+     * @param  len         Size of the payload in bytes
+     *
+     * @return BLE_ERROR_BUFFER_OVERFLOW if the specified data would cause the
+     * advertising buffer to overflow, else BLE_ERROR_NONE.
+     */
+    ble_error_t addData(DataType advDataType, const uint8_t *payload, uint8_t len)
+     {
+        /* ToDo: Check if an AD type already exists and if the existing */
+        /*       value is exclusive or not (flags, etc.) */
+
+        /* Make sure we don't exceed the 31 byte payload limit */
+        if (_payloadLen + len + 2 > GAP_ADVERTISING_DATA_MAX_PAYLOAD) {
+            return BLE_ERROR_BUFFER_OVERFLOW;
+        }
+
+        /* Field length */
+        memset(&_payload[_payloadLen], len + 1, 1);
+        _payloadLen++;
+
+        /* Field ID */
+        memset(&_payload[_payloadLen], (uint8_t)advDataType, 1);
+        _payloadLen++;
+
+        /* Payload */
+        memcpy(&_payload[_payloadLen], payload, len);
+        _payloadLen += len;
+
+        return BLE_ERROR_NONE;
+    }
+
+    /**
+     * Helper function to add APPEARANCE data to the advertising payload
+     *
+     * @param  appearance
+     *           The APPEARANCE value to add
+     *
+     * @return BLE_ERROR_BUFFER_OVERFLOW if the specified data would cause the
+     * advertising buffer to overflow, else BLE_ERROR_NONE.
+     */
+    ble_error_t addAppearance(Appearance appearance = GENERIC_TAG) {
+        _appearance = appearance;
+        return addData(GapAdvertisingData::APPEARANCE, (uint8_t *)&appearance, 2);
+    }
+
+    /**
+     * Helper function to add FLAGS data to the advertising payload.
+     * @param  flags
+     *           LE_LIMITED_DISCOVERABLE
+     *             The peripheral is discoverable for a limited period of time.
+     *           LE_GENERAL_DISCOVERABLE
+     *             The peripheral is permanently discoverable.
+     *           BREDR_NOT_SUPPORTED
+     *             This peripheral is a Bluetooth Low Energy only device (no EDR support).
+     *
+     * @return BLE_ERROR_BUFFER_OVERFLOW if the specified data would cause the
+     * advertising buffer to overflow, else BLE_ERROR_NONE.
+     */
+    ble_error_t addFlags(uint8_t flags = LE_GENERAL_DISCOVERABLE) {
+        return addData(GapAdvertisingData::FLAGS, &flags, 1);
+    }
+
+    /**
+     * Helper function to add TX_POWER_LEVEL data to the advertising payload
+     *
+     * @return BLE_ERROR_BUFFER_OVERFLOW if the specified data would cause the
+     * advertising buffer to overflow, else BLE_ERROR_NONE.
+     */
+    ble_error_t addTxPower(int8_t txPower) {
+        /* ToDo: Basic error checking to make sure txPower is in range */
+        return addData(GapAdvertisingData::TX_POWER_LEVEL, (uint8_t *)&txPower, 1);
+    }
+
+    /**
+     * Clears the payload and resets the payload length counter
+     */
+    void        clear(void) {
+        memset(&_payload, 0, GAP_ADVERTISING_DATA_MAX_PAYLOAD);
+        _payloadLen = 0;
+    }
+
+    /**
+     * Returns a pointer to the the current payload
+     */
+    const uint8_t *getPayload(void) const {
+        return (_payloadLen > 0) ? _payload : NULL;
+    }
+
+    /**
+     * Returns the current payload length (0..31 bytes)
+     */
+    uint8_t     getPayloadLen(void) const {
+        return _payloadLen;
+    }
+
+    /**
+     * Returns the 16-bit appearance value for this device
+     */
+    uint16_t    getAppearance(void) const {
+        return (uint16_t)_appearance;
+    }
 
 private:
     uint8_t  _payload[GAP_ADVERTISING_DATA_MAX_PAYLOAD];

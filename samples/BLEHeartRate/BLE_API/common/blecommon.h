@@ -17,16 +17,12 @@
 #ifndef __BLE_COMMON_H__
 #define __BLE_COMMON_H__
 
-#define NRF51
-#define DEBUG_NRF_USER
-#define BLE_STACK_SUPPORT_REQD
-#define BOARD_PCA10001
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stddef.h>
 
 /** @defgroup BLE_UUID_VALUES Assigned Values for BLE UUIDs
  * @{ */
@@ -125,7 +121,11 @@ typedef enum ble_error_e
     BLE_ERROR_BUFFER_OVERFLOW    = 1,       /**< The requested action would cause a buffer overflow and has been aborted */
     BLE_ERROR_NOT_IMPLEMENTED    = 2,       /**< Requested a feature that isn't yet implement or isn't supported by the target HW */
     BLE_ERROR_PARAM_OUT_OF_RANGE = 3,       /**< One of the supplied parameters is outside the valid range */
-    BLE_STACK_BUSY               = 4,       /**< The stack is busy */
+    BLE_ERROR_INVALID_PARAM      = 4,       /**< One of the supplied parameters is invalid */
+    BLE_STACK_BUSY               = 5,       /**< The stack is busy */
+    BLE_ERROR_INVALID_STATE      = 6,       /**< Invalid state. */
+    BLE_ERROR_NO_MEM             = 7,       /**< Out of Memory */
+    BLE_ERROR_UNSPECIFIED        = 8,       /**< Unknown error. */
 } ble_error_t;
 
 #ifdef __cplusplus

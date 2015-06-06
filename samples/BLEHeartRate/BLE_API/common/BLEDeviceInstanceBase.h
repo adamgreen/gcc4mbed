@@ -28,8 +28,14 @@ public:
     virtual Gap&        getGap()                   = 0;
     virtual GattServer& getGattServer()            = 0;
     virtual ble_error_t init(void)                 = 0;
+    virtual ble_error_t shutdown(void)             = 0;
     virtual ble_error_t reset(void)                = 0;
+    virtual ble_error_t initializeSecurity(bool                          enableBonding = true,
+                                           bool                          requireMITM   = true,
+                                           Gap::SecurityIOCapabilities_t iocaps        = Gap::IO_CAPS_NONE,
+                                           const Gap::Passkey_t          passkey       = NULL) = 0;
     virtual ble_error_t setTxPower(int8_t txPower) = 0;
+    virtual void        getPermittedTxPowerValues(const int8_t **, size_t *) = 0;
     virtual void        waitForEvent(void)         = 0;
 };
 

@@ -42,7 +42,20 @@ lookupConvertedUUIDTable(const LongUUIDBytes_t uuid, uint8_t *recoveredType)
 {
     unsigned i;
     for (i = 0; i < uuidTableEntries; i++) {
-        if (memcmp(convertedUUIDTable[i].uuid, uuid, LENGTH_OF_LONG_UUID) == 0) {
+        unsigned byteIndex;
+        for (byteIndex = 0; byteIndex < LENGTH_OF_LONG_UUID; byteIndex++) {
+            /* Skip bytes 2 and 3, because they contain the shortUUID (16-bit) version of the
+             * long UUID; and we're comparing against the remainder. */
+            if ((byteIndex == 2) || (byteIndex == 3)) {
+                continue;
+            }
+
+            if (convertedUUIDTable[i].uuid[byteIndex] != uuid[byteIndex]) {
+                break;
+            }
+        }
+
+        if (byteIndex == LENGTH_OF_LONG_UUID) {
             *recoveredType = convertedUUIDTable[i].type;
             return true;
         }
@@ -58,8 +71,10 @@ addToConvertedUUIDTable(const LongUUIDBytes_t uuid, uint8_t type)
         return; /* recovery needed; or at least the user should be warned about this fact.*/
     }
 
-    memcpy(convertedUUIDTable[uuidTableEntries].uuid, uuid,LENGTH_OF_LONG_UUID);
-    convertedUUIDTable[uuidTableEntries].type = type;
+    memcpy(convertedUUIDTable[uuidTableEntries].uuid, uuid, LENGTH_OF_LONG_UUID);
+    convertedUUIDTable[uuidTableEntries].uuid[2] = 0;
+    convertedUUIDTable[uuidTableEntries].uuid[3] = 0;
+    convertedUUIDTable[uuidTableEntries].type    = type;
     uuidTableEntries++;
 }
 
@@ -78,10 +93,9 @@ addToConvertedUUIDTable(const LongUUIDBytes_t uuid, uint8_t type)
  */
 ble_uuid_t custom_convert_to_nordic_uuid(const UUID &uuid)
 {
-    ble_uuid_t nordicUUID = {
-        .uuid = uuid.getShortUUID(),
-        .type = BLE_UUID_TYPE_UNKNOWN /* to be set below */
-    };
+    ble_uuid_t nordicUUID;
+    nordicUUID.uuid = uuid.getShortUUID();
+    nordicUUID.type = BLE_UUID_TYPE_UNKNOWN; /* to be set below */
 
     if (uuid.shortOrLong() == UUID::UUID_TYPE_SHORT) {
         nordicUUID.type = BLE_UUID_TYPE_BLE;
@@ -135,8 +149,8 @@ uint8_t custom_add_uuid_base(uint8_t const *const p_uuid_base)
     uint8_t       uuid_type = 0;
 
     /* Reverse the bytes since ble_uuid128_t is LSB */
-    for (uint8_t i = 0; i<16; i++) {
-        base_uuid.uuid128[i] = p_uuid_base[15 - i];
+    for (unsigned i = 0; i < LENGTH_OF_LONG_UUID; i++) {
+        base_uuid.uuid128[i] = p_uuid_base[LENGTH_OF_LONG_UUID - 1 - i];
     }
 
     ASSERT_INT( ERROR_NONE, sd_ble_uuid_vs_add( &base_uuid, &uuid_type ), 0);
@@ -155,11 +169,11 @@ error_t custom_decode_uuid_base(uint8_t const *const p_uuid_base,
     LongUUIDBytes_t uuid_base_le;
 
     /* Reverse the bytes since ble_uuid128_t is LSB */
-    for (uint8_t i = 0; i<16; i++) {
-        uuid_base_le[i] = p_uuid_base[15 - i];
+    for (uint8_t i = 0; i < LENGTH_OF_LONG_UUID; i++) {
+        uuid_base_le[i] = p_uuid_base[LENGTH_OF_LONG_UUID - 1 - i];
     }
 
-    ASSERT_STATUS( sd_ble_uuid_decode(16, uuid_base_le, p_uuid));
+    ASSERT_STATUS( sd_ble_uuid_decode(LENGTH_OF_LONG_UUID, uuid_base_le, p_uuid));
 
     return ERROR_NONE;
 }
@@ -177,18 +191,23 @@ error_t custom_decode_uuid_base(uint8_t const *const p_uuid_base,
     @param[in]  char_props        The characteristic properties, as
                                   defined by ble_gatt_char_props_t
     @param[in]  max_length        The maximum length of this characeristic
-    @param[in]  p_char_handle
+    @param[out] p_char_handle
 
     @returns
     @retval     ERROR_NONE        Everything executed normally
 */
 /**************************************************************************/
-error_t custom_add_in_characteristic(uint16_t    service_handle,
-                                     ble_uuid_t *p_uuid,
-                                     uint8_t     properties,
-                                     uint8_t    *p_data,
-                                     uint16_t    min_length,
-                                     uint16_t    max_length,
+error_t custom_add_in_characteristic(uint16_t                  service_handle,
+                                     ble_uuid_t               *p_uuid,
+                                     uint8_t                   properties,
+                                     Gap::SecurityMode_t       requiredSecurity,
+                                     uint8_t                  *p_data,
+                                     uint16_t                  min_length,
+                                     uint16_t                  max_length,
+                                     const uint8_t            *userDescriptionDescriptorValuePtr,
+                                     uint16_t                  userDescriptionDescriptorValueLen,
+                                     bool                      readAuthorization,
+                                     bool                      writeAuthorization,
                                      ble_gatts_char_handles_t *p_char_handle)
 {
     /* Characteristic metadata */
@@ -210,19 +229,63 @@ error_t custom_add_in_characteristic(uint16_t    service_handle,
     char_md.char_props = char_props;
     char_md.p_cccd_md  =
         (char_props.notify || char_props.indicate) ? &cccd_md : NULL;
+    if ((userDescriptionDescriptorValueLen > 0) && (userDescriptionDescriptorValuePtr != NULL)) {
+        char_md.p_char_user_desc        = const_cast<uint8_t *>(userDescriptionDescriptorValuePtr);
+        char_md.char_user_desc_max_size = userDescriptionDescriptorValueLen;
+        char_md.char_user_desc_size     = userDescriptionDescriptorValueLen;
+    }
 
     /* Attribute declaration */
     ble_gatts_attr_md_t attr_md = {0};
+
+    attr_md.rd_auth = readAuthorization;
+    attr_md.wr_auth = writeAuthorization;
 
     attr_md.vloc = BLE_GATTS_VLOC_STACK;
     attr_md.vlen = (min_length == max_length) ? 0 : 1;
 
     if (char_props.read || char_props.notify || char_props.indicate) {
-        BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+        switch (requiredSecurity) {
+            case Gap::SECURITY_MODE_ENCRYPTION_OPEN_LINK :
+                BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+                break;
+            case Gap::SECURITY_MODE_ENCRYPTION_NO_MITM :
+                BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(&attr_md.read_perm);
+                break;
+            case Gap::SECURITY_MODE_ENCRYPTION_WITH_MITM :
+                BLE_GAP_CONN_SEC_MODE_SET_ENC_WITH_MITM(&attr_md.read_perm);
+                break;
+            case Gap::SECURITY_MODE_SIGNED_NO_MITM :
+                BLE_GAP_CONN_SEC_MODE_SET_SIGNED_NO_MITM(&attr_md.read_perm);
+                break;
+            case Gap::SECURITY_MODE_SIGNED_WITH_MITM :
+                BLE_GAP_CONN_SEC_MODE_SET_SIGNED_WITH_MITM(&attr_md.read_perm);
+                break;
+            default:
+                break;
+        };
     }
 
-    if (char_props.write) {
-        BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+    if (char_props.write || char_props.write_wo_resp) {
+        switch (requiredSecurity) {
+            case Gap::SECURITY_MODE_ENCRYPTION_OPEN_LINK :
+                BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+                break;
+            case Gap::SECURITY_MODE_ENCRYPTION_NO_MITM :
+                BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(&attr_md.write_perm);
+                break;
+            case Gap::SECURITY_MODE_ENCRYPTION_WITH_MITM :
+                BLE_GAP_CONN_SEC_MODE_SET_ENC_WITH_MITM(&attr_md.write_perm);
+                break;
+            case Gap::SECURITY_MODE_SIGNED_NO_MITM :
+                BLE_GAP_CONN_SEC_MODE_SET_SIGNED_NO_MITM(&attr_md.write_perm);
+                break;
+            case Gap::SECURITY_MODE_SIGNED_WITH_MITM :
+                BLE_GAP_CONN_SEC_MODE_SET_SIGNED_WITH_MITM(&attr_md.write_perm);
+                break;
+            default:
+                break;
+        };
     }
 
     ble_gatts_attr_t attr_char_value = {0};

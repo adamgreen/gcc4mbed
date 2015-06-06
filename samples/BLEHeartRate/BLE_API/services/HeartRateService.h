@@ -19,31 +19,38 @@
 
 #include "BLEDevice.h"
 
-/* Heart Rate Service */
-/* Service:  https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.heart_rate.xml */
-/* HRM Char: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml */
-/* Location: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.body_sensor_location.xml */
+/**
+* @class HeartRateService
+* @brief BLE Service for HeartRate. This BLE Service contains the location of the sensor, the heartrate in beats per minute. <br>
+* Service:  https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.heart_rate.xml <br>
+* HRM Char: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml <br>
+* Location: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.body_sensor_location.xml
+*/
 class HeartRateService {
 public:
+    /**
+    * @enum SensorLocation
+    * @brief Location of HeartRate sensor on body.
+    */
     enum {
-        LOCATION_OTHER = 0,
-        LOCATION_CHEST,
-        LOCATION_WRIST,
-        LOCATION_FINGER,
-        LOCATION_HAND,
-        LOCATION_EAR_LOBE,
-        LOCATION_FOOT,
+        LOCATION_OTHER = 0, /*!< Other Location */
+        LOCATION_CHEST,     /*!< Chest */
+        LOCATION_WRIST,     /*!< Wrist */
+        LOCATION_FINGER,    /*!< Finger */
+        LOCATION_HAND,      /*!< Hand */
+        LOCATION_EAR_LOBE,  /*!< Earlobe */
+        LOCATION_FOOT,      /*!< Foot */
     };
 
 public:
     /**
-     * Constructor.
+     * @brief Constructor with 8bit HRM Counter value.
      *
-     * param[in] _ble
+     * @param[ref] _ble
      *               Reference to the underlying BLEDevice.
-     * param[in] hrmCounter (8-bit)
+     * @param[in] hrmCounter (8-bit)
      *               initial value for the hrm counter.
-     * param[in] location
+     * @param[in] location
      *               Sensor's location.
      */
     HeartRateService(BLEDevice &_ble, uint8_t hrmCounter, uint8_t location) :
@@ -51,16 +58,21 @@ public:
         valueBytes(hrmCounter),
         hrmRate(GattCharacteristic::UUID_HEART_RATE_MEASUREMENT_CHAR, valueBytes.getPointer(),
                 valueBytes.getNumValueBytes(), HeartRateValueBytes::MAX_VALUE_BYTES,
-                GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY),
-        hrmLocation(GattCharacteristic::UUID_BODY_SENSOR_LOCATION_CHAR, (uint8_t *)&location, sizeof(location), sizeof(location),
-                    GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ),
-        controlPoint(GattCharacteristic::UUID_HEART_RATE_CONTROL_POINT_CHAR, (uint8_t *)&controlPointValue,
-                     sizeof(controlPointValue), sizeof(controlPointValue), GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE) {
+                GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY),
+        hrmLocation(GattCharacteristic::UUID_BODY_SENSOR_LOCATION_CHAR, &location),
+        controlPoint(GattCharacteristic::UUID_HEART_RATE_CONTROL_POINT_CHAR, &controlPointValue) {
         setupService();
     }
 
     /**
-     * Same constructor as above, but with a 16-bit HRM Counter value.
+     * @brief Constructor with a 16-bit HRM Counter value.
+     *
+     * @param[in] _ble
+     *               Reference to the underlying BLEDevice.
+     * @param[in] hrmCounter (8-bit)
+     *               initial value for the hrm counter.
+     * @param[in] location
+     *               Sensor's location.
      */
     HeartRateService(BLEDevice &_ble, uint16_t hrmCounter, uint8_t location) :
         ble(_ble),
@@ -68,15 +80,16 @@ public:
         hrmRate(GattCharacteristic::UUID_HEART_RATE_MEASUREMENT_CHAR, valueBytes.getPointer(),
                 valueBytes.getNumValueBytes(), HeartRateValueBytes::MAX_VALUE_BYTES,
                 GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY),
-        hrmLocation(GattCharacteristic::UUID_BODY_SENSOR_LOCATION_CHAR, (uint8_t *)&location, sizeof(location), sizeof(location),
-                    GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ),
-        controlPoint(GattCharacteristic::UUID_HEART_RATE_CONTROL_POINT_CHAR, (uint8_t *)&controlPointValue,
-                     sizeof(controlPointValue), sizeof(controlPointValue), GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE) {
+        hrmLocation(GattCharacteristic::UUID_BODY_SENSOR_LOCATION_CHAR, &location),
+        controlPoint(GattCharacteristic::UUID_HEART_RATE_CONTROL_POINT_CHAR, &controlPointValue) {
         setupService();
     }
 
     /**
-     * Set a new 8-bit value for heart rate.
+     * @brief Set a new 8-bit value for heart rate.
+     *
+     * @param[in] hrmCounter
+     *                  HeartRate in bpm.
      */
     void updateHeartRate(uint8_t hrmCounter) {
         valueBytes.updateHeartRate(hrmCounter);
@@ -85,6 +98,9 @@ public:
 
     /**
      * Set a new 16-bit value for heart rate.
+     *
+     * @param[in] hrmCounter
+     *                  HeartRate in bpm.
      */
     void updateHeartRate(uint16_t hrmCounter) {
         valueBytes.updateHeartRate(hrmCounter);
@@ -94,6 +110,9 @@ public:
     /**
      * This callback allows the HeartRateService to receive updates to the
      * controlPoint Characteristic.
+     *
+     * @param[in] params
+     *     Information about the characterisitc being updated.
      */
     virtual void onDataWritten(const GattCharacteristicWriteCBParams *params) {
         if (params->charHandle == controlPoint.getValueAttribute().getHandle()) {
@@ -140,17 +159,17 @@ private:
         }
 
         void updateHeartRate(uint8_t hrmCounter) {
-            valueBytes[FLAGS_BYTE_INDEX] &= ~VALUE_FORMAT_FLAG;
+            valueBytes[FLAGS_BYTE_INDEX]    &= ~VALUE_FORMAT_FLAG;
             valueBytes[FLAGS_BYTE_INDEX + 1] = hrmCounter;
         }
 
         void updateHeartRate(uint16_t hrmCounter) {
-            valueBytes[FLAGS_BYTE_INDEX] |= VALUE_FORMAT_FLAG;
+            valueBytes[FLAGS_BYTE_INDEX]    |= VALUE_FORMAT_FLAG;
             valueBytes[FLAGS_BYTE_INDEX + 1] = (uint8_t)(hrmCounter & 0xFF);
             valueBytes[FLAGS_BYTE_INDEX + 2] = (uint8_t)(hrmCounter >> 8);
         }
 
-        uint8_t *getPointer(void) {
+        uint8_t       *getPointer(void) {
             return valueBytes;
         }
 
@@ -158,11 +177,11 @@ private:
             return valueBytes;
         }
 
-        unsigned getNumValueBytes(void) const {
+        unsigned       getNumValueBytes(void) const {
             return 1 + ((valueBytes[FLAGS_BYTE_INDEX] & VALUE_FORMAT_FLAG) ? sizeof(uint16_t) : sizeof(uint8_t));
         }
 
-    private:
+private:
         /* First byte = 8-bit values, no extra info, Second byte = uint8_t HRM value */
         /* See --> https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml */
         uint8_t valueBytes[MAX_VALUE_BYTES];
@@ -170,11 +189,13 @@ private:
 
 private:
     BLEDevice           &ble;
+
     HeartRateValueBytes  valueBytes;
     uint8_t              controlPointValue;
-    GattCharacteristic   hrmRate;
-    GattCharacteristic   hrmLocation;
-    GattCharacteristic   controlPoint;
+
+    GattCharacteristic                   hrmRate;
+    ReadOnlyGattCharacteristic<uint8_t>  hrmLocation;
+    WriteOnlyGattCharacteristic<uint8_t> controlPoint;
 };
 
 #endif /* #ifndef __BLE_HEART_RATE_SERVICE_H__*/

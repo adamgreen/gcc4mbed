@@ -26,7 +26,7 @@ extern "C" {
 #include "ble_srv_common.h"
 #include "ble.h"
 
-error_t btle_init(void);
+error_t     btle_init(void);
 
 #ifdef __cplusplus
 }

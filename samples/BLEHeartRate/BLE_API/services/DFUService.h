@@ -30,22 +30,33 @@ extern const uint8_t  DFUServiceUUID[];
 extern const uint8_t  DFUServiceControlCharacteristicUUID[];
 extern const uint8_t  DFUServicePacketCharacteristicUUID[];
 
+/**
+* @class DFUService
+* @brief Device Firmware Update Service.
+*/
 class DFUService {
 public:
     /**
-     * Signature for the handover callback. The application may provide such a
+     * @brief Signature for the handover callback. The application may provide such a
      * callback when setting up the DFU service, in which case it will be
      * invoked before handing control over to the bootloader.
      */
     typedef void (*ResetPrepare_t)(void);
 
 public:
+    /**
+    * @brief Adds Device Firmware Update service to an existing ble object.
+    *
+    * @param[ref] _ble
+    *               BLEDevice object for the underlying controller.
+    * @param[in] _handoverCallback
+    *                Application specific handover callback.
+    */
     DFUService(BLEDevice &_ble, ResetPrepare_t _handoverCallback = NULL) :
         ble(_ble),
         controlBytes(),
         packetBytes(),
-        controlPoint(DFUServiceControlCharacteristicUUID, controlBytes, SIZEOF_CONTROL_BYTES, SIZEOF_CONTROL_BYTES,
-                     GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY),
+        controlPoint(DFUServiceControlCharacteristicUUID, controlBytes, GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY),
         packet(DFUServicePacketCharacteristicUUID, packetBytes, SIZEOF_PACKET_BYTES, SIZEOF_PACKET_BYTES,
                GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE) {
         static bool serviceAdded = false; /* We should only ever need to add the DFU service once. */
@@ -63,22 +74,28 @@ public:
 
         ble.addService(dfuService);
         handoverCallback = _handoverCallback;
-        serviceAdded = true;
+        serviceAdded     = true;
 
         ble.onDataWritten(this, &DFUService::onDataWritten);
     }
 
-    uint16_t getControlHandle(void) {
-        return controlPoint.getValueAttribute().getHandle();
+    /**
+    * @brief get the handle for the value attribute of the control characteristic.
+    */
+    uint16_t getControlHandle(void) const {
+        return controlPoint.getValueHandle();
     }
 
     /**
-     * This callback allows the DFU service to receive the initial trigger to
+     * @brief This callback allows the DFU service to receive the initial trigger to
      * handover control to the bootloader; but first the application is given a
      * chance to clean up.
+     *
+     * @param[in] params
+     *     Information about the characterisitc being updated.
      */
     virtual void onDataWritten(const GattCharacteristicWriteCBParams *params) {
-        if (params->charHandle == controlPoint.getValueAttribute().getHandle()) {
+        if (params->charHandle == controlPoint.getValueHandle()) {
             /* At present, writing anything will do the trick--this needs to be improved. */
             if (handoverCallback) {
                 handoverCallback();
@@ -102,7 +119,7 @@ private:
     /**< Writing to the control characteristic triggers the handover to dfu-
       *  bootloader. At present, writing anything will do the trick--this needs
       *  to be improved. */
-    GattCharacteristic  controlPoint;
+    WriteOnlyArrayGattCharacteristic<uint8_t, SIZEOF_CONTROL_BYTES> controlPoint;
 
     /**< The packet characteristic in this service doesn't do anything meaningful, but
       *  is only a placeholder to mimic the corresponding characteristic in the

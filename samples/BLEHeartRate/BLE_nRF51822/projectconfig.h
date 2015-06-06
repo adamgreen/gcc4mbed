@@ -89,7 +89,7 @@
     /*-------------------------------- TIMER ------------------------------*/
     #define CFG_TIMER_PRESCALER                        0                        /**< Value of the RTC1 PRESCALER register. freq = (32768/(PRESCALER+1)) */
     #define CFG_TIMER_MAX_INSTANCE                     1                        /**< Maximum number of simultaneously created timers. */
-    #define CFG_TIMER_OPERATION_QUEUE_SIZE             1                        /**< Size of timer operation queues. */
+    #define CFG_TIMER_OPERATION_QUEUE_SIZE             2                        /**< Size of timer operation queues. */
 /*=========================================================================*/
 
 
@@ -133,4 +133,4 @@
     #endif
 /*=========================================================================*/
 
-#endif /* _PROJECTCONFIG_H_ */
+#endif /* _PROJECTCONFIG_H_ */

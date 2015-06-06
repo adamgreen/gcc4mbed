@@ -19,7 +19,6 @@
 
 #include <string.h>
 
-namespace mbed {
 
 /** A class for storing and calling a pointer to a static or member void function
  *  which takes a context.
@@ -126,6 +125,5 @@ private:
                                                          *   external memory to manage the chain. Also refer to
                                                          *   'CallChain' as an alternative. */
 };
-} // namespace mbed
 
 #endif // ifndef MBED_FUNCTIONPOINTER_WITH_CONTEXT_H

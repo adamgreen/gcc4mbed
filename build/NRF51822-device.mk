@@ -22,16 +22,16 @@ MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 TARGETS_FOR_DEVICE := TARGET_NRF51822 TARGET_M0 TARGET_NORDIC TARGET_NRF51822_MKIT TARGET_MCU_NRF51822
 TARGETS_FOR_DEVICE += TARGET_MCU_NORDIC_16K TARGET_CORTEX_M
 GCC_DEFINES := $(patsubst %,-D%,$(TARGETS_FOR_DEVICE))
-GCC_DEFINES += -D__CORTEX_M0 -DARM_MATH_CM0
+GCC_DEFINES += -D__CORTEX_M0 -DARM_MATH_CM0 -DNRF51
 
 C_FLAGS   := -mcpu=cortex-m0 -mthumb -mthumb-interwork
 ASM_FLAGS := -mcpu=cortex-m0 -mthumb
-LD_FLAGS  := -mcpu=cortex-m0 -mthumb -Wl,--no-warn-mismatch
+LD_FLAGS  := -mcpu=cortex-m0 -mthumb
 
 
 # Extra platform specific object files to link into file binary.
 # For NRF51 parts, we add in the softdevice.
-DEVICE_OBJECTS := $(MBED_DEVICE)/s110_nrf51822_7.1.0_softdevice.o
+DEVICE_OBJECTS := $(MBED_DEVICE)/s130_nrf51_1.0.0_softdevice.o
 
 
 # Version of MRI library to use for this device.
@@ -46,8 +46,8 @@ include $(GCC4MBED_DIR)/build/device-common.mk
 
 
 # Rules to build the SoftDevice object file.
-$(MBED_DEVICE)/s110_nrf51822_7.1.0_softdevice.bin : $(MBED_SRC_ROOT)/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/s110_nrf51822_7_1_0/s110_nrf51822_7.1.0_softdevice.hex
+$(MBED_DEVICE)/s130_nrf51_1.0.0_softdevice.bin : $(MBED_SRC_ROOT)/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/s130_nrf51822_1_0_0/s130_nrf51_1.0.0_softdevice.hex
 	$(Q) $(OBJCOPY) -I ihex -O binary --gap-fill 0xFF $< $@
 
-$(MBED_DEVICE)/s110_nrf51822_7.1.0_softdevice.o : $(MBED_DEVICE)/s110_nrf51822_7.1.0_softdevice.bin
+$(MBED_DEVICE)/s130_nrf51_1.0.0_softdevice.o : $(MBED_DEVICE)/s130_nrf51_1.0.0_softdevice.bin
 	$(Q) $(OBJCOPY) -I binary -O elf32-littlearm -B arm --rename-section .data=.SoftDevice $< $@

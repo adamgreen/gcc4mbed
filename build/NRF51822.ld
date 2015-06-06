@@ -3,7 +3,7 @@
 MEMORY
 {
   FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 256k
-  RAM (rwx) :  ORIGIN = 0x20002000, LENGTH = 16k - 0x2000
+  RAM (rwx) :  ORIGIN = 0x20002800, LENGTH = 16k - 0x2800
 }
 
 OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
@@ -44,8 +44,8 @@ SECTIONS
 	    KEEP(*(.SoftDevice))
         FILL(0xFFFFFFFF)
 
-        /* Main program starts after SoftDevice @ fixed address of 0x16000. */
-	    . = 0x16000;
+        /* Main program starts after SoftDevice @ fixed address of 0x1C000. */
+	    . = 0x1C000;
 		KEEP(*(.Vectors))
 		*(.text*)
 
