@@ -1,3 +1,4 @@
+# Copyright 2015 KenjutsuGH (https://github.com/KenjutsuGH)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,6 +38,6 @@ DEVICE_MRI_LIB :=
 
 
 # Linker script to be used.  Indicates what code should be placed where in memory.
-LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F103RB/TOOLCHAIN_GCC_ARM/STM32F10X.ld
+LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_STM/TARGET_STM32F1/TARGET_NUCLEO_F103RB/TOOLCHAIN_GCC_ARM/STM32F103XB.ld
 
 include $(GCC4MBED_DIR)/build/device-common.mk

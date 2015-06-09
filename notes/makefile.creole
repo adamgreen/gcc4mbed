@@ -42,6 +42,7 @@ These devices were added by the community.  I make sure that they build during a
 * NUCLEO_F411RE (added by [[https://github.com/weyoui | weyoui]])
 * NUCLEO_F072RB (added by [[https://github.com/aftermathew | aftermathew]])
 * LPC11C24 (added by [[https://github.com/merkur2k | merkur2k]])
+* NUCLEO_F103RB (added by [[https://github.com/KenjutsuGH | KenjutsuGH]])
 
 The default target device is LPC1768.
 
