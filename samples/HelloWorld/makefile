@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 PROJECT         := HelloWorld
-DEVICES         := LPC1768 LPC11U24 LPC4330_M4 KL25Z DISCO_F407VG NRF51822 NUCLEO_F401RE NUCLEO_F411RE NUCLEO_F072RB LPC11C24 NUCLEO_F103RB
+DEVICES         := DISCO_F407VG \
+                   KL25Z \
+                   LPC1768 \
+                   LPC11C24 \
+                   LPC11U24 \
+                   LPC4330_M4 \
+                   NRF51822 \
+                   NUCLEO_F401RE \
+                   NUCLEO_F411RE \
+                   NUCLEO_F072RB \
+                   NUCLEO_F103RB
 GCC4MBED_DIR    := ../..
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
