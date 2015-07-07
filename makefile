@@ -24,6 +24,11 @@ else
 Q=
 endif
 
+# Make sure that cmd.exe is used as shell on Windows.
+ifeq "$(OS)" "Windows_NT"
+SHELL=cmd.exe
+endif
+
 all: $(DIRS)
 
 clean: $(DIRSCLEAN)
