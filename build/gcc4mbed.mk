@@ -1,4 +1,4 @@
-# Copyright 2014 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,6 +58,8 @@
 #   DEFINES: Project specific #defines to be set when compiling main
 #            application.  Each macro should start with "-D" as required by
 #            GCC.
+#   GCC4MBED_TOOLPATH: Optional path to where the GNU tools are located. It
+#                      defaults to $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
 #   INCDIRS: Space delimited list of extra directories to use for #include
 #            searches.
 #   LIBS_PREFIX: List of library/object files to prepend to mbed libs.
@@ -159,16 +161,16 @@ endif
 MRI_INIT_PARAMETERS := $(MRI_UART)
 
 
-TOOLPATH ?= $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
 #  Compiler/Assembler/Linker Paths
-GCC     := $(TOOLPATH)/arm-none-eabi-gcc
-GPP     := $(TOOLPATH)/arm-none-eabi-g++
-AS      := $(TOOLPATH)/arm-none-eabi-as
-AR      := $(TOOLPATH)/arm-none-eabi-ar
-LD      := $(TOOLPATH)/arm-none-eabi-g++
-OBJCOPY := $(TOOLPATH)/arm-none-eabi-objcopy
-OBJDUMP := $(TOOLPATH)/arm-none-eabi-objdump
-SIZE    := $(TOOLPATH)/arm-none-eabi-size
+GCC4MBED_TOOLPATH ?= $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
+GCC     := $(GCC4MBED_TOOLPATH)/arm-none-eabi-gcc
+GPP     := $(GCC4MBED_TOOLPATH)/arm-none-eabi-g++
+AS      := $(GCC4MBED_TOOLPATH)/arm-none-eabi-as
+AR      := $(GCC4MBED_TOOLPATH)/arm-none-eabi-ar
+LD      := $(GCC4MBED_TOOLPATH)/arm-none-eabi-g++
+OBJCOPY := $(GCC4MBED_TOOLPATH)/arm-none-eabi-objcopy
+OBJDUMP := $(GCC4MBED_TOOLPATH)/arm-none-eabi-objdump
+SIZE    := $(GCC4MBED_TOOLPATH)/arm-none-eabi-size
 
 
 # Some tools are different on Windows in comparison to Unix.

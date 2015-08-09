@@ -71,6 +71,9 @@ The **NO_FLOAT_PRINTF** variable is an optional variable that an application's m
 ===DEFINES
 The **DEFINES** variable can be used by an application's makefile to explicitly define some preprocessor macros that should be set when compiling the files for the main application.  It doesn't get used for building the mbed SDK libraries.
 
+===GCC4MBED_TOOLPATH
+The **GCC4MBED_TOOLPATH** is an optional path to where the GNU tools are located. It defaults to $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
+
 ===INCDIRS
 The **INCDIRS** variable can be used by an application's makefile to prepend a list of directories to the INCLUDE path used by the compiler for finding #included header files.  This list should be space delimited.
 
