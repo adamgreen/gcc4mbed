@@ -159,15 +159,17 @@ endif
 MRI_INIT_PARAMETERS := $(MRI_UART)
 
 
+TOOLPATH ?= $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
 #  Compiler/Assembler/Linker Paths
-GCC     := arm-none-eabi-gcc
-GPP     := arm-none-eabi-g++
-AS      := arm-none-eabi-as
-AR      :=arm-none-eabi-ar
-LD      := arm-none-eabi-g++
-OBJCOPY := arm-none-eabi-objcopy
-OBJDUMP := arm-none-eabi-objdump
-SIZE    := arm-none-eabi-size
+GCC     := $(TOOLPATH)/arm-none-eabi-gcc
+GPP     := $(TOOLPATH)/arm-none-eabi-g++
+AS      := $(TOOLPATH)/arm-none-eabi-as
+AR      := $(TOOLPATH)/arm-none-eabi-ar
+LD      := $(TOOLPATH)/arm-none-eabi-g++
+OBJCOPY := $(TOOLPATH)/arm-none-eabi-objcopy
+OBJDUMP := $(TOOLPATH)/arm-none-eabi-objdump
+SIZE    := $(TOOLPATH)/arm-none-eabi-size
+
 
 # Some tools are different on Windows in comparison to Unix.
 ifeq "$(OS)" "Windows_NT"
