@@ -136,6 +136,14 @@ MRI_UART          ?= MRI_UART_MBED_USB
 DEVICES           ?= LPC1768
 NEWLIB_NANO       ?= 1
 
+# Fall-back to older LPC_DEPLOY variable if newer GCC4MBED_DEPLOY variable
+# hasn't been set.
+ifndef GCC4MBED_DEPLOY
+ifdef LPC_DEPLOY
+GCC4MBED_DEPLOY := $(LPC_DEPLOY)
+endif
+endif
+
 
 # Configure MRI variables based on GCC4MBED_TYPE build type variable.
 ifeq "$(GCC4MBED_TYPE)" "Release"

@@ -30,24 +30,24 @@ This will have built various programs in the samples directory off of the root o
 ./gcc4mbed/samples/Ticker/
 }}}
 ===Deploy
-While we could manually copy the binary up to the mbed device, it would be nice if it could be done for us at the end of the build process.  The only issue is that different environments will require different deployment steps.  To abstract away this environment dependency, the makefiles use an environment variable called LPC_DEPLOY for specifying how the deployment should take place.  The user should set this LPC_DEPLOY environment variable to something appropriate for their environment.  On *nix it could be exported from something like the {{{~/.profile}}} shell script and on Windows it could be set in a batch file used for development environment configuration or added to the System Properties.
+While we could manually copy the binary up to the mbed device, it would be nice if it could be done for us at the end of the build process.  The only issue is that different environments will require different deployment steps.  To abstract away this environment dependency, the makefiles use an environment variable called GCC4MBED_DEPLOY for specifying how the deployment should take place.  The user should set this GCC4MBED_DEPLOY environment variable to something appropriate for their environment.  On *nix it could be exported from something like the {{{~/.profile}}} shell script and on Windows it could be set in a batch file used for development environment configuration or added to the System Properties.
 
-====LPC_DEPLOY Examples
+====GCC4MBED_DEPLOY Examples
 The author uses this in the {{{~/.profile}}} script on his Mac where the MBED device mounts as /Volumes/MBED:
 {{{
-export LPC_DEPLOY='cp PROJECT.bin /Volumes/MBED/'
+export GCC4MBED_DEPLOY='cp PROJECT.bin /Volumes/MBED/'
 }}}
 The author uses this in a batch file on his Windows XP machine where the MBED device mounts as the F: drive:
 {{{
-set LPC_DEPLOY=copy PROJECT.bin f:\
+set GCC4MBED_DEPLOY=copy PROJECT.bin f:\
 }}}
 The following example might be useful if you were deploying to a LPCXpresso using the lpc21isp tool:
 {{{
-export LPC_DEPLOY='lpc21isp PROJECT.hex /dev/ttyUSB0 115200 14746'
+export GCC4MBED_DEPLOY='lpc21isp PROJECT.hex /dev/ttyUSB0 115200 14746'
 }}}
 It should be noted that the PROJECT identifier in the above examples has a special meaning.  This identifier will be replaced by the makefile to match the name of the program currently being built.
 
-At this point, you want to set the LPC_DEPLOY variable to something appropriate for your environment.
+At this point, you want to set the GCC4MBED_DEPLOY variable to something appropriate for your environment.
 
 ====Deploy HelloWorld
 After all of the that work, wouldn't it be great to see something actually run on the mbed device?  Let's start with the HelloWorld sample which is probably the same program you first tried with the cloud compiler.

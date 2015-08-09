@@ -11,7 +11,7 @@ The GCC4MBED supports the following rules when building your project makefile:
 * **LPC1768-clean**: Will clean out the LPC1768 output files for your project.
 * **LPC11U24-clean**: Will clean out the LPC11U24 output files for your project.
 * **KL25Z-clean**: Will clean out the KL25Z output files for your project.
-* **deploy**: Deploys the LPC1768 output binary to your device.  Uses the **LPC_DEPLOY** environment variable to specify the commands for executing the copy operation.
+* **deploy**: Deploys the LPC1768 output binary to your device.  Uses the **GCC4MBED_DEPLOY** environment variable to specify the commands for executing the copy operation.
 * **LPC1768-deploy**: Same as deploy rule.
 * **LPC11U24-deploy**: Deploys the LPC11U24 output binary to your device.
 * **KL25Z-deploy**: Deploys the KL25Z output binary to your device.

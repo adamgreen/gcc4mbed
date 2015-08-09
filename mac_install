@@ -82,7 +82,7 @@ RunAndLog cp $MACBIN_DIR/arm-none-eabi-gdb* $GCC4ARM_BINDIR/
 echo Creating helper scripts...
 echo "#! /usr/bin/env bash">$BUILDSHELL_CMD
 echo "# Modify next line and set destination drive to match mbed device">>$BUILDSHELL_CMD
-echo "export LPC_DEPLOY='cp PROJECT.bin /Volumes/MBED/ ; sync'">>$BUILDSHELL_CMD
+echo "export GCC4MBED_DEPLOY='cp PROJECT.bin /Volumes/MBED/ ; sync'">>$BUILDSHELL_CMD
 echo>>$BUILDSHELL_CMD
 echo "SCRIPT_PATH=\$0">>$BUILDSHELL_CMD
 echo "SCRIPT_PATH=\${SCRIPT_PATH%/*}">>$BUILDSHELL_CMD
@@ -94,7 +94,7 @@ chmod +x $BUILDSHELL_CMD
 
 echo "#! /usr/bin/env bash">$BUILDSHELL_DEBUG_CMD
 echo "# Modify next line and set destination drive to match mbed device">>$BUILDSHELL_DEBUG_CMD
-echo "export LPC_DEPLOY='cp PROJECT.bin /Volumes/MBED/'">>$BUILDSHELL_DEBUG_CMD
+echo "export GCC4MBED_DEPLOY='cp PROJECT.bin /Volumes/MBED/'">>$BUILDSHELL_DEBUG_CMD
 echo>>$BUILDSHELL_DEBUG_CMD
 echo "SCRIPT_PATH=\$0">>$BUILDSHELL_DEBUG_CMD
 echo "SCRIPT_PATH=\${SCRIPT_PATH%/*}">>$BUILDSHELL_DEBUG_CMD

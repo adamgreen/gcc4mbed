@@ -62,7 +62,7 @@ You now have a FileTest project in the left pane, Project Explorer.  We will sta
 * Set **Value:** to **${ProjDirPath}/../../gcc-arm-none-eabi/bin**
 * Click the **Ok** button to return to the environment properties dialog.
 * Click the **Add...** button again.
-* Set **Name:** to **LPC_DEPLOY**
+* Set **Name:** to **GCC4MBED_DEPLOY**
 * The string you use for **Value:** will depend on what commands are required to copy binaries to the mbed device in your environment.  Here are some examples that I use on various operating systems that I test with (please note that the GCC4MBED build system will automatically replace the PROJECT string with the name of your project, FileTest in this case):
 ** **OS X:** cp PROJECT.bin /Volumes/MBED/ ; sync
 ** **Linux:** cp PROJECT.bin /media/MBED/ ; sync
