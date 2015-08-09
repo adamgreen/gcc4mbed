@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,22 @@
  */
 
 #include "mbed.h"
-#include "BLEDevice.h"
-#include "HeartRateService.h"
-#include "BatteryService.h"
-#include "DeviceInformationService.h"
+#include "ble/BLE.h"
+#include "ble/services/HeartRateService.h"
+#include "ble/services/BatteryService.h"
+#include "ble/services/DeviceInformationService.h"
 
-BLEDevice  ble;
+BLE  ble;
 DigitalOut led1(LED1);
 
-const static char     DEVICE_NAME[]        = "Nordic_HRM";
+const static char     DEVICE_NAME[]        = "HRM1";
 static const uint16_t uuid16_list[]        = {GattService::UUID_HEART_RATE_SERVICE,
-                                              GattService::UUID_BATTERY_SERVICE,
                                               GattService::UUID_DEVICE_INFORMATION_SERVICE};
 static volatile bool  triggerSensorPolling = false;
 
 void disconnectionCallback(Gap::Handle_t handle, Gap::DisconnectionReason_t reason)
 {
-    ble.startAdvertising(); // restart advertising
+    ble.gap().startAdvertising(); // restart advertising
 }
 
 void periodicCallback(void)
@@ -47,42 +46,46 @@ int main(void)
 {
     led1 = 1;
     Ticker ticker;
-    ticker.attach(periodicCallback, 1);
+    ticker.attach(periodicCallback, 1); // blink LED every second
 
     ble.init();
-    ble.onDisconnection(disconnectionCallback);
+    ble.gap().onDisconnection(disconnectionCallback);
 
     /* Setup primary service. */
-    uint8_t hrmCounter = 100;
+    uint8_t hrmCounter = 100; // init HRM to 100bps
     HeartRateService hrService(ble, hrmCounter, HeartRateService::LOCATION_FINGER);
 
-    /* Setup auxiliary services. */
-    BatteryService           battery(ble);
+    /* Setup auxiliary service. */
     DeviceInformationService deviceInfo(ble, "ARM", "Model1", "SN1", "hw-rev1", "fw-rev1", "soft-rev1");
 
     /* Setup advertising. */
-    ble.accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED | GapAdvertisingData::LE_GENERAL_DISCOVERABLE);
-    ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, (uint8_t *)uuid16_list, sizeof(uuid16_list));
-    ble.accumulateAdvertisingPayload(GapAdvertisingData::GENERIC_HEART_RATE_SENSOR);
-    ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LOCAL_NAME, (uint8_t *)DEVICE_NAME, sizeof(DEVICE_NAME));
-    ble.setAdvertisingType(GapAdvertisingParams::ADV_CONNECTABLE_UNDIRECTED);
-    ble.setAdvertisingInterval(1600); /* 1000ms; in multiples of 0.625ms. */
-    ble.startAdvertising();
+    ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED | GapAdvertisingData::LE_GENERAL_DISCOVERABLE);
+    ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, (uint8_t *)uuid16_list, sizeof(uuid16_list));
+    ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::GENERIC_HEART_RATE_SENSOR);
+    ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LOCAL_NAME, (uint8_t *)DEVICE_NAME, sizeof(DEVICE_NAME));
+    ble.gap().setAdvertisingType(GapAdvertisingParams::ADV_CONNECTABLE_UNDIRECTED);
+    ble.gap().setAdvertisingInterval(1000); /* 1000ms */
+    ble.gap().startAdvertising();
 
-    while (true) {
-        if (triggerSensorPolling) {
+    // infinite loop
+    while (1) {
+        // check for trigger from periodicCallback()
+        if (triggerSensorPolling && ble.getGapState().connected) {
             triggerSensorPolling = false;
 
-            /* Do blocking calls or whatever is necessary for sensor polling. */
-            /* In our case, we simply update the dummy HRM measurement. */
+            // Do blocking calls or whatever is necessary for sensor polling.
+            // In our case, we simply update the HRM measurement.
             hrmCounter++;
+
+            //  100 <= HRM bps <=175
             if (hrmCounter == 175) {
                 hrmCounter = 100;
             }
 
+            // update bps
             hrService.updateHeartRate(hrmCounter);
         } else {
-            ble.waitForEvent();
+            ble.waitForEvent(); // low power wait for event
         }
     }
 }
