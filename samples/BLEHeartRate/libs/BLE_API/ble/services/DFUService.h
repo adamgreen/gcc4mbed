@@ -17,7 +17,7 @@
 #ifndef __BLE_DFU_SERVICE_H__
 #define __BLE_DFU_SERVICE_H__
 
-#include "ble/BLE.h"
+#include "ble/BLEDevice.h"
 #include "ble/UUID.h"
 
 extern "C" void bootloader_start(void);

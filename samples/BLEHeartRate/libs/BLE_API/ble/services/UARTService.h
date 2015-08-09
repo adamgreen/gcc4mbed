@@ -21,7 +21,7 @@
 #include "Stream.h"
 
 #include "ble/UUID.h"
-#include "ble/BLE.h"
+#include "ble/BLEDevice.h"
 
 extern const uint8_t  UARTServiceBaseUUID[UUID::LENGTH_OF_LONG_UUID];
 extern const uint16_t UARTServiceShortUUID;

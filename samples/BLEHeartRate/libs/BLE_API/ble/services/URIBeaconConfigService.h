@@ -17,7 +17,7 @@
 #ifndef SERVICES_URIBEACONCONFIGSERVICE_H_
 #define SERVICES_URIBEACONCONFIGSERVICE_H_
 
-#include "ble/BLE.h"
+#include "ble/BLEDevice.h"
 #include "mbed.h"
 
 extern const uint8_t UUID_URI_BEACON_SERVICE[UUID::LENGTH_OF_LONG_UUID];

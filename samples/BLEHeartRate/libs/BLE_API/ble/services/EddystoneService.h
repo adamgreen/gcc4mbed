@@ -17,7 +17,7 @@
 #ifndef SERVICES_EDDYSTONEBEACON_H_
 #define SERVICES_EDDYSTONEBEACON_H_
 
-#include "ble/BLE.h"
+#include "ble/BLEDevice.h"
 #include "mbed.h"
 
 static const uint8_t BEACON_EDDYSTONE[] = {0xAA, 0xFE};

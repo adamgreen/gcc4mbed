@@ -15,7 +15,7 @@
  */
 
 #include "mbed.h"
-#include "ble/BLE.h"
+#include "ble/BLEDevice.h"
 #include "ble/services/HeartRateService.h"
 #include "ble/services/BatteryService.h"
 #include "ble/services/DeviceInformationService.h"

@@ -17,7 +17,7 @@
 #ifndef __BLE_HEART_RATE_SERVICE_H__
 #define __BLE_HEART_RATE_SERVICE_H__
 
-#include "ble/BLE.h"
+#include "ble/BLEDevice.h"
 
 /**
 * @class HeartRateService
