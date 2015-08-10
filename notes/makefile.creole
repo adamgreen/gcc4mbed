@@ -121,7 +121,7 @@ The **MRI_SEMIHOST_STDIO** variable can be set in an application's makefile to a
 
 ====MRI_UART
 The **MRI_UART** is an optional variable that can be set in an application's makefile to configure the device's UART being used for communicating between GDB and MRI.  You can select any of the 4 available UARTs on the mbed device:
-| MRI_UART_MBED_USB | 
+| MRI_UART_MBED_USB |
 | MRI_UART_MBED_P9_P10 |
 | MRI_UART_MBED_P13_P14 |
 | MRI_UART_MBED_P28_P27 |
@@ -135,6 +135,9 @@ MRI_UART := "MRI_UART_MBED_USB MRI_UART_BAUD=115200"
 
 ====MRI_ENABLE
 The **MRI_ENABLE** variable is typically configured automatically based on the setting of **GCC4MBED_TYPE**.  If you however want a non-optimized build that you can use with a JTAG debugger then you can set **GCC4MBED_TYPE** to Debug and **MRI_ENABLE** to 0.
+
+===Customized Linker Scripts (*_LSCRIPT)
+The linker script to be used for a particular device can be overridden by setting the appropriate *_LSCRIPT variable.  For example setting {{{LPC1768_LSCRIPT := lpc1768custom.ld}}} will cause the linker to use **lpc1768custom.ld** instead of the one provided by the mbed SDK when building for the LPC1768 target.
 
 ===Example Makefile
 {{{

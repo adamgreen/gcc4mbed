@@ -37,7 +37,8 @@ DEVICE_MRI_LIB := $(GCC4MBED_DIR)/mri/libmri_mbed1768.a
 
 
 # Linker script to be used.  Indicates what code should be placed where in memory.
-LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
+LPC1768_LSCRIPT ?= $(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
+LSCRIPT = $(LPC1768_LSCRIPT)
 
 
 include $(GCC4MBED_DIR)/build/device-common.mk

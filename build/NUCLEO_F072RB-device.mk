@@ -39,6 +39,7 @@ DEVICE_MRI_LIB :=
 
 
 # Linker script to be used.  Indicates what code should be placed where in memory.
-LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_STM/TARGET_STM32F0/TARGET_NUCLEO_F072RB/TOOLCHAIN_GCC_ARM/STM32F072XB.ld
+NUCLEO_F072RB_LSCRIPT ?= $(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_STM/TARGET_STM32F0/TARGET_NUCLEO_F072RB/TOOLCHAIN_GCC_ARM/STM32F072XB.ld
+LSCRIPT = $(NUCLEO_F072RB_LSCRIPT)
 
 include $(GCC4MBED_DIR)/build/device-common.mk

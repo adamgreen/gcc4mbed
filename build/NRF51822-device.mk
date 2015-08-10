@@ -39,7 +39,8 @@ DEVICE_MRI_LIB :=
 
 
 # Linker script to be used.  Indicates what code should be placed where in memory.
-LSCRIPT=$(GCC4MBED_DIR)/build/NRF51822.ld
+NRF51822_LSCRIPT ?= $(GCC4MBED_DIR)/build/NRF51822.ld
+LSCRIPT = $(NRF51822_LSCRIPT)
 
 
 include $(GCC4MBED_DIR)/build/device-common.mk

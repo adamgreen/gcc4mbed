@@ -94,6 +94,12 @@
 #             allowed values.
 #             default: MRI_UART_MBED_USB - Use USB based UART on the mbed.
 #
+#   *_LSCRIPT: The linker script to be used for a particular device can be
+#              overridden by setting the appropriate *_LSCRIPT variable.  For
+#              example setting "LPC1768_LSCRIPT := lpc1768custom.ld" will cause
+#              the linker to use "lpc1768custom.ld" instead of the one provided
+#              by the mbed SDK when building for the LPC1768 target.
+#
 # Example makefile:
 #       PROJECT      := HelloWorld
 #       SRC          := .
