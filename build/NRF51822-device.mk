@@ -14,7 +14,6 @@
 
 # Vendor/device for which the library should be built.
 MBED_DEVICE        := NRF51822
-MBED_TARGET        := NORDIC_NRF51822
 MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 
 

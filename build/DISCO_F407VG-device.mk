@@ -14,7 +14,6 @@
 
 # Vendor/device for which the library should be built.
 MBED_DEVICE        := DISCO_F407VG
-MBED_TARGET        := STM_F407VG
 MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 
 # Compiler flags which are specifc to this device.

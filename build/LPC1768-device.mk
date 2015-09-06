@@ -14,7 +14,6 @@
 
 # Vendor/device for which the library should be built.
 MBED_DEVICE        := LPC1768
-MBED_TARGET        := NXP_LPC17XX
 MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 
 

@@ -40,24 +40,24 @@ could look at them more closely:
 Based on this output, I modified the newly created LPC1347-device.mk like so:
 
 {{{
-16,17c16,17
+16c16
 < MBED_DEVICE        := LPC1768
-< MBED_TARGET        := NXP_LPC17XX
 ---
 > MBED_DEVICE        := LPC1347
-> MBED_TARGET        := NXP_LPC1347
-22c22
+21c21
 < TARGETS_FOR_DEVICE := TARGET_LPC1768 TARGET_M3 TARGET_NXP TARGET_LPC176X TARGET_MBED_LPC1768 TARGET_CORTEX_M
 ---
 > TARGETS_FOR_DEVICE := TARGET_LPC1347 TARGET_M3 TARGET_NXP TARGET_LPC13XX TARGET_CORTEX_M
-36c36
+35c35
 < DEVICE_MRI_LIB := $(GCC4MBED_DIR)/mri/libmri_mbed1768.a
 ---
 > DEVICE_MRI_LIB :=
-40c40
-< LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
+39,40c39,40
+< LPC1768_LSCRIPT ?= $(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
+< LSCRIPT = $(LPC1768_LSCRIPT)
 ---
-> LSCRIPT=$(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC13XX/TOOLCHAIN_GCC_ARM/LPC1347.ld
+> LPC1347_LSCRIPT ?= $(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC13XX/TOOLCHAIN_GCC_ARM/LPC1347.ld
+> LSCRIPT = $(LPC1347_LSCRIPT)
 }}}
 
 I then modified the samples/HelloWorld/makefile so that it DEVICES variable now contained LPC1347 as well:

@@ -50,8 +50,8 @@ LIB_INCLUDES  :=
 USER_LIBS_FULL :=
 
 # Directories where mbed library output files should be placed.
-RELEASE_DIR := $(MBED_RELEASE_DIR)/$(MBED_TARGET)
-DEBUG_DIR   := $(MBED_DEBUG_DIR)/$(MBED_TARGET)
+RELEASE_DIR := $(MBED_RELEASE_DIR)/$(MBED_DEVICE)
+DEBUG_DIR   := $(MBED_DEBUG_DIR)/$(MBED_DEVICE)
 
 
 

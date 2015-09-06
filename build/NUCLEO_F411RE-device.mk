@@ -14,7 +14,6 @@
 
 # Vendor/device for which the library should be built.
 MBED_DEVICE        := NUCLEO_F411RE
-MBED_TARGET        := STM_NUCLEO_F411RE
 MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 
 

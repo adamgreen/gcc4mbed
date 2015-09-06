@@ -320,8 +320,8 @@ define build_user_lib #,lib_dir
     LIB_NAME := $$(notdir $$(LIB_DIR))
 
     # Release and Debug target library paths.
-    LIB_RELEASE_DIR := $$(LIB_DIR)/Release/$(MBED_TARGET)
-    LIB_DEBUG_DIR   := $$(LIB_DIR)/Debug/$(MBED_TARGET)
+    LIB_RELEASE_DIR := $$(LIB_DIR)/Release/$(MBED_DEVICE)
+    LIB_DEBUG_DIR   := $$(LIB_DIR)/Debug/$(MBED_DEVICE)
     RELEASE_LIB  := $$(LIB_RELEASE_DIR)/lib$$(LIB_NAME).a
     DEBUG_LIB    := $$(LIB_DEBUG_DIR)/lib$$(LIB_NAME).a
 

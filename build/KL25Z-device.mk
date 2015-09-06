@@ -14,7 +14,6 @@
 
 # Vendor/device for which the library should be built.
 MBED_DEVICE        := KL25Z
-MBED_TARGET        := Freescale_KL25Z
 MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 
 
