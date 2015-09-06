@@ -1,4 +1,4 @@
-# Copyright 2014 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,5 +16,6 @@ DEVICES         := NRF51822
 GCC4MBED_DIR    := ../..
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
+USER_LIBS       := ../BLElibs/nRF51822 ../BLElibs/BLE_API
 
 include $(GCC4MBED_DIR)/build/gcc4mbed.mk

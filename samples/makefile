@@ -1,4 +1,4 @@
-# Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +29,8 @@ DIRS := HelloWorld\
         USBHostHub\
         USBHostSerial\
         BLEHeartRate
-DIRSCLEAN := $(addsuffix .clean,$(DIRS))
+DIRSCLEAN    := $(addsuffix .clean,$(DIRS))
+DIRSCLEANALL := $(addsuffix .cleanall,$(DIRS))
 
 
 # Determine supported devices by looking at *-device.mk makefiles.
@@ -66,8 +67,7 @@ all: $(DIRS)
 
 clean: $(DIRSCLEAN)
 
-clean-all: $(DIRSCLEAN)
-	$(Q) $(MAKE) --no-print-directory -C HelloWorld clean-all
+clean-all: $(DIRSCLEANALL)
 
 $(DIRS):
 	@echo Building $@
@@ -75,6 +75,9 @@ $(DIRS):
 
 $(DIRSCLEAN): %.clean:
 	$(Q) $(MAKE) --no-print-directory -C $* clean
+
+$(DIRSCLEANALL): %.cleanall:
+	$(Q) $(MAKE) --no-print-directory -C $* clean-all
 
 .PHONY: all clean clean-all $(DIRS) $(DIRSCLEAN)
 

@@ -55,6 +55,8 @@
 #               dsp
 #               USBDevice
 #               USBHost
+#   USER_LIBS: A space delimited list of folders containing user libraries to
+#              be compiled and linked into the application.
 #   DEFINES: Project specific #defines to be set when compiling main
 #            application.  Each macro should start with "-D" as required by
 #            GCC.
@@ -236,8 +238,8 @@ MBED_SRC_ROOT        := $(MBED_LIB_SRC_ROOT)/mbed
 
 
 # Root directories for official mbed library output.
-LIB_RELEASE_DIR := $(GCC4MBED_DIR)/external/mbed/Release
-LIB_DEBUG_DIR   := $(GCC4MBED_DIR)/external/mbed/Debug
+MBED_RELEASE_DIR := $(GCC4MBED_DIR)/external/mbed/Release
+MBED_DEBUG_DIR   := $(GCC4MBED_DIR)/external/mbed/Debug
 
 
 # Toolchain sub-directories to be built with GCC.
@@ -268,7 +270,7 @@ filter_dirs = $(call filter_toolchains,$(call filter_targets,$1,$2))
 
 
 # Utility macros to help build mbed SDK libraries.
-define build_lib #,libname,source_dirs,include_dirs
+define build_mbed_lib #,libname,source_dirs,include_dirs
     # Release and Debug target libraries for C and C++ portions of library.
     RELEASE_LIB  := $(RELEASE_DIR)/$1.a
     DEBUG_LIB    := $(DEBUG_DIR)/$1.a
@@ -297,27 +299,139 @@ define build_lib #,libname,source_dirs,include_dirs
     # High level rules for building Debug and Release versions of library.
     #########################################################################
     $$(RELEASE_LIB): $$(RELEASE_OBJECTS)
-		@echo Linking release library $@
+		@echo Linking release library $$@
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
 		$(Q) $(AR) -rc $$@ $$+
 
     $$(DEBUG_LIB): $$(DEBUG_OBJECTS)
-		@echo Linking debug library $@
+		@echo Linking debug library $$@
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
 		$(Q) $(AR) -rc $$@ $$+
 
 endef
 
 
+# Utility macros to help build user libraries.
+define build_user_lib #,lib_dir
+    # Make sure that library directory doesn't have trailing slash.
+    LIB_DIR := $(patsubst %/,%,$1)
+
+    # Library name is based on the directory name.
+    LIB_NAME := $$(notdir $$(LIB_DIR))
+
+    # Release and Debug target library paths.
+    LIB_RELEASE_DIR := $$(LIB_DIR)/Release/$(MBED_TARGET)
+    LIB_DEBUG_DIR   := $$(LIB_DIR)/Debug/$(MBED_TARGET)
+    RELEASE_LIB  := $$(LIB_RELEASE_DIR)/lib$$(LIB_NAME).a
+    DEBUG_LIB    := $$(LIB_DEBUG_DIR)/lib$$(LIB_NAME).a
+
+    # Find all of the library source directories appropriate for this target device.
+    LIB_SRC_DIRS := $(call filter_dirs,$(call recurse_dir,$1),$(TARGETS_FOR_DEVICE))
+
+    # Convert list of source files to corresponding list of object files to be generated.
+    OBJECTS         := $$(call srcs2objs,$$(LIB_SRC_DIRS),$$(LIB_DIR),__Output__)
+    DEBUG_OBJECTS   := $$(patsubst __Output__%,$$(LIB_DEBUG_DIR)%,$$(OBJECTS))
+    RELEASE_OBJECTS := $$(patsubst __Output__%,$$(LIB_RELEASE_DIR)%,$$(OBJECTS))
+
+    # List of the header dependency files, one per object file.
+    DEPFILES += $$(patsubst %.o,%.d,$$(DEBUG_OBJECTS))
+    DEPFILES += $$(patsubst %.o,%.d,$$(RELEASE_OBJECTS))
+
+    # Append to main project's include path.
+    LIB_INCLUDES += $$(LIB_SRC_DIRS)
+
+    # Append to main project's list of user libraries.
+    ifeq "$(GCC4MBED_TYPE)" "Debug"
+        USER_LIBS_FULL += $$(DEBUG_LIB)
+    else
+        USER_LIBS_FULL += $$(RELEASE_LIB)
+    endif
+
+    # Customize C/C++/ASM flags for Debug and Release builds.
+    $$(DEBUG_LIB): C_FLAGS   := $(C_FLAGS) -O$(DEBUG_OPTIMIZATION)
+    $$(DEBUG_LIB): CPP_FLAGS := $(CPP_FLAGS) -O$(DEBUG_OPTIMIZATION)
+    $$(RELEASE_LIB): C_FLAGS   := $(C_FLAGS) -O$(RELEASE_OPTIMIZATION) -DNDEBUG
+    $$(RELEASE_LIB): CPP_FLAGS := $(CPP_FLAGS) -O$(RELEASE_OPTIMIZATION) -DNDEBUG
+    $$(RELEASE_LIB): ASM_FLAGS := $(ASM_FLAGS)
+    $$(DEBUG_LIB):   ASM_FLAGS := $(ASM_FLAGS)
+
+    #########################################################################
+    # High level rules for building Debug and Release versions of library.
+    #########################################################################
+    $$(RELEASE_LIB): $$(RELEASE_OBJECTS)
+		@echo Linking release library $$@
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(AR) -rc $$@ $$+
+
+    $$(DEBUG_LIB): $$(DEBUG_OBJECTS)
+		@echo Linking debug library $$@
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(AR) -rc $$@ $$+
+
+    #########################################################################
+    #  Default rules to compile c/c++/assembly language sources to objects.
+    #########################################################################
+    $$(LIB_DEBUG_DIR)/%.o : $$(LIB_DIR)/%.c
+		@echo Compiling $$<
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(GCC) $$(C_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+
+    $$(LIB_RELEASE_DIR)/%.o : $$(LIB_DIR)/%.c
+		@echo Compiling $$<
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(GCC) $$(C_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+
+    $$(LIB_DEBUG_DIR)/%.o : $$(LIB_DIR)/%.cpp
+		@echo Compiling $$<
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(GPP) $$(CPP_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+
+    $$(LIB_RELEASE_DIR)/%.o : $$(LIB_DIR)/%.cpp
+		@echo Compiling $$<
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(GPP) $$(CPP_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+
+    $$(LIB_DEBUG_DIR)/%.o : $$(LIB_DIR)/%.s
+		@echo Assembling $$<
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+
+    $$(LIB_RELEASE_DIR)/%.o : $$(LIB_DIR)/%.s
+		@echo Assembling $$<
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+
+    $$(LIB_DEBUG_DIR)/%.o : $$(LIB_DIR)/%.S
+		@echo Assembling $$<
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+
+    $$(LIB_RELEASE_DIR)/%.o : $$(LIB_DIR)/%.S
+		@echo Assembling $$<
+		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
+		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+
+endef
+define clean_user_lib #,lib_dir
+	@echo Cleaning $1/Release
+	$(Q) $(REMOVE_DIR) $(call convert-slash,$1/Release) $(QUIET)
+	@echo Cleaning $1/Debug
+	$(Q) $(REMOVE_DIR) $(call convert-slash,$1/Debug) $(QUIET)
+
+endef
+
 # Rules for building all of the desired device targets
+.PHONY: all clean clean-libs clean-mbed clean-all deploy
 all: $(DEVICES)
 clean: $(addsuffix -clean,$(DEVICES))
-clean-all: clean
-	@echo Cleaning $(LIB_RELEASE_DIR)
-	$(Q) $(REMOVE_DIR) $(call convert-slash,$(LIB_RELEASE_DIR)) $(QUIET)
-	@echo Cleaning $(LIB_DEBUG_DIR)
-	$(Q) $(REMOVE_DIR) $(call convert-slash,$(LIB_DEBUG_DIR)) $(QUIET)
-
+clean-libs:
+	$(foreach i,$(USER_LIBS),$(call clean_user_lib,$i))
+clean-mbed:
+	@echo Cleaning $(MBED_RELEASE_DIR)
+	$(Q) $(REMOVE_DIR) $(call convert-slash,$(MBED_RELEASE_DIR)) $(QUIET)
+	@echo Cleaning $(MBED_DEBUG_DIR)
+	$(Q) $(REMOVE_DIR) $(call convert-slash,$(MBED_DEBUG_DIR)) $(QUIET)
+clean-all: clean clean-libs clean-mbed
 deploy: LPC1768-deploy
 
 

@@ -7,7 +7,9 @@ Example: {{{make -j 4 all}}}
 The GCC4MBED supports the following rules when building your project makefile:
 * **all**: The main rule for building your project and all of its official mbed dependencies.
 * **clean**: Will clean out all of the output files for your project.  This will cause a full rebuild when you next issue the **all** rule.
-* **clean-all**: Will clean out all of the output files, those for your project and the mbed libraries.
+* **clean-libs**: Will clean out all of the output files for your **USER_LIBS** folders.  This will cause a full rebuild of the user libraries when you next issue the **all** rule.
+* **clean-mbed**: Will clean out all of the output files for the mbed SDK libraries.  This will cause a full rebuild of the mbed SDK libraries when you next issue the **all** rule.
+* **clean-all**: Cleans out all output files.  Same as issuing **clean**, **clean-libs**, and **clean-mbed** rules.
 * **LPC1768-clean**: Will clean out the LPC1768 output files for your project.
 * **LPC11U24-clean**: Will clean out the LPC11U24 output files for your project.
 * **KL25Z-clean**: Will clean out the KL25Z output files for your project.
@@ -61,6 +63,9 @@ The **MBED_LIBS** variable is an optional variable that an application's makefil
 * **dsp**: Pulls in the CMSIS DSP library.
 * **USBDevice**: Pulls in the USBDevice drivers such USBMouse, USBKeyboard, USBSerial, USBKeyboardMouse, etc.
 * **USBHost**: Pulls in the USBHost drivers such as USBHostMSD, USBHostMouse, USBHostKeyboard, USBHostHub, USBHostSerial, etc.
+
+===USER_LIBS
+The **USER_LIBS** variable is an optional variable that an application's makefile can use to provide a space delimited list of folders containing user libraries to be compiled and linked into the application.
 
 ===NO_FLOAT_SCANF
 The **NO_FLOAT_SCANF** variable is an optional variable that an application's makefile can set to 1, indicating that scanf() does not need to support floating point values which reduces code size.
