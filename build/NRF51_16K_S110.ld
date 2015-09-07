@@ -44,7 +44,7 @@ SECTIONS
 		KEEP(*(.SoftDevice))
 		FILL(0xFFFFFFFF)
 
-		 /* Main program starts after SoftDevice @ fixed address of 0x1C000. */
+		 /* Main program starts after SoftDevice @ fixed address of 0x18000. */
 		. = 0x18000;
 		KEEP(*(.Vectors))
 		*(.text*)
