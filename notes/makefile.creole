@@ -40,11 +40,12 @@ These devices are currently in beta:
 
 These devices were added by the community.  I make sure that they build during a release but I don't test on actual hardware:
 * DISCO_F407VG (added by [[https://developer.mbed.org/users/svkatielee/ | Larry Littlefield]])
+* LPC11C24 (added by [[https://github.com/merkur2k | merkur2k]])
+* NUCLEO_F072RB (added by [[https://github.com/aftermathew | aftermathew]])
+* NUCLEO_F103RB (added by [[https://github.com/KenjutsuGH | KenjutsuGH]])
 * NUCLEO_F401RE (added by [[https://developer.mbed.org/users/svkatielee/ | Larry Littlefield]])
 * NUCLEO_F411RE (added by [[https://github.com/weyoui | weyoui]])
-* NUCLEO_F072RB (added by [[https://github.com/aftermathew | aftermathew]])
-* LPC11C24 (added by [[https://github.com/merkur2k | merkur2k]])
-* NUCLEO_F103RB (added by [[https://github.com/KenjutsuGH | KenjutsuGH]])
+* NUCLEO_L053R8 (added by [[https://github.com/ashier | Ashier de Leon]])
 
 The default target device is LPC1768.
 
