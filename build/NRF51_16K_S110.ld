@@ -3,7 +3,7 @@
 MEMORY
 {
   FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 256k
-  RAM (rwx) :  ORIGIN = 0x20002800, LENGTH = 16k - 0x2800
+  RAM (rwx) :  ORIGIN = 0x20002000, LENGTH = 16k - 0x2000
 }
 
 OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
@@ -40,12 +40,12 @@ SECTIONS
 {
 	.text :
 	{
-	    /* SoftDevice is installed at the beginning of FLASH. */
-	    KEEP(*(.SoftDevice))
-        FILL(0xFFFFFFFF)
+		/* SoftDevice is installed at the beginning of FLASH. */
+		KEEP(*(.SoftDevice))
+		FILL(0xFFFFFFFF)
 
-        /* Main program starts after SoftDevice @ fixed address of 0x1C000. */
-	    . = 0x1C000;
+		 /* Main program starts after SoftDevice @ fixed address of 0x1C000. */
+		. = 0x18000;
 		KEEP(*(.Vectors))
 		*(.text*)
 
