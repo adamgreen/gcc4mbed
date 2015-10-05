@@ -10,6 +10,9 @@ DigitalOut cs(PTB1);
 #elif defined(TARGET_KL46Z)
 SPI spi(PTD2, PTD3, PTD1);   // mosi, miso, sclk
 DigitalOut cs(PTA13);
+#elif defined(TARGET_ELMO_F411RE)
+SPI spi(PB_15, PB_14, PB_13);   // mosi, miso, sclk
+DigitalOut cs(PB_12);
 #elif defined(TARGET_FF_ARDUINO)
 SPI spi(D11, D12, D13);   // mosi, miso, sclk
 DigitalOut cs(D10);
@@ -25,6 +28,9 @@ DigitalOut cs(PE13);
 #elif defined(TARGET_SAMR21G18A)
 SPI spi(PB22, PB02, PB23);   // mosi, miso, sclk
 DigitalOut cs(PB03);
+#elif defined(TARGET_SAMD21J18A)
+SPI spi(PA18, PA16, PA19);   // mosi, miso, sclk
+DigitalOut cs(PA17);
 #else
 SPI spi(p5, p6, p7); // mosi, miso, sclk
 DigitalOut cs(p8);

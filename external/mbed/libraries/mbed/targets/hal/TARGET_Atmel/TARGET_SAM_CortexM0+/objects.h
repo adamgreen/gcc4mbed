@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,10 @@
 #include "i2c_master.h"
 #include "i2c_slave.h"
 #include "dma_api.h"
+
+#if DEVICE_ANALOGOUT
+#include "dac.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,9 +73,14 @@ struct serial_s {
 
 struct analogin_s {
     ADCName adc;
-    struct adc_module adc_instance;
     struct adc_config config_adc;
 };
+
+#if DEVICE_ANALOGOUT
+struct dac_s {
+    DACName dac;
+};
+#endif
 
 struct pwmout_s {
     struct tcc_module tcc;

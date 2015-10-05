@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,10 +161,9 @@ void analogin_init(analogin_t *obj, PinName pin)
         adc_init(&adc_instance, ADC, &(obj->config_adc));
         adc_enable(&adc_instance);
         init_flag = 1;
-    } else { // pin muxing
-        adc_configure_ain_pin(obj->config_adc.positive_input);
-        adc_configure_ain_pin(obj->config_adc.negative_input);
     }
+    adc_configure_ain_pin(obj->config_adc.positive_input);
+    adc_configure_ain_pin(obj->config_adc.negative_input);
 }
 
 uint16_t analogin_read_u16(analogin_t *obj)

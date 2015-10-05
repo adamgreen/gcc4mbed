@@ -1,5 +1,5 @@
 /* mbed Microcontroller Library
- * Copyright (c) 2006-2013 ARM Limited
+ * Copyright (c) 2006-2015 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,11 @@ extern "C" {
 
 typedef enum {
     PortA = 0,
-    PortB = 1,
-    PortC = 2
+    PortB,
+#if defined(TARGET_SAMR21G18A)
+    PortC,
+#endif
+    PortMax
 } PortName;
 
 #ifdef __cplusplus
