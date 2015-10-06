@@ -58,7 +58,8 @@ DEBUG_DIR   := $(MBED_DEBUG_DIR)/$(MBED_DEVICE)
 ###############################################################################
 # Build User Libraries
 ###############################################################################
-$(foreach i,$(USER_LIBS),$(eval $(call build_user_lib,$i)))
+$(foreach i,$(sort $(USER_LIBS)),$(eval $(call build_user_lib,$i)))
+$(foreach i,$(USER_LIBS),$(eval $(call add_user_lib,$i)))
 
 
 
@@ -135,7 +136,7 @@ endif
 
 # Linker Options.
 $(MBED_DEVICE): LD_FLAGS := $(LD_FLAGS) -specs=$(GCC4MBED_DIR)/build/startfile.spec
-$(MBED_DEVICE): LD_FLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free,--wrap=main$(MRI_WRAPS)
+$(MBED_DEVICE): LD_FLAGS += -Wl,-Map=$(OUTDIR)/$(PROJECT).map,--cref,--gc-sections,-zmuldefs,--wrap=_isatty,--wrap=malloc,--wrap=realloc,--wrap=free,--wrap=main$(MRI_WRAPS)
 ifneq "$(NO_FLOAT_SCANF)" "1"
 $(MBED_DEVICE): LD_FLAGS += -u _scanf_float
 endif

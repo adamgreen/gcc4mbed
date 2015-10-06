@@ -340,13 +340,6 @@ define build_user_lib #,lib_dir
     # Append to main project's include path.
     LIB_INCLUDES += $$(LIB_SRC_DIRS)
 
-    # Append to main project's list of user libraries.
-    ifeq "$(GCC4MBED_TYPE)" "Debug"
-        USER_LIBS_FULL += $$(DEBUG_LIB)
-    else
-        USER_LIBS_FULL += $$(RELEASE_LIB)
-    endif
-
     # Customize C/C++/ASM flags for Debug and Release builds.
     $$(DEBUG_LIB): C_FLAGS   := $(C_FLAGS) -O$(DEBUG_OPTIMIZATION)
     $$(DEBUG_LIB): CPP_FLAGS := $(CPP_FLAGS) -O$(DEBUG_OPTIMIZATION)
@@ -418,6 +411,26 @@ define clean_user_lib #,lib_dir
 	@echo Cleaning $1/Debug
 	$(Q) $(REMOVE_DIR) $(call convert-slash,$1/Debug) $(QUIET)
 
+endef
+define add_user_lib #,lib_dir
+    # Make sure that library directory doesn't have trailing slash.
+    LIB_DIR := $(patsubst %/,%,$1)
+
+    # Library name is based on the directory name.
+    LIB_NAME := $$(notdir $$(LIB_DIR))
+
+    # Release and Debug target library paths.
+    LIB_RELEASE_DIR := $$(LIB_DIR)/Release/$(MBED_DEVICE)
+    LIB_DEBUG_DIR   := $$(LIB_DIR)/Debug/$(MBED_DEVICE)
+    RELEASE_LIB  := $$(LIB_RELEASE_DIR)/lib$$(LIB_NAME).a
+    DEBUG_LIB    := $$(LIB_DEBUG_DIR)/lib$$(LIB_NAME).a
+
+    # Append to main project's list of user libraries.
+    ifeq "$(GCC4MBED_TYPE)" "Debug"
+        USER_LIBS_FULL += $$(DEBUG_LIB)
+    else
+        USER_LIBS_FULL += $$(RELEASE_LIB)
+    endif
 endef
 
 # Rules for building all of the desired device targets
