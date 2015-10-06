@@ -547,7 +547,7 @@ typedef struct
 {
   ble_gap_addr_t        peer_addr;              /**< Bluetooth address of the peer device. */
   ble_gap_addr_t        own_addr;               /**< Bluetooth address of the local device used during connection setup. */
-#if !defined(MCU_NORDIC_16K_S110) && !defined(MCU_NORDIC_32K_S110)
+#if !defined(MCU_NRF51_16K_S110) && !defined(MCU_NRF51_32K_S110)
   uint8_t               role;                   /**< BLE role for this connection, see @ref BLE_GAP_ROLES */
 #endif
   uint8_t               irk_match :1;           /**< If 1, peer device's address resolved using an IRK. */

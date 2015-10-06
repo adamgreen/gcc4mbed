@@ -23,6 +23,8 @@
 #include "GattClient.h"
 #include "BLEInstanceBase.h"
 
+#include "mbed_error.h"
+
 /**
  * The base class used to abstract away BLE capable radio transceivers or SOCs,
  * to enable this BLE API to work with any radio transparently.
@@ -50,6 +52,9 @@ public:
      */
     ble_error_t shutdown(void) {
         clearAdvertisingPayload();
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->shutdown();
     }
 
@@ -60,6 +65,9 @@ public:
      *          Note: The string is owned by the BLE_API.
      */
     const char *getVersion(void) {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getVersion();
     }
 
@@ -68,9 +76,15 @@ public:
      * going through this accessor.
      */
     const Gap &gap() const {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getGap();
     }
     Gap &gap() {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getGap();
     }
 
@@ -79,9 +93,15 @@ public:
      * functionality requires going through this accessor.
      */
     const GattServer& gattServer() const {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getGattServer();
     }
     GattServer& gattServer() {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getGattServer();
     }
 
@@ -90,9 +110,15 @@ public:
      * functionality requires going through this accessor.
      */
     const GattClient& gattClient() const {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getGattClient();
     }
     GattClient& gattClient() {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getGattClient();
     }
 
@@ -102,9 +128,15 @@ public:
      * accessor.
      */
     const SecurityManager& securityManager() const {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getSecurityManager();
     }
     SecurityManager& securityManager() {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         return transport->getSecurityManager();
     }
 
@@ -116,8 +148,48 @@ public:
      * WFE().
      */
     void waitForEvent(void) {
+        if (!transport) {
+            error("bad handle to underlying transport");
+        }
         transport->waitForEvent();
     }
+
+public:
+    typedef unsigned InstanceID_t;
+    static const InstanceID_t DEFAULT_INSTANCE = 0;
+#ifndef YOTTA_CFG_BLE_INSTANCES_COUNT
+    static const InstanceID_t NUM_INSTANCES = 1;
+#else
+    static const InstanceID_t NUM_INSTANCES = YOTTA_CFG_BLE_INSTANCES_COUNT;
+#endif
+
+    /**
+     * Get a reference to the BLE singleton corresponding to a given interface.
+     * There is a static array of BLE singletons.
+     *
+     * @Note: Calling Instance() is preferred over constructing a BLE object
+     * directly, as it returns references to singletons.
+     *
+     * @param[in] id
+     *              Instance-ID. This should be less than NUM_INSTANCES in order
+     *              for the returned BLE singleton to be useful.
+     *
+     * @return a reference to a single object
+     */
+    static BLE &Instance(InstanceID_t id = DEFAULT_INSTANCE);
+
+    /**
+     * Constructor for a handle to a BLE instance (i.e. BLE stack). BLE handles
+     * are thin wrappers around a transport object (i.e. ptr. to
+     * BLEInstanceBase).
+     *
+     * BLE objects are are better created as singletons accessed through the
+     * Instance() method. If multiple BLE handles are constructed for the same
+     * interface (using this constructor), they will share the same underlying
+     * transport object.
+     */
+    BLE(InstanceID_t instanceID = DEFAULT_INSTANCE);
+
 
     /*
      * Deprecation alert!
@@ -1079,7 +1151,7 @@ public:
     }
 
     /**
-     * Used to setup a callback for GAP disconnection.
+     * Append to a chain of callbacks to be invoked upon GAP disconnection.
      *
      * @note: This API is now *deprecated* and will be dropped in the future.
      * You should use the parallel API from Gap directly. A former call
@@ -1090,19 +1162,9 @@ public:
         gap().onDisconnection(disconnectionCallback);
     }
 
-    /**
-     * Append to a chain of callbacks to be invoked upon disconnection; these
-     * callbacks receive no context and are therefore different from the
-     * onDisconnection callback.
-     *
-     * @note: This API is now *deprecated* and will be dropped in the future.
-     * You should use the parallel API from Gap directly. A former call
-     * to ble.addToDisconnectionCallchain(...) should be replaced with
-     * ble.gap().addToDisconnectionCallchain(...).
-     */
     template<typename T>
-    void addToDisconnectionCallChain(T *tptr, void (T::*mptr)(void)) {
-        gap().addToDisconnectionCallChain(tptr, mptr);
+    void onDisconnection(T *tptr, void (T::*mptr)(const Gap::DisconnectionCallbackParams_t*)) {
+        gap().onDisconnection(tptr, mptr);
     }
 
     /**
@@ -1327,13 +1389,12 @@ public:
         return securityManager().onPasskeyDisplay(callback);
     }
 
-public:
-    BLE() : transport(createBLEInstance()) {
-        /* empty */
-    }
+private:
+    BLE(const BLE&);
+    BLE &operator=(const BLE &);
 
 private:
-    BLEInstanceBase *const transport; /* the device specific backend */
+    BLEInstanceBase *transport; /* the device specific backend */
 };
 
 typedef BLE BLEDevice; /* DEPRECATED. This type alias is retained for the sake of compatibility with older

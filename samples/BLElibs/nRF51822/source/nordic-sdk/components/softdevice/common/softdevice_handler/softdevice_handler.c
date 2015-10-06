@@ -43,7 +43,7 @@
 #elif defined(ANT_STACK_SUPPORT_REQD) 
     #include "ant_interface.h"
 #elif defined(BLE_STACK_SUPPORT_REQD)
-    #include "ble.h"
+    #include "include/ble.h"
 #endif
 
 

@@ -17,7 +17,7 @@
 #ifndef __BLE_BATTERY_SERVICE_H__
 #define __BLE_BATTERY_SERVICE_H__
 
-#include "ble/BLEDevice.h"
+#include "ble/BLE.h"
 
 /**
 * @class BatteryService

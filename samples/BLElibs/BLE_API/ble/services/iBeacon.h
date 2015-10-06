@@ -17,7 +17,7 @@
 #define __BLE_IBEACON_H__
 
 #include "core_cmInstr.h"
-#include "ble/BLEDevice.h"
+#include "ble/BLE.h"
 
 /**
 * @class iBeacon

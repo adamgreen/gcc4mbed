@@ -17,21 +17,12 @@
 #ifndef __GAP_ADVERTISING_PARAMS_H__
 #define __GAP_ADVERTISING_PARAMS_H__
 
-/**************************************************************************/
-/*!
-    \brief
-    This class provides a wrapper for the core advertising parameters,
-    including the advertising type (Connectable Undirected,
-    Non Connectable Undirected, etc.), as well as the advertising and
-    timeout intervals.
-
-    \par
-    See the following for more information on advertising types:
-
-    \li \c Bluetooth Core Specification 4.0 (Vol. 6), Part B, Section 2.3.1
-    \li \c Bluetooth Core Specification 4.0 (Vol. 3), Part C, Section 9.3
-*/
-/**************************************************************************/
+/**
+ *  This class provides a wrapper for the core advertising parameters,
+ *  including the advertising type (Connectable Undirected,
+ *  Non Connectable Undirected, etc.), as well as the advertising and
+ *  timeout intervals.
+ */
 class GapAdvertisingParams {
 public:
     static const unsigned GAP_ADV_PARAMS_INTERVAL_MIN        = 0x0020;
@@ -94,18 +85,36 @@ public:
         return (gapUnits * UNIT_0_625_MS) / 1000;
     }
 
-    AdvertisingType_t getAdvertisingType(void) const {return _advType; }
-    uint16_t          getInterval(void)        const {return ADVERTISEMENT_DURATION_UNITS_TO_MS(_interval);}
-    uint16_t          getTimeout(void)         const {return _timeout; }
+    AdvertisingType_t getAdvertisingType(void) const {
+        return _advType;
+    }
+
+    /**
+     * @return the advertisement interval (in milliseconds)
+     */
+    uint16_t getInterval(void) const {
+        return ADVERTISEMENT_DURATION_UNITS_TO_MS(_interval);
+    }
+
+    /**
+     * @return the advertisement interval in units advertisement duration units--i.e. 0.625ms units.
+     */
+    uint16_t getIntervalInADVUnits(void) const {
+        return _interval;
+    }
+
+    uint16_t getTimeout(void) const {
+        return _timeout;
+    }
 
     void setAdvertisingType(AdvertisingType_t newAdvType) {_advType = newAdvType;  }
-    void setInterval(uint16_t newInterval)                {_interval = newInterval;}
+    void setInterval(uint16_t newInterval)                {_interval = MSEC_TO_ADVERTISEMENT_DURATION_UNITS(newInterval);}
     void setTimeout(uint16_t newTimeout)                  {_timeout = newTimeout;  }
 
 private:
     AdvertisingType_t _advType;
-    uint16_t          _interval;
-    uint16_t          _timeout;
+    uint16_t          _interval; /* in ADV duration units (i.e. 0.625ms) */
+    uint16_t          _timeout;  /* in seconds */
 };
 
 #endif // ifndef __GAP_ADVERTISING_PARAMS_H__

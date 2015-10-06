@@ -271,7 +271,7 @@ public:
      *
      * @Note: this functionality may not be available on all underlying stacks.
      * You could use GattCharacteristic::setReadAuthorizationCallback() as an
-     * alternative.
+     * alternative. Refer to isOnDataReadAvailable().
      *
      * @Note: it is possible to chain together multiple onDataRead callbacks
      * (potentially from different modules of an application) to receive updates

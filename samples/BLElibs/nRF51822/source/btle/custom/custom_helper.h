@@ -18,7 +18,7 @@
 #define _CUSTOM_HELPER_H_
 
 #include "common/common.h"
-#include "ble.h"
+#include "include/ble.h"
 #include "ble/UUID.h"
 #include "ble/GattCharacteristic.h"
 

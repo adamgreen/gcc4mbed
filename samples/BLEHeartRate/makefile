@@ -16,6 +16,6 @@ DEVICES         := NRF51822
 GCC4MBED_DIR    := ../..
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
-USER_LIBS       := ../BLElibs/nRF51822 ../BLElibs/BLE_API
+USER_LIBS       := ../BLElibs/BLE_API ../BLElibs/nRF51822 ../BLElibs/BLE_API
 
 include $(GCC4MBED_DIR)/build/gcc4mbed.mk

@@ -44,7 +44,6 @@
 #include "compiler_abstraction.h"
 #include "nordic_common.h"
 #ifdef DEBUG
-#include "bsp.h"
 
 /* global error variables - in order to prevent removal by optimizers */
 uint32_t m_error_code;

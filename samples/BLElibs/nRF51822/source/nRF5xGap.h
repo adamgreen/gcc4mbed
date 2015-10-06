@@ -19,7 +19,7 @@
 
 #include "mbed.h"
 #include "ble/blecommon.h"
-#include "ble.h"
+#include "include/ble.h"
 #include "ble/GapAdvertisingParams.h"
 #include "ble/GapAdvertisingData.h"
 #include "ble/Gap.h"
@@ -80,6 +80,8 @@ public:
         return BLE_ERROR_UNSPECIFIED;
     }
 
+/* Observer role is not supported by S110, return BLE_ERROR_NOT_IMPLEMENTED */
+#if !defined(MCU_NRF51_16K_S110) && !defined(MCU_NRF51_32K_S110)
     virtual ble_error_t startRadioScan(const GapScanningParams &scanningParams) {
         ble_gap_scan_params_t scanParams = {
             .active      = scanningParams.getActiveScanning(), /**< If 1, perform active scanning (scan requests). */
@@ -104,6 +106,7 @@ public:
 
         return BLE_STACK_BUSY;
     }
+#endif
 
 private:
     /**

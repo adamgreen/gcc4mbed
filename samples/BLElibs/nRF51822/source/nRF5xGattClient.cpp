@@ -16,13 +16,13 @@
 
 #include "nRF5xGattClient.h"
 
-nRF5xGattClient nRFGattClientSingleton;
-
 nRF5xGattClient &
 nRF5xGattClient::getInstance(void) {
+    static nRF5xGattClient nRFGattClientSingleton;
     return nRFGattClientSingleton;
 }
 
+#if !defined(MCU_NRF51_16K_S110) && !defined(MCU_NRF51_32K_S110)
 ble_error_t
 nRF5xGattClient::launchServiceDiscovery(Gap::Handle_t                               connectionHandle,
                                         ServiceDiscovery::ServiceCallback_t         sc,
@@ -32,3 +32,4 @@ nRF5xGattClient::launchServiceDiscovery(Gap::Handle_t                           
 {
     return discovery.launch(connectionHandle, sc, cc, matchingServiceUUIDIn, matchingCharacteristicUUIDIn);
 }
+#endif

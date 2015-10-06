@@ -42,7 +42,7 @@
 #define BLE_CONN_PARAMS_H__
 
 #include <stdint.h>
-#include "ble.h"
+#include "include/ble.h"
 #include "ble_srv_common.h"
 
 #ifdef __cplusplus

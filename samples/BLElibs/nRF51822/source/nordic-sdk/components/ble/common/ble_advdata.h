@@ -45,7 +45,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include "ble.h"
+#include "include/ble.h"
 #include "app_util.h"
 
 /**@brief Advertising data name type. This contains the options available for the device name inside

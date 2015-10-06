@@ -21,10 +21,8 @@
 #include "GapAdvertisingParams.h"
 #include "GapScanningParams.h"
 #include "GapEvents.h"
-#include "CallChain.h"
+#include "CallChainOfFunctionPointersWithContext.h"
 #include "FunctionPointerWithContext.h"
-
-using namespace mbed;
 
 /* Forward declarations for classes which will only be used for pointers or references in the following. */
 class GapAdvertisingParams;
@@ -126,6 +124,17 @@ public:
         }
     };
 
+    struct DisconnectionCallbackParams_t {
+        Handle_t              handle;
+        DisconnectionReason_t reason;
+
+        DisconnectionCallbackParams_t(Handle_t              handleIn,
+                                      DisconnectionReason_t reasonIn) :
+            handle(handleIn),
+            reason(reasonIn)
+        {}
+    };
+
     static const uint16_t UNIT_1_25_MS  = 1250; /**< Number of microseconds in 1.25 milliseconds. */
     static uint16_t MSEC_TO_GAP_DURATION_UNITS(uint32_t durationInMillis) {
         return (durationInMillis * 1000) / UNIT_1_25_MS;
@@ -134,7 +143,7 @@ public:
 
     typedef void (*TimeoutEventCallback_t)(TimeoutSource_t source);
     typedef void (*ConnectionEventCallback_t)(const ConnectionCallbackParams_t *params);
-    typedef void (*DisconnectionEventCallback_t)(Handle_t, DisconnectionReason_t);
+    typedef void (*DisconnectionEventCallback_t)(const DisconnectionCallbackParams_t *params);
     typedef FunctionPointerWithContext<bool> RadioNotificationEventCallback_t;
 
     /*
@@ -214,7 +223,7 @@ public:
      * @param scanParams
      *          Paramters to be used while scanning for the peer.
      * @return  BLE_ERROR_NONE if connection establishment procedure is started
-     *     successfully. The connectionCallback (if set) will be invoked upon
+     *     successfully. The connectionCallChain (if set) will be invoked upon
      *     a connection event.
      */
     virtual ble_error_t connect(const Address_t           peerAddr,
@@ -301,9 +310,11 @@ public:
     }
 
     /**
-     * Update connection parameters while in the peripheral role.
-     * @details In the peripheral role, this will send the corresponding L2CAP request to the connected peer and wait for
-     *          the central to perform the procedure.
+     * Update connection parameters.
+     * In the central role this will initiate a Link Layer connection parameter update procedure,
+     * otherwise in the peripheral role, this will send the corresponding L2CAP request and wait for
+     * the central to perform the procedure.
+     *
      * @param[in] handle
      *              Connection Handle
      * @param[in] params
@@ -465,7 +476,7 @@ public:
         } else if (interval < getMinAdvertisingInterval()) {
             interval = getMinAdvertisingInterval();
         }
-        _advParams.setInterval(GapAdvertisingParams::MSEC_TO_ADVERTISEMENT_DURATION_UNITS(interval));
+        _advParams.setInterval(interval);
     }
 
     /**
@@ -889,26 +900,20 @@ public:
     void onTimeout(TimeoutEventCallback_t callback) {timeoutCallback = callback;}
 
     /**
-     * Setup a callback for connection events. Refer to ConnectionEventCallback_t.
+     * Append to a chain of callbacks to be invoked upon GAP connection.
      */
-    void onConnection(ConnectionEventCallback_t callback) {connectionCallback = callback;}
+    void onConnection(ConnectionEventCallback_t callback) {connectionCallChain.add(callback);}
 
-    /**
-     * Set the application callback for disconnection events.
-     * @param callback
-     *        Pointer to the unique callback.
-     */
-    void onDisconnection(DisconnectionEventCallback_t callback) {disconnectionCallback = callback;}
-
-    /**
-     * Append to a chain of callbacks to be invoked upon disconnection; these
-     * callbacks receive no context and are therefore different from the
-     * disconnectionCallback callback.
-     * @param callback
-     *        function pointer to be invoked upon disconnection; receives no context.
-     */
     template<typename T>
-    void addToDisconnectionCallChain(T *tptr, void (T::*mptr)(void)) {disconnectionCallChain.add(tptr, mptr);}
+    void onConnection(T *tptr, void (T::*mptr)(const ConnectionCallbackParams_t*)) {connectionCallChain.add(tptr, mptr);}
+
+    /**
+     * Append to a chain of callbacks to be invoked upon GAP disconnection.
+     */
+    void onDisconnection(DisconnectionEventCallback_t callback) {disconnectionCallChain.add(callback);}
+
+    template<typename T>
+    void onDisconnection(T *tptr, void (T::*mptr)(const DisconnectionCallbackParams_t*)) {disconnectionCallChain.add(tptr, mptr);}
 
     /**
      * Set the application callback for radio-notification events.
@@ -956,10 +961,9 @@ protected:
         state(),
         scanningActive(false),
         timeoutCallback(NULL),
-        connectionCallback(NULL),
-        disconnectionCallback(NULL),
         radioNotificationCallback(),
         onAdvertisementReport(),
+        connectionCallChain(),
         disconnectionCallChain() {
         _advPayload.clear();
         _scanResponse.clear();
@@ -975,18 +979,14 @@ public:
                                 const Address_t           ownAddr,
                                 const ConnectionParams_t *connectionParams) {
         state.connected = 1;
-        if (connectionCallback) {
-            ConnectionCallbackParams_t callbackParams(handle, role, peerAddrType, peerAddr, ownAddrType, ownAddr, connectionParams);
-            connectionCallback(&callbackParams);
-        }
+        ConnectionCallbackParams_t callbackParams(handle, role, peerAddrType, peerAddr, ownAddrType, ownAddr, connectionParams);
+        connectionCallChain.call(&callbackParams);
     }
 
     void processDisconnectionEvent(Handle_t handle, DisconnectionReason_t reason) {
         state.connected = 0;
-        if (disconnectionCallback) {
-            disconnectionCallback(handle, reason);
-        }
-        disconnectionCallChain.call();
+        DisconnectionCallbackParams_t callbackParams(handle, reason);
+        disconnectionCallChain.call(&callbackParams);
     }
 
     void processAdvertisementReport(const Address_t    peerAddr,
@@ -1022,11 +1022,10 @@ protected:
 
 protected:
     TimeoutEventCallback_t           timeoutCallback;
-    ConnectionEventCallback_t        connectionCallback;
-    DisconnectionEventCallback_t     disconnectionCallback;
     RadioNotificationEventCallback_t radioNotificationCallback;
     AdvertisementReportCallback_t    onAdvertisementReport;
-    CallChain                        disconnectionCallChain;
+    CallChainOfFunctionPointersWithContext<const ConnectionCallbackParams_t*>    connectionCallChain;
+    CallChainOfFunctionPointersWithContext<const DisconnectionCallbackParams_t*> disconnectionCallChain;
 
 private:
     /* disallow copy and assignment */

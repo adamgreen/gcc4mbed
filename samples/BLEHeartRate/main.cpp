@@ -15,7 +15,7 @@
  */
 
 #include "mbed.h"
-#include "ble/BLEDevice.h"
+#include "ble/BLE.h"
 #include "ble/services/HeartRateService.h"
 #include "ble/services/BatteryService.h"
 #include "ble/services/DeviceInformationService.h"
@@ -28,7 +28,7 @@ static const uint16_t uuid16_list[]        = {GattService::UUID_HEART_RATE_SERVI
                                               GattService::UUID_DEVICE_INFORMATION_SERVICE};
 static volatile bool  triggerSensorPolling = false;
 
-void disconnectionCallback(Gap::Handle_t handle, Gap::DisconnectionReason_t reason)
+void disconnectionCallback(const Gap::DisconnectionCallbackParams_t *params)
 {
     ble.gap().startAdvertising(); // restart advertising
 }

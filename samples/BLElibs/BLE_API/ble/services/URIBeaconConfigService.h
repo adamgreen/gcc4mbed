@@ -17,7 +17,7 @@
 #ifndef SERVICES_URIBEACONCONFIGSERVICE_H_
 #define SERVICES_URIBEACONCONFIGSERVICE_H_
 
-#include "ble/BLEDevice.h"
+#include "ble/BLE.h"
 #include "mbed.h"
 
 extern const uint8_t UUID_URI_BEACON_SERVICE[UUID::LENGTH_OF_LONG_UUID];
@@ -184,9 +184,6 @@ class URIBeaconConfigService {
     /* Helper function to switch to the non-connectible normal mode for URIBeacon. This gets called after a timeout. */
     void setupURIBeaconAdvertisements()
     {
-        uint8_t serviceData[SERVICE_DATA_MAX];
-        unsigned serviceDataLen = 0;
-
         /* Reinitialize the BLE stack. This will clear away the existing services and advertising state. */
         ble.shutdown();
         ble.init();
@@ -209,6 +206,8 @@ class URIBeaconConfigService {
         ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED | GapAdvertisingData::LE_GENERAL_DISCOVERABLE);
         ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, BEACON_UUID, sizeof(BEACON_UUID));
 
+        uint8_t serviceData[SERVICE_DATA_MAX];
+        unsigned serviceDataLen = 0;
         serviceData[serviceDataLen++] = BEACON_UUID[0];
         serviceData[serviceDataLen++] = BEACON_UUID[1];
         serviceData[serviceDataLen++] = flags;

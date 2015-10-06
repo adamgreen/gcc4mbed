@@ -17,7 +17,7 @@
 #ifndef __BLE_DEVICE_INFORMATION_SERVICE_H__
 #define __BLE_DEVICE_INFORMATION_SERVICE_H__
 
-#include "ble/BLEDevice.h"
+#include "ble/BLE.h"
 
 /**
 * @class DeviceInformationService

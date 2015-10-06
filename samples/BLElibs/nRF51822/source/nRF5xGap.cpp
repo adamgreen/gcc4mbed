@@ -143,13 +143,13 @@ ble_error_t nRF5xGap::startAdvertising(const GapAdvertisingParams &params)
     /* Check interval range */
     if (params.getAdvertisingType() == GapAdvertisingParams::ADV_NON_CONNECTABLE_UNDIRECTED) {
         /* Min delay is slightly longer for unconnectable devices */
-        if ((params.getInterval() < GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MIN_NONCON) ||
-            (params.getInterval() > GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MAX)) {
+        if ((params.getIntervalInADVUnits() < GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MIN_NONCON) ||
+            (params.getIntervalInADVUnits() > GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MAX)) {
             return BLE_ERROR_PARAM_OUT_OF_RANGE;
         }
     } else {
-        if ((params.getInterval() < GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MIN) ||
-            (params.getInterval() > GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MAX)) {
+        if ((params.getIntervalInADVUnits() < GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MIN) ||
+            (params.getIntervalInADVUnits() > GapAdvertisingParams::GAP_ADV_PARAMS_INTERVAL_MAX)) {
             return BLE_ERROR_PARAM_OUT_OF_RANGE;
         }
     }
@@ -171,10 +171,10 @@ ble_error_t nRF5xGap::startAdvertising(const GapAdvertisingParams &params)
     ble_gap_adv_params_t adv_para = {0};
 
     adv_para.type        = params.getAdvertisingType();
-    adv_para.p_peer_addr = NULL;                         // Undirected advertisement
+    adv_para.p_peer_addr = NULL;                           // Undirected advertisement
     adv_para.fp          = BLE_GAP_ADV_FP_ANY;
     adv_para.p_whitelist = NULL;
-    adv_para.interval    = params.getInterval();         // advertising interval (in units of 0.625 ms)
+    adv_para.interval    = params.getIntervalInADVUnits(); // advertising interval (in units of 0.625 ms)
     adv_para.timeout     = params.getTimeout();
 
     ASSERT(ERROR_NONE == sd_ble_gap_adv_start(&adv_para), BLE_ERROR_PARAM_OUT_OF_RANGE);
@@ -434,7 +434,7 @@ ble_error_t nRF5xGap::setAppearance(GapAdvertisingData::Appearance appearance)
 
 ble_error_t nRF5xGap::getAppearance(GapAdvertisingData::Appearance *appearanceP)
 {
-    if (sd_ble_gap_appearance_get(reinterpret_cast<uint16_t *>(appearanceP))) {
+    if ((sd_ble_gap_appearance_get(reinterpret_cast<uint16_t *>(appearanceP)) == NRF_SUCCESS)) {
         return BLE_ERROR_NONE;
     } else {
         return BLE_ERROR_PARAM_OUT_OF_RANGE;

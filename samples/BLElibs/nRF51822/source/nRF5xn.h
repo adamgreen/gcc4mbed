@@ -19,7 +19,7 @@
 
 #include "mbed.h"
 #include "ble/blecommon.h"
-#include "ble/BLEDevice.h"
+#include "ble/BLE.h"
 #include "nRF5xGap.h"
 #include "nRF5xGattServer.h"
 #include "nRF5xGattClient.h"
