@@ -177,18 +177,6 @@ endif
 MRI_INIT_PARAMETERS := $(MRI_UART)
 
 
-#  Compiler/Assembler/Linker Paths
-GCC4MBED_TOOLPATH ?= $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
-GCC     := $(GCC4MBED_TOOLPATH)/arm-none-eabi-gcc
-GPP     := $(GCC4MBED_TOOLPATH)/arm-none-eabi-g++
-AS      := $(GCC4MBED_TOOLPATH)/arm-none-eabi-as
-AR      := $(GCC4MBED_TOOLPATH)/arm-none-eabi-ar
-LD      := $(GCC4MBED_TOOLPATH)/arm-none-eabi-g++
-OBJCOPY := $(GCC4MBED_TOOLPATH)/arm-none-eabi-objcopy
-OBJDUMP := $(GCC4MBED_TOOLPATH)/arm-none-eabi-objdump
-SIZE    := $(GCC4MBED_TOOLPATH)/arm-none-eabi-size
-
-
 # Some tools are different on Windows in comparison to Unix.
 ifeq "$(OS)" "Windows_NT"
 REMOVE = del
@@ -215,6 +203,18 @@ define convert-slash
 $1
 endef
 endif
+
+
+#  Compiler/Assembler/Linker Paths
+GCC4MBED_TOOLPATH ?= $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
+GCC     := $(call convert-slash,$(GCC4MBED_TOOLPATH)/arm-none-eabi-gcc)
+GPP     := $(call convert-slash,$(GCC4MBED_TOOLPATH)/arm-none-eabi-g++)
+AS      := $(call convert-slash,$(GCC4MBED_TOOLPATH)/arm-none-eabi-as)
+AR      := $(call convert-slash,$(GCC4MBED_TOOLPATH)/arm-none-eabi-ar)
+LD      := $(call convert-slash,$(GCC4MBED_TOOLPATH)/arm-none-eabi-g++)
+OBJCOPY := $(call convert-slash,$(GCC4MBED_TOOLPATH)/arm-none-eabi-objcopy)
+OBJDUMP := $(call convert-slash,$(GCC4MBED_TOOLPATH)/arm-none-eabi-objdump)
+SIZE    := $(call convert-slash,$(GCC4MBED_TOOLPATH)/arm-none-eabi-size)
 
 
 # Make sure that the mbed library always gets linked in.

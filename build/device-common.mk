@@ -356,7 +356,12 @@ else
 # Have an empty rule for this device since it isn't supported.
 .PHONY: $(MBED_DEVICE)
 
+ifeq "$(OS)" "Windows_NT"
+$(MBED_DEVICE):
+	@REM >nul
+else
 $(MBED_DEVICE):
 	@#
+endif
 
 endif # ifeq "$(findstring $(MBED_DEVICE),$(DEVICES))"...
