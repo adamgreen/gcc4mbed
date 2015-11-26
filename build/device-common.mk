@@ -187,27 +187,27 @@ $(MBED_DEVICE)-deploy: $(MBED_DEVICE)
 	$(Q) $(subst PROJECT,$(call convert-slash,$(DEPLOY_PREFIX)),$(GCC4MBED_DEPLOY))
 endif
 
-$(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c makefile
+$(OUTDIR)/gcc4mbed.o : $(GCC4MBED_DIR)/src/gcc4mbed.c $(firstword $(MAKEFILE_LIST))
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(C_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : $(SRC)/%.cpp makefile
+$(OUTDIR)/%.o : $(SRC)/%.cpp  $(firstword $(MAKEFILE_LIST))
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GPP) $(CPP_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : $(SRC)/%.c makefile
+$(OUTDIR)/%.o : $(SRC)/%.c  $(firstword $(MAKEFILE_LIST))
 	@echo Compiling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(C_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : $(SRC)/%.S makefile
+$(OUTDIR)/%.o : $(SRC)/%.S  $(firstword $(MAKEFILE_LIST))
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
 
-$(OUTDIR)/%.o : $(SRC)/%.s makefile
+$(OUTDIR)/%.o : $(SRC)/%.s  $(firstword $(MAKEFILE_LIST))
 	@echo Assembling $<
 	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
 	$(Q) $(GCC) $(ASM_FLAGS) $(MBED_INCLUDES) -c $< -o $@
