@@ -13,6 +13,7 @@
 # limitations under the License.
 PROJECT         := HelloWorld
 DEVICES         := DISCO_F407VG \
+                   DISCO_F429ZI \
                    KL25Z \
                    LPC1768 \
                    LPC11C24 \
