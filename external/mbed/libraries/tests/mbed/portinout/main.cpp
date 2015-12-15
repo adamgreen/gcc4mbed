@@ -90,6 +90,7 @@
       defined(TARGET_NUCLEO_F303RE) || \
       defined(TARGET_NUCLEO_F334R8) || \
       defined(TARGET_NUCLEO_F401RE) || \
+      defined(TARGET_NUCLEO_F410RB) || \
       defined(TARGET_NUCLEO_F411RE) || \
       defined(TARGET_NUCLEO_L053R8) || \
       defined(TARGET_NUCLEO_L073RZ) || \
@@ -136,6 +137,24 @@
 
 #define P2_1    (1 << 2)  /*PB02*/
 #define P2_2    (1 << 3)  /*PB03*/
+#define PORT_2  PortB
+
+#elif defined(TARGET_SAMD21G18A)
+#define P1_1    (1 << 2)  /*PA02*/
+#define P1_2    (1 << 3)  /*PA03*/
+#define PORT_1  PortA
+
+#define P2_1    (1 << 2)  /*PB02*/
+#define P2_2    (1 << 3)  /*PB03*/
+#define PORT_2  PortB
+
+#elif defined(TARGET_SAML21J18A)
+#define P1_1    (1 << 4)  /*PA04*/
+#define P1_2    (1 << 5)  /*PA05*/
+#define PORT_1  PortA
+
+#define P2_1    (1 << 0)  /*PB00*/
+#define P2_2    (1 << 1)  /*PB01*/
 #define PORT_2  PortB
 
 #endif
