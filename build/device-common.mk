@@ -28,7 +28,7 @@ RELEASE_OPTIMIZATION := 2
 DEP_FLAGS := -MMD -MP
 
 # Preprocessor defines to use when compiling/assembling code with GCC.
-GCC_DEFINES += $(TOOLCHAIN_DEFINES) -D__MBED__=1
+GCC_DEFINES += $(TOOLCHAIN_DEFINES) -D__MBED__=1 -D_C99_SOURCE
 
 # Flags to be used with C/C++ compiler that are shared between Debug and Release builds.
 C_FLAGS += -g3 -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer

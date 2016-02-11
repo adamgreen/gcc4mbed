@@ -1,5 +1,5 @@
 @echo off
-rem Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
+rem Copyright 2016 Adam Green (http://mbed.org/users/AdamGreen/)
 rem
 rem Licensed under the Apache License, Version 2.0 (the "License");
 rem you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ setlocal
 set ROOTDIR=%~dp0
 set LOGFILE=%ROOTDIR%win_install.log
 set ERRORFILE=%ROOTDIR%win_install.err
-set GCC4ARM_VERSION=gcc-arm-none-eabi-4_9-2015q3
-set GCC4ARM_FILENAME=gcc-arm-none-eabi-4_9-2015q3-20150921-win32.zip
-set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/%GCC4ARM_FILENAME%
+set GCC4ARM_VERSION=gcc-arm-none-eabi-5_2-2015q4
+set GCC4ARM_FILENAME=gcc-arm-none-eabi-5_2-2015q4-20151219-win32.zip
+set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/%GCC4ARM_FILENAME%
 set GCC4ARM_TAR=%ROOTDIR%%GCC4ARM_FILENAME%
-set GCC4ARM_MD5=d944be40a5bdb2327d80db23290c6b9d
+set GCC4ARM_MD5=5b513d3453ecd5e2034eeb951a79607f
 set GCC4ARM_MD5_FILENAME=%ROOTDIR%gcc-arm-none-eabi.md5
 set GCC4ARM_DIR=%ROOTDIR%gcc-arm-none-eabi
 set GCC4ARM_BINDIR=%GCC4ARM_DIR%\bin

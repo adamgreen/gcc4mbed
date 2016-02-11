@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2016 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,11 +37,11 @@ pushd $ROOTDIR
 ROOTDIR=$PWD
 LOGFILE=$ROOTDIR/linux_install.log
 ERRORFILE=$ROOTDIR/linux_install.err
-GCC4ARM_VERSION=gcc-arm-none-eabi-4_9-2015q3
-GCC4ARM_FILENAME=gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
-GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/$GCC4ARM_FILENAME
+GCC4ARM_VERSION=gcc-arm-none-eabi-5_2-2015q4
+GCC4ARM_FILENAME=gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2
+GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/$GCC4ARM_FILENAME
 GCC4ARM_TAR=$ROOTDIR/$GCC4ARM_FILENAME
-GCC4ARM_MD5=8a4a74872830f80c788c944877d3ad8c
+GCC4ARM_MD5=f88caac80b4444a17344f57ccb760b90
 GCC4ARM_EXTRACT=$ROOTDIR/$GCC4ARM_VERSION
 GCC4ARM_DIR=$ROOTDIR/gcc-arm-none-eabi
 GCC4ARM_BINDIR=$GCC4ARM_DIR/bin

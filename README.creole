@@ -1,5 +1,5 @@
 ==Current Version
-**GCC Version:**  [[https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update | GCC ARM Embedded 4.9-2015-q3-update]]\\
+**GCC Version:**  [[https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major | GCC ARM Embedded 5-2015-q4-major]]\\
 **mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev113 | Revision 113]]\\
 
 ==Previous Versions
