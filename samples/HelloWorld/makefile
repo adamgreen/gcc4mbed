@@ -22,6 +22,8 @@ DEVICES         := DISCO_F407VG \
                    NRF51822 \
                    NUCLEO_F401RE \
                    NUCLEO_F411RE \
+                   NUCLEO_F446RE \
+                   B96B_F446VE \
                    NUCLEO_F072RB \
                    NUCLEO_F103RB \
                    NUCLEO_L053R8
