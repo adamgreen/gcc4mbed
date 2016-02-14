@@ -20,6 +20,8 @@ DEVICES         := DISCO_F407VG \
                    LPC4330_M4 \
                    NUCLEO_F401RE \
                    NUCLEO_F411RE \
+                   NUCLEO_F446RE \
+                   B96B_F446VE \
                    NUCLEO_F072RB \
                    NUCLEO_F103RB
 GCC4MBED_DIR    := ../..
