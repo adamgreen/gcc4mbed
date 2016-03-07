@@ -58,6 +58,7 @@ DEBUG_DIR   := $(MBED_DEBUG_DIR)/$(MBED_DEVICE)
 ###############################################################################
 # Build User Libraries
 ###############################################################################
+DEPFILES :=
 $(foreach i,$(sort $(USER_LIBS)),$(eval $(call build_user_lib,$i)))
 $(foreach i,$(USER_LIBS),$(eval $(call add_user_lib,$i)))
 
@@ -92,7 +93,7 @@ OBJECTS += $(OUTDIR)/gcc4mbed.o
 OBJECTS += $(DEVICE_OBJECTS)
 
 # Initialize list of the header dependency files, one per object file. Each mbed SDK library will append to this list.
-DEPFILES := $(patsubst %.o,%.d,$(OBJECTS))
+DEPFILES += $(patsubst %.o,%.d,$(OBJECTS))
 
 # Location of external library and header dependencies.
 EXTERNAL_DIR = $(GCC4MBED_DIR)/external
