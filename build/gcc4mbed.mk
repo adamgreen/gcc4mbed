@@ -367,42 +367,42 @@ define build_user_lib #,lib_dir
     $$(LIB_DEBUG_DIR)/%.o : $$(LIB_DIR)/%.c
 		@echo Compiling $$<
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
-		$(Q) $(GCC) $$(C_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+		$(Q) $(GCC) $$(C_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -I$(GCC4MBED_DIR)/mri -c $$< -o $$@
 
     $$(LIB_RELEASE_DIR)/%.o : $$(LIB_DIR)/%.c
 		@echo Compiling $$<
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
-		$(Q) $(GCC) $$(C_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+		$(Q) $(GCC) $$(C_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -I$(GCC4MBED_DIR)/mri -c $$< -o $$@
 
     $$(LIB_DEBUG_DIR)/%.o : $$(LIB_DIR)/%.cpp
 		@echo Compiling $$<
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
-		$(Q) $(GPP) $$(CPP_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+		$(Q) $(GPP) $$(CPP_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -I$(GCC4MBED_DIR)/mri -c $$< -o $$@
 
     $$(LIB_RELEASE_DIR)/%.o : $$(LIB_DIR)/%.cpp
 		@echo Compiling $$<
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
-		$(Q) $(GPP) $$(CPP_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+		$(Q) $(GPP) $$(CPP_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -I$(GCC4MBED_DIR)/mri -c $$< -o $$@
 
     $$(LIB_DEBUG_DIR)/%.o : $$(LIB_DIR)/%.s
 		@echo Assembling $$<
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
-		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -I$(GCC4MBED_DIR)/mri -c $$< -o $$@
 
     $$(LIB_RELEASE_DIR)/%.o : $$(LIB_DIR)/%.s
 		@echo Assembling $$<
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
-		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -I$(GCC4MBED_DIR)/mri -c $$< -o $$@
 
     $$(LIB_DEBUG_DIR)/%.o : $$(LIB_DIR)/%.S
 		@echo Assembling $$<
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
-		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -I$(GCC4MBED_DIR)/mri -c $$< -o $$@
 
     $$(LIB_RELEASE_DIR)/%.o : $$(LIB_DIR)/%.S
 		@echo Assembling $$<
 		$(Q) $(MKDIR) $$(call convert-slash,$$(dir $$@)) $(QUIET)
-		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -c $$< -o $$@
+		$(Q) $(GCC) $$(ASM_FLAGS) $$(LIB_INCLUDES) $$(MBED_INCLUDES) -I$(GCC4MBED_DIR)/mri -c $$< -o $$@
 
 endef
 define clean_user_lib #,lib_dir
