@@ -1,10 +1,16 @@
 #include "mbed.h"
 #include "test_env.h"
 
+#if !DEVICE_CAN
+  #error [NOT_SUPPORTED] CAN not supported
+#endif
+
 #if defined(TARGET_LPC1549)
 CAN can1(D9, D8);
 #elif defined(TARGET_LPC1768) || defined(TARGET_LPC4088)
 CAN can1(p9, p10);
+#elif defined(TARGET_B96B_F446VE)
+CAN can1(PD_0, PD_1);
 #endif
 
 #define TEST_ITERATIONS     127

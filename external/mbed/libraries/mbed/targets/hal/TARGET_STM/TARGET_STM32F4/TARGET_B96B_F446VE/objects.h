@@ -66,8 +66,7 @@ struct dac_s {
 };
 
 struct serial_s {
-    UARTName uart;
-    int index; // Used by irq
+    int index;
     uint32_t baudrate;
     uint32_t databits;
     uint32_t stopbits;
@@ -76,6 +75,11 @@ struct serial_s {
     PinName pin_rx;
 #if DEVICE_SERIAL_ASYNCH
     uint32_t events;
+#endif
+#if DEVICE_SERIAL_FC
+    uint32_t hw_flow_ctl;
+    PinName pin_rts;
+    PinName pin_cts;
 #endif
 };
 
@@ -105,6 +109,11 @@ struct pwmout_s {
     uint32_t pulse;
     uint8_t channel;
     uint8_t inverted;
+};
+
+struct can_s {
+    CANName can;
+    int index; // Used by irq	
 };
 
 #include "gpio_object.h"

@@ -1,5 +1,9 @@
 #include "test_env.h"
 
+#if !DEVICE_SLEEP
+  #error [NOT_SUPPORTED] Sleep is not supported
+#endif
+
 #if defined(TARGET_LPC4088)
 InterruptIn wkp(P2_10);
 #elif defined(TARGET_K22F)

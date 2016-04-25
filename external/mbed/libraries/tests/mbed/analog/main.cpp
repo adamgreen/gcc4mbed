@@ -1,5 +1,13 @@
 #include "test_env.h"
 
+#if !DEVICE_ANALOGIN
+  #error [NOT_SUPPORTED] AnalogIn not supported
+#endif
+
+#if !DEVICE_ANALOGOUT
+  #error [NOT_SUPPORTED] AnalogOut not supported
+#endif
+
 #if defined(TARGET_K64F) | defined (TARGET_K22F)
 AnalogIn in(A0);
 AnalogOut out(DAC0_OUT);

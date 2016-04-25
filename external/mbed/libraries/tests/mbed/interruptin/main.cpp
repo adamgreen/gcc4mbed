@@ -1,5 +1,9 @@
 #include "test_env.h"
 
+#if !DEVICE_INTERRUPTIN
+  #error [NOT_SUPPORTED] InterruptIn is not supported
+#endif
+
 DigitalOut myled(LED1);
 DigitalOut led2(LED2);
 
@@ -101,9 +105,13 @@ void in_handler() {
 #define PIN_OUT    PB02
 #define PIN_IN     PB03
 
-#elif defined(TARGET_SAML21J18A) 
+#elif defined(TARGET_SAML21J18A)
 #define PIN_OUT    PA02
 #define PIN_IN     PA03
+
+#elif defined(TARGET_SAMG55J19)
+#define PIN_OUT    PA13
+#define PIN_IN     PB13
 
 #else
 #define PIN_IN      (p5)
