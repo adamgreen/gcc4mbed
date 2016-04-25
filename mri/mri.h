@@ -93,11 +93,11 @@ int __mriPlatform_CommUartIndex(void);
 
 #ifndef MRI_VERSION_STRING
 
-#define MRI_BRANCH "https://github.com/adamgreen/mri/tree/version_0.8"
+#define MRI_BRANCH "https://github.com/adamgreen/mri/tree/version_0.9"
 
 #define MRI_VERSION_MAJOR       0
-#define MRI_VERSION_MINOR       8
-#define MRI_VERSION_BUILD       20151208
+#define MRI_VERSION_MINOR       9
+#define MRI_VERSION_BUILD       20160409
 #define MRI_VERSION_SUBBUILD    1
 
 #define MRI_STR(X) MRI_STR2(X)
