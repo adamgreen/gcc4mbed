@@ -14,7 +14,6 @@
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.8-2014-q1_mbed84|GCC ARM Embedded 4.8-2014-q1-update with mbed SDK revision 84]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.7-2012-q4_mbed54|GCC ARM Embedded 4.7-2012-q4-major with mbed SDK revision 54]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.6-2012-q1_mbed43|GCC ARM Embedded 4.6-2012-q1-update with mbed SDK revision 43]]\\
-[[https://github.com/adamgreen/gcc4mbed/tree/cs2011.03-42_mbed28|Code Sourcery G++ Lite 2011.03-42 with mbed SDK revision 28]]\\
 
 ==Quick Start
 These are the quick steps to get gcc4mbed installed on your computer:
