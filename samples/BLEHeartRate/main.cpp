@@ -19,6 +19,7 @@
 #include "ble/services/HeartRateService.h"
 #include "ble/services/BatteryService.h"
 #include "ble/services/DeviceInformationService.h"
+#include "nRF5xn.h"
 
 DigitalOut led1(LED1);
 
@@ -81,6 +82,9 @@ int main(void)
 
     BLE& ble = BLE::Instance(BLE::DEFAULT_INSTANCE);
     ble.init(bleInitComplete);
+
+    // Instantiate security manager now so that it doesn't need to be done from an ISR later.
+    nRF5xn::Instance(BLE::DEFAULT_INSTANCE).getSecurityManager();
 
     /* SpinWait for initialization to complete. This is necessary because the
      * BLE object is used in the main loop below. */
