@@ -17,38 +17,38 @@
 #ifndef __BLE_HEALTH_THERMOMETER_SERVICE_H__
 #define __BLE_HEALTH_THERMOMETER_SERVICE_H__
 
-#include "BLE.h"
+#include "ble/BLE.h"
 
 /**
 * @class HealthThermometerService
-* @brief BLE Health Thermometer Service. This service provides the location of the thermometer and the temperature.  <br>
-* Service:  https://developer.bluetooth.org/gatt/profiles/Pages/ProfileViewer.aspx?u=org.bluetooth.profile.health_thermometer.xml <br>
-* Temperature Measurement: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_measurement.xml <br>
+* @brief BLE Health Thermometer Service. This service provides the location of the thermometer and the temperature.
+* Service:  https://developer.bluetooth.org/gatt/profiles/Pages/ProfileViewer.aspx?u=org.bluetooth.profile.health_thermometer.xml
+* Temperature Measurement: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_measurement.xml
 * Temperature Type: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_type.xml
 */
 class HealthThermometerService {
 public:
     /**
-    * @enum Sensor Location
-    * @brief Location of sensor on the body
+    * @enum Sensor Location.
+    * @brief Location of sensor on the body.
     */
     enum SensorLocation_t {
-        LOCATION_ARMPIT = 1,    /*!< armpit */
-        LOCATION_BODY,          /*!< body */
-        LOCATION_EAR,           /*!< ear */
-        LOCATION_FINGER,        /*!< finger */
+        LOCATION_ARMPIT = 1,    /*!< Armpit. */
+        LOCATION_BODY,          /*!< Body. */
+        LOCATION_EAR,           /*!< Ear. */
+        LOCATION_FINGER,        /*!< Finger. */
         LOCATION_GI_TRACT,      /*!< GI tract */
-        LOCATION_MOUTH,         /*!< mouth */
-        LOCATION_RECTUM,        /*!< rectum */
-        LOCATION_TOE,           /*!< toe */
-        LOCATION_EAR_DRUM,      /*!< ear drum */
+        LOCATION_MOUTH,         /*!< Mouth. */
+        LOCATION_RECTUM,        /*!< Rectum. */
+        LOCATION_TOE,           /*!< Toe. */
+        LOCATION_EAR_DRUM,      /*!< Eardrum. */
     };
 
 public:
     /**
-     * @brief Add the Health Thermometer Service to an existing ble object, initialize with temperature and location.
-     * @param[ref] _ble         reference to the BLE device
-     * @param[in] initialTemp  initial value in celsius
+     * @brief Add the Health Thermometer Service to an existing BLE object, initialize with temperature and location.
+     * @param[ref] _ble         Reference to the BLE device.
+     * @param[in] initialTemp  Initial value in celsius.
      * @param[in] _location
      */
     HealthThermometerService(BLE &_ble, float initialTemp, uint8_t _location) :
@@ -64,10 +64,10 @@ public:
     }
 
     /**
-    * @brief Update the temperature being broadcast
+    * @brief Update the temperature being broadcast.
     *
     * @param[in] temperature
-    *                   Floating point value of the temperature
+    *                   Floating point value of the temperature.
     *
     */
     void updateTemperature(float temperature) {
@@ -80,14 +80,14 @@ public:
     /**
      * @brief Update the location.
      * @param loc
-     *        new location value.
+     *        New location value.
      */
     void updateLocation(SensorLocation_t loc) {
         ble.gattServer().write(tempLocation.getValueHandle(), reinterpret_cast<uint8_t *>(&loc), sizeof(uint8_t));
     }
 
 private:
-    /* Private internal representation for the bytes used to work with the vaulue of the heart-rate characteristic. */
+    /* Private internal representation for the bytes used to work with the vaulue of the temperature characteristic. */
     struct TemperatureValueBytes {
         static const unsigned OFFSET_OF_FLAGS    = 0;
         static const unsigned OFFSET_OF_VALUE    = OFFSET_OF_FLAGS + sizeof(uint8_t);
@@ -101,7 +101,7 @@ private:
         static const uint8_t  TEMPERATURE_UNITS_FAHRENHEIT = 1;
 
         TemperatureValueBytes(float initialTemperature) : bytes() {
-            /* assumption: temperature values are expressed in Celsius */
+            /* Assumption: temperature values are expressed in celsius */
             bytes[OFFSET_OF_FLAGS] =  (TEMPERATURE_UNITS_CELSIUS << TEMPERATURE_UNITS_FLAG_POS) |
                                       (false << TIMESTAMP_FLAG_POS) |
                                       (false << TEMPERATURE_TYPE_FLAG_POS);
@@ -128,15 +128,15 @@ private:
          * @return The temperature in 11073-20601 FLOAT-Type format.
          */
         uint32_t quick_ieee11073_from_float(float temperature) {
-            uint8_t  exponent = 0xFE; //exponent is -2
+            uint8_t  exponent = 0xFE; //Exponent is -2
             uint32_t mantissa = (uint32_t)(temperature * 100);
 
             return (((uint32_t)exponent) << 24) | mantissa;
         }
 
 private:
-        /* First byte = 8-bit flags, Second field is a float holding the temperature value. */
-        /* See --> https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_measurement.xml */
+        /* First byte: 8-bit flags. Second field is a float holding the temperature value. */
+        /* See https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.temperature_measurement.xml */
         uint8_t bytes[SIZEOF_VALUE_BYTES];
     };
 

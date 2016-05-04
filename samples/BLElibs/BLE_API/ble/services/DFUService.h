@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
+#ifdef TARGET_NRF51822 /* DFU only supported on nrf51 platforms */
+
 #ifndef __BLE_DFU_SERVICE_H__
 #define __BLE_DFU_SERVICE_H__
 
 #include "ble/BLE.h"
 #include "ble/UUID.h"
 
-extern "C" void bootloader_start(void);
+extern "C" {
+#include "dfu_app_handler.h"
+}
 
 extern const uint8_t  DFUServiceBaseUUID[];
 extern const uint16_t DFUServiceShortUUID;
@@ -37,20 +41,20 @@ extern const uint8_t  DFUServicePacketCharacteristicUUID[];
 class DFUService {
 public:
     /**
-     * @brief Signature for the handover callback. The application may provide such a
-     * callback when setting up the DFU service, in which case it will be
+     * @brief Signature for the handover callback. The application may provide this
+     * callback when setting up the DFU service. The callback is then
      * invoked before handing control over to the bootloader.
      */
     typedef void (*ResetPrepare_t)(void);
 
 public:
     /**
-    * @brief Adds Device Firmware Update service to an existing ble object.
+    * @brief Adds Device Firmware Update Service to an existing BLE object.
     *
     * @param[ref] _ble
     *               BLE object for the underlying controller.
     * @param[in] _handoverCallback
-    *                Application specific handover callback.
+    *                Application-specific handover callback.
     */
     DFUService(BLE &_ble, ResetPrepare_t _handoverCallback = NULL) :
         ble(_ble),
@@ -59,12 +63,12 @@ public:
                GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE),
         controlBytes(),
         packetBytes() {
-        static bool serviceAdded = false; /* We should only ever need to add the DFU service once. */
+        static bool serviceAdded = false; /* We only add the DFU service once. */
         if (serviceAdded) {
             return;
         }
 
-        /* Set an initial value for control bytes so that the application's DFUService can
+        /* Set an initial value for control bytes, so that the application's DFU service can
          * be distinguished from the real DFU service provided by the bootloader. */
         controlBytes[0] = 0xFF;
         controlBytes[1] = 0xFF;
@@ -80,7 +84,7 @@ public:
     }
 
     /**
-    * @brief get the handle for the value attribute of the control characteristic.
+    * @brief Get the handle for the value attribute of the control characteristic.
     */
     uint16_t getControlHandle(void) const {
         return controlPoint.getValueHandle();
@@ -88,7 +92,7 @@ public:
 
     /**
      * @brief This callback allows the DFU service to receive the initial trigger to
-     * handover control to the bootloader; but first the application is given a
+     * hand control over to the bootloader. First, the application is given a
      * chance to clean up.
      *
      * @param[in] params
@@ -96,12 +100,20 @@ public:
      */
     virtual void onDataWritten(const GattWriteCallbackParams *params) {
         if (params->handle == controlPoint.getValueHandle()) {
-            /* At present, writing anything will do the trick--this needs to be improved. */
+            /* At present, writing anything will do the trick - this needs to be improved. */
             if (handoverCallback) {
                 handoverCallback();
             }
 
-            bootloader_start();
+            // Call bootloader_start implicitly trough a event handler call
+            // it is a work around for bootloader_start not being public in sdk 8.1
+            ble_dfu_t p_dfu;
+            ble_dfu_evt_t p_evt;
+
+            p_dfu.conn_handle = params->connHandle;
+            p_evt.ble_dfu_evt_type = BLE_DFU_START;
+
+            dfu_app_on_dfu_evt(&p_dfu, &p_evt);
         }
     }
 
@@ -112,22 +124,23 @@ protected:
 protected:
     BLE          &ble;
 
-    /**< Writing to the control characteristic triggers the handover to dfu-
-      *  bootloader. At present, writing anything will do the trick--this needs
+    /**< Writing to the control characteristic triggers the handover to DFU 
+      *  bootloader. At present, writing anything will do the trick - this needs
       *  to be improved. */
     WriteOnlyArrayGattCharacteristic<uint8_t, SIZEOF_CONTROL_BYTES> controlPoint;
 
-    /**< The packet characteristic in this service doesn't do anything meaningful, but
-      *  is only a placeholder to mimic the corresponding characteristic in the
+    /**< The packet characteristic in this service doesn't do anything meaningful;
+      *  it is only a placeholder to mimic the corresponding characteristic in the
       *  actual DFU service implemented by the bootloader. Without this, some
-      *  FOTA clients might get confused as service definitions change after
+      *  FOTA clients might get confused, because service definitions change after
       *  handing control over to the bootloader. */
     GattCharacteristic  packet;
 
     uint8_t             controlBytes[SIZEOF_CONTROL_BYTES];
     uint8_t             packetBytes[SIZEOF_PACKET_BYTES];
 
-    static ResetPrepare_t handoverCallback;  /**< application specific handover callback. */
+    static ResetPrepare_t handoverCallback;  /**< Application-specific handover callback. */
 };
 
 #endif /* #ifndef __BLE_DFU_SERVICE_H__*/
+#endif /* #ifdef TARGET_NRF51822 */

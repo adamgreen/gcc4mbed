@@ -15,15 +15,16 @@
  */
 
 #include "ble/BLE.h"
+#include "ble/BLEInstanceBase.h"
 
 #if defined(TARGET_OTA_ENABLED)
 #include "ble/services/DFUService.h"
 #endif
 
 ble_error_t
-BLE::init()
+BLE::initImplementation(FunctionPointerWithContext<InitializationCompleteCallbackContext *> callback)
 {
-    ble_error_t err = transport->init();
+    ble_error_t err = transport->init(instanceID, callback);
     if (err != BLE_ERROR_NONE) {
         return err;
     }
@@ -105,7 +106,7 @@ BLE::Instance(InstanceID_t id)
     return badSingleton;
 }
 
-BLE::BLE(InstanceID_t instanceID) : transport()
+BLE::BLE(InstanceID_t instanceIDIn) : instanceID(instanceIDIn), transport()
 {
     static BLEInstanceBase *transportInstances[NUM_INSTANCES];
 
@@ -117,4 +118,112 @@ BLE::BLE(InstanceID_t instanceID) : transport()
     } else {
         transport = NULL;
     }
+}
+
+bool BLE::hasInitialized(void) const
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->hasInitialized();
+}
+
+ble_error_t BLE::shutdown(void)
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->shutdown();
+}
+
+const char *BLE::getVersion(void)
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getVersion();
+}
+
+const Gap &BLE::gap() const
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getGap();
+}
+
+Gap &BLE::gap()
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getGap();
+}
+
+const GattServer& BLE::gattServer() const
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getGattServer();
+}
+
+GattServer& BLE::gattServer()
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getGattServer();
+}
+
+const GattClient& BLE::gattClient() const
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getGattClient();
+}
+
+GattClient& BLE::gattClient()
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getGattClient();
+}
+
+const SecurityManager& BLE::securityManager() const
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getSecurityManager();
+}
+
+SecurityManager& BLE::securityManager()
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    return transport->getSecurityManager();
+}
+
+void BLE::waitForEvent(void)
+{
+    if (!transport) {
+        error("bad handle to underlying transport");
+    }
+
+    transport->waitForEvent();
 }

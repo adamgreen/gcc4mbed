@@ -21,7 +21,7 @@
 
 /**
 * @class iBeacon
-* @brief iBeacon Service. This sets up a device to broadcast advertising packets to mimic an iBeacon<br>
+* @brief iBeacon Service. This sets up a device to broadcast advertising packets to mimic an iBeacon.
 */
 class iBeacon
 {
@@ -56,12 +56,12 @@ public:
             uint16_t        compID = 0x004C) :
         ble(_ble), data(uuid, majNum, minNum, txP, compID)
     {
-        // Generate the 0x020106 part of the iBeacon Prefix
+        // Generate the 0x020106 part of the iBeacon Prefix.
         ble.accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED | GapAdvertisingData::LE_GENERAL_DISCOVERABLE );
-        // Generate the 0x1AFF part of the iBeacon Prefix
+        // Generate the 0x1AFF part of the iBeacon Prefix.
         ble.accumulateAdvertisingPayload(GapAdvertisingData::MANUFACTURER_SPECIFIC_DATA, data.raw, sizeof(data.raw));
 
-        // Set advertising type
+        // Set advertising type.
         ble.setAdvertisingType(GapAdvertisingParams::ADV_NON_CONNECTABLE_UNDIRECTED);
     }
 

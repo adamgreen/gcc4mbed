@@ -20,7 +20,6 @@
 #include "ble/services/BatteryService.h"
 #include "ble/services/DeviceInformationService.h"
 
-BLE  ble;
 DigitalOut led1(LED1);
 
 const static char     DEVICE_NAME[]        = "HRM1";
@@ -28,9 +27,14 @@ static const uint16_t uuid16_list[]        = {GattService::UUID_HEART_RATE_SERVI
                                               GattService::UUID_DEVICE_INFORMATION_SERVICE};
 static volatile bool  triggerSensorPolling = false;
 
+uint8_t hrmCounter = 100; // init HRM to 100bps
+
+HeartRateService         *hrService;
+DeviceInformationService *deviceInfo;
+
 void disconnectionCallback(const Gap::DisconnectionCallbackParams_t *params)
 {
-    ble.gap().startAdvertising(); // restart advertising
+    BLE::Instance(BLE::DEFAULT_INSTANCE).gap().startAdvertising(); // restart advertising
 }
 
 void periodicCallback(void)
@@ -42,21 +46,22 @@ void periodicCallback(void)
     triggerSensorPolling = true;
 }
 
-int main(void)
+void bleInitComplete(BLE::InitializationCompleteCallbackContext *params)
 {
-    led1 = 1;
-    Ticker ticker;
-    ticker.attach(periodicCallback, 1); // blink LED every second
+    BLE &ble          = params->ble;
+    ble_error_t error = params->error;
 
-    ble.init();
+    if (error != BLE_ERROR_NONE) {
+        return;
+    }
+
     ble.gap().onDisconnection(disconnectionCallback);
 
     /* Setup primary service. */
-    uint8_t hrmCounter = 100; // init HRM to 100bps
-    HeartRateService hrService(ble, hrmCounter, HeartRateService::LOCATION_FINGER);
+    hrService = new HeartRateService(ble, hrmCounter, HeartRateService::LOCATION_FINGER);
 
     /* Setup auxiliary service. */
-    DeviceInformationService deviceInfo(ble, "ARM", "Model1", "SN1", "hw-rev1", "fw-rev1", "soft-rev1");
+    deviceInfo = new DeviceInformationService(ble, "ARM", "Model1", "SN1", "hw-rev1", "fw-rev1", "soft-rev1");
 
     /* Setup advertising. */
     ble.gap().accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED | GapAdvertisingData::LE_GENERAL_DISCOVERABLE);
@@ -66,6 +71,20 @@ int main(void)
     ble.gap().setAdvertisingType(GapAdvertisingParams::ADV_CONNECTABLE_UNDIRECTED);
     ble.gap().setAdvertisingInterval(1000); /* 1000ms */
     ble.gap().startAdvertising();
+}
+
+int main(void)
+{
+    led1 = 1;
+    Ticker ticker;
+    ticker.attach(periodicCallback, 1); // blink LED every second
+
+    BLE& ble = BLE::Instance(BLE::DEFAULT_INSTANCE);
+    ble.init(bleInitComplete);
+
+    /* SpinWait for initialization to complete. This is necessary because the
+     * BLE object is used in the main loop below. */
+    while (ble.hasInitialized()  == false) { /* spin loop */ }
 
     // infinite loop
     while (1) {
@@ -76,14 +95,11 @@ int main(void)
             // Do blocking calls or whatever is necessary for sensor polling.
             // In our case, we simply update the HRM measurement.
             hrmCounter++;
-
-            //  100 <= HRM bps <=175
-            if (hrmCounter == 175) {
+            if (hrmCounter == 175) { //  100 <= HRM bps <=175
                 hrmCounter = 100;
             }
 
-            // update bps
-            hrService.updateHeartRate(hrmCounter);
+            hrService->updateHeartRate(hrmCounter);
         } else {
             ble.waitForEvent(); // low power wait for event
         }

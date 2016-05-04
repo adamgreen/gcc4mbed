@@ -17,8 +17,13 @@
 #ifndef __BLE_UART_SERVICE_H__
 #define __BLE_UART_SERVICE_H__
 
+#ifdef YOTTA_CFG_MBED_OS
+#include "mbed-drivers/mbed.h"
+#include "mbed-drivers/Stream.h"
+#else
 #include "mbed.h"
 #include "Stream.h"
+#endif
 
 #include "ble/UUID.h"
 #include "ble/BLE.h"
@@ -35,12 +40,12 @@ extern const uint8_t  UARTServiceTXCharacteristicUUID[UUID::LENGTH_OF_LONG_UUID]
 extern const uint8_t  UARTServiceRXCharacteristicUUID[UUID::LENGTH_OF_LONG_UUID];
 
 /**
-* @class UARTService
-* @brief BLE Service to enable UART over BLE
+* @class UARTService.
+* @brief BLE Service to enable UART over BLE.
 */
 class UARTService {
 public:
-    /**< Maximum length of data (in bytes) that can be transmitted by the UART service module to the peer. */
+    /**< Maximum length of data (in bytes) that the UART service module can transmit to the peer. */
     static const unsigned BLE_UART_SERVICE_MAX_DATA_LEN = (BLE_GATT_MTU_SIZE_DEFAULT - 3);
 
 public:
@@ -82,20 +87,20 @@ public:
 
     /**
      * We attempt to collect bytes before pushing them to the UART RX
-     * characteristic--writing to the RX characteristic will then generate
+     * characteristic; writing to the RX characteristic then generates
      * notifications for the client. Updates made in quick succession to a
-     * notification-generating characteristic will result in data being buffered
-     * in the bluetooth stack as notifications are sent out. The stack will have
-     * its limits for this buffering; typically a small number under 10.
+     * notification-generating characteristic result in data being buffered
+     * in the Bluetooth stack as notifications are sent out. The stack has
+     * its limits for this buffering - typically a small number under 10.
      * Collecting data into the sendBuffer buffer helps mitigate the rate of
      * updates. But we shouldn't buffer a large amount of data before updating
-     * the characteristic otherwise the client will need to turn around and make
+     * the characteristic, otherwise the client needs to turn around and make
      * a long read request; this is because notifications include only the first
      * 20 bytes of the updated data.
      *
-     * @param  buffer The received update
-     * @param  length Amount of characters to be appended.
-     * @return        Amount of characters appended to the rxCharacteristic.
+     * @param  buffer The received update.
+     * @param  length Number of characters to be appended.
+     * @return        Number of characters appended to the rxCharacteristic.
      */
     size_t write(const void *_buffer, size_t length) {
         size_t         origLength = length;
@@ -107,13 +112,13 @@ public:
                 unsigned bytesRemainingInSendBuffer = BLE_UART_SERVICE_MAX_DATA_LEN - sendBufferIndex;
                 unsigned bytesToCopy                = (length < bytesRemainingInSendBuffer) ? length : bytesRemainingInSendBuffer;
 
-                /* copy bytes into sendBuffer */
+                /* Copy bytes into sendBuffer. */
                 memcpy(&sendBuffer[sendBufferIndex], &buffer[bufferIndex], bytesToCopy);
                 length          -= bytesToCopy;
                 sendBufferIndex += bytesToCopy;
                 bufferIndex     += bytesToCopy;
 
-                /* have we collected enough? */
+                /* Have we collected enough? */
                 if ((sendBufferIndex == BLE_UART_SERVICE_MAX_DATA_LEN) ||
                     // (sendBuffer[sendBufferIndex - 1] == '\r')          ||
                     (sendBuffer[sendBufferIndex - 1] == '\n')) {
@@ -129,14 +134,14 @@ public:
     /**
      * Helper function to write out strings.
      * @param  str The received string.
-     * @return     Amount of characters appended to the rxCharacteristic.
+     * @return     Number of characters appended to the rxCharacteristic.
      */
     size_t writeString(const char *str) {
         return write(str, strlen(str));
     }
 
     /**
-     * Override for Stream::_putc()
+     * Override for Stream::_putc().
      * @param  c
      *         This function writes the character c, cast to an unsigned char, to stream.
      * @return
@@ -147,7 +152,7 @@ public:
     }
 
     /**
-     * Override for Stream::_getc()
+     * Override for Stream::_getc().
      * @return
      *     The character read.
      */
@@ -163,7 +168,7 @@ protected:
     /**
      * This callback allows the UART service to receive updates to the
      * txCharacteristic. The application should forward the call to this
-     * function from the global onDataWritten() callback handler; or if that's
+     * function from the global onDataWritten() callback handler; if that's
      * not used, this method can be used as a callback directly.
      */
     void onDataWritten(const GattWriteCallbackParams *params) {

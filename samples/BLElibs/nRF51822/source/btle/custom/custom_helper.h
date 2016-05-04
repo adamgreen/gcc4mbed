@@ -18,7 +18,7 @@
 #define _CUSTOM_HELPER_H_
 
 #include "common/common.h"
-#include "include/ble.h"
+#include "nrf_ble.h"
 #include "ble/UUID.h"
 #include "ble/GattCharacteristic.h"
 
@@ -36,8 +36,9 @@ error_t custom_add_in_characteristic(uint16_t                  service_handle,
                                      uint8_t                   properties,
                                      SecurityManager::SecurityMode_t requiredSecurity,
                                      uint8_t                  *p_data,
-                                     uint16_t                  min_length,
+                                     uint16_t                  length,
                                      uint16_t                  max_length,
+                                     bool                      has_variable_len,
                                      const uint8_t            *userDescriptionDescriptorValuePtr,
                                      uint16_t                  userDescriptionDescriptorValueLen,
                                      bool                      readAuthorization,
@@ -47,8 +48,9 @@ error_t custom_add_in_characteristic(uint16_t                  service_handle,
 error_t custom_add_in_descriptor(uint16_t                      char_handle,
                                      ble_uuid_t               *p_uuid,
                                      uint8_t                  *p_data,
-                                     uint16_t                  min_length,
+                                     uint16_t                  length,
                                      uint16_t                  max_length,
+                                     bool                      has_variable_len,
                                      uint16_t                 *p_desc_handle);
 
 #ifdef __cplusplus

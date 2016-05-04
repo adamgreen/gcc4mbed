@@ -18,29 +18,123 @@
 #define __BLE_DEVICE_INSTANCE_BASE__
 
 #include "Gap.h"
+#include "ble/SecurityManager.h"
+#include "ble/BLE.h"
 
-/* forward declarations */
+/* Forward declarations. */
 class GattServer;
 class GattClient;
 
 /**
  *  The interface for the transport object to be created by the target library's
  *  createBLEInstance().
+ *
+ * @note This class is part of the interface of BLE API with the implementation;
+ *       therefore, it is meant to be used only by porters rather than normal
+ *       BLE API users.
  */
 class BLEInstanceBase
 {
 public:
-    virtual ble_error_t init(void)                  = 0;
-    virtual ble_error_t shutdown(void)              = 0;
-    virtual const char *getVersion(void)            = 0;
-    virtual Gap&        getGap()                    = 0;
-    virtual const Gap&  getGap() const              = 0;
-    virtual GattServer& getGattServer()             = 0;
-    virtual const GattServer& getGattServer() const = 0;
-    virtual GattClient& getGattClient()             = 0;
-    virtual SecurityManager& getSecurityManager()   = 0;
+    /**
+     * Initialize the underlying BLE stack. This should be called before
+     * anything else in the BLE API.
+     *
+     * @param[in] instanceID
+     *              The ID of the instance to initialize.
+     * @param[in] initCallback
+     *              A callback for when initialization completes for a BLE
+     *              instance. This is an optional parameter set to NULL when not
+     *              supplied.
+     *
+     * @return BLE_ERROR_NONE if the initialization procedure was started
+     *         successfully.
+     */
+    virtual ble_error_t            init(BLE::InstanceID_t instanceID,
+                                        FunctionPointerWithContext<BLE::InitializationCompleteCallbackContext *> initCallback) = 0;
+
+    /**
+     * Check whether the underlying stack has already been initialized,
+     * possible with a call to init().
+     *
+     * @return true if the initialization has completed for the underlying BLE
+     *         stack.
+     */
+    virtual bool                   hasInitialized(void) const = 0;
+
+    /**
+     * Shutdown the underlying BLE stack. This includes purging the stack of
+     * GATT and GAP state and clearing all state from other BLE components
+     * such as the SecurityManager. init() must be called afterwards to
+     * re-instantiate services and GAP state.
+     *
+     * @return BLE_ERROR_NONE if the underlying stack and all other services of
+     *         the BLE API were shutdown correctly.
+     */
+    virtual ble_error_t            shutdown(void)             = 0;
+
+    /**
+     * Fetches a string representation of the underlying BLE stack's version.
+     *
+     * @return A pointer to the string representation of the underlying
+     *         BLE stack's version.
+     */
+    virtual const char *           getVersion(void)           = 0;
+
+    /**
+     * Accessor to Gap. This function is used by BLE::gap().
+     *
+     * @return A reference to a Gap object associated to this BLE instance.
+     */
+    virtual Gap&                   getGap()                   = 0;
+
+    /**
+     * A const alternative to getGap().
+     *
+     * @return A const reference to a Gap object associated to this BLE instance.
+     */
+    virtual const Gap&             getGap() const             = 0;
+
+    /**
+     * Accessor to GattServer. This function is used by BLE::gattServer().
+     *
+     * @return A reference to a GattServer object associated to this BLE instance.
+     */
+    virtual GattServer&            getGattServer()            = 0;
+
+    /**
+     * A const alternative to getGattServer().
+     *
+     * @return A const reference to a GattServer object associated to this BLE instance.
+     */
+    virtual const GattServer&      getGattServer() const      = 0;
+
+    /**
+     * Accessors to GattClient. This function is used by BLE::gattClient().
+     *
+     * @return A reference to a GattClient object associated to this BLE instance.
+     */
+    virtual GattClient&            getGattClient()            = 0;
+
+    /**
+     * Accessors to SecurityManager. This function is used by BLE::securityManager().
+     *
+     * @return A reference to a SecurityManager object associated to this BLE instance.
+     */
+    virtual SecurityManager&       getSecurityManager()       = 0;
+
+    /**
+     * A const alternative to getSecurityManager().
+     *
+     * @return A const reference to a SecurityManager object associated to this BLE instance.
+     */
     virtual const SecurityManager& getSecurityManager() const = 0;
-    virtual void        waitForEvent(void)         = 0;
+
+    /**
+     * Yield control to the BLE stack or to other tasks waiting for events.
+     * refer to BLE::waitForEvent().
+     */
+    virtual void                   waitForEvent(void)         = 0;
 };
 
 /**

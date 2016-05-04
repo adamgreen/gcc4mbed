@@ -20,22 +20,23 @@
 #include <stdint.h>
 
 #include "Gap.h"
+#include "CallChainOfFunctionPointersWithContext.h"
 
 class SecurityManager {
 public:
     enum SecurityMode_t {
         SECURITY_MODE_NO_ACCESS,
-        SECURITY_MODE_ENCRYPTION_OPEN_LINK, /**< require no protection, open link. */
-        SECURITY_MODE_ENCRYPTION_NO_MITM,   /**< require encryption, but no MITM protection. */
-        SECURITY_MODE_ENCRYPTION_WITH_MITM, /**< require encryption and MITM protection. */
-        SECURITY_MODE_SIGNED_NO_MITM,       /**< require signing or encryption, but no MITM protection. */
-        SECURITY_MODE_SIGNED_WITH_MITM,     /**< require signing or encryption, and MITM protection. */
+        SECURITY_MODE_ENCRYPTION_OPEN_LINK, /**< Require no protection, open link. */
+        SECURITY_MODE_ENCRYPTION_NO_MITM,   /**< Require encryption, but no MITM protection. */
+        SECURITY_MODE_ENCRYPTION_WITH_MITM, /**< Require encryption and MITM protection. */
+        SECURITY_MODE_SIGNED_NO_MITM,       /**< Require signing or encryption, but no MITM protection. */
+        SECURITY_MODE_SIGNED_WITH_MITM,     /**< Require signing or encryption, and MITM protection. */
     };
 
     /**
-     * @brief Defines possible security status/states.
+     * @brief Defines possible security status or states.
      *
-     * @details Defines possible security status/states of a link when requested by getLinkSecurity().
+     * @details Defines possible security status or states of a link when requested by getLinkSecurity().
      */
     enum LinkSecurityStatus_t {
         NOT_ENCRYPTED,          /**< The link is not secured. */
@@ -44,11 +45,11 @@ public:
     };
 
     enum SecurityIOCapabilities_t {
-      IO_CAPS_DISPLAY_ONLY     = 0x00,   /**< Display Only. */
-      IO_CAPS_DISPLAY_YESNO    = 0x01,   /**< Display and Yes/No entry. */
-      IO_CAPS_KEYBOARD_ONLY    = 0x02,   /**< Keyboard Only. */
+      IO_CAPS_DISPLAY_ONLY     = 0x00,   /**< Display only. */
+      IO_CAPS_DISPLAY_YESNO    = 0x01,   /**< Display and yes/no entry. */
+      IO_CAPS_KEYBOARD_ONLY    = 0x02,   /**< Keyboard only. */
       IO_CAPS_NONE             = 0x03,   /**< No I/O capabilities. */
-      IO_CAPS_KEYBOARD_DISPLAY = 0x04,   /**< Keyboard and Display. */
+      IO_CAPS_KEYBOARD_DISPLAY = 0x04,   /**< Keyboard and display. */
     };
 
     enum SecurityCompletionStatus_t {
@@ -82,6 +83,9 @@ public:
     typedef void (*LinkSecuredCallback_t)(Gap::Handle_t handle, SecurityMode_t securityMode);
     typedef void (*PasskeyDisplayCallback_t)(Gap::Handle_t handle, const Passkey_t passkey);
 
+    typedef FunctionPointerWithContext<const SecurityManager *> SecurityManagerShutdownCallback_t;
+    typedef CallChainOfFunctionPointersWithContext<const SecurityManager *> SecurityManagerShutdownCallbackChain_t;
+
     /*
      * The following functions are meant to be overridden in the platform-specific sub-class.
      */
@@ -94,8 +98,8 @@ public:
      *
      * @param[in]  enableBonding Allow for bonding.
      * @param[in]  requireMITM   Require protection for man-in-the-middle attacks.
-     * @param[in]  iocaps        To specify IO capabilities of this peripheral,
-     *                           such as availability of a display or keyboard to
+     * @param[in]  iocaps        To specify the I/O capabilities of this peripheral,
+     *                           such as availability of a display or keyboard, to
      *                           support out-of-band exchanges of security data.
      * @param[in]  passkey       To specify a static passkey.
      *
@@ -105,29 +109,46 @@ public:
                              bool                     requireMITM   = true,
                              SecurityIOCapabilities_t iocaps        = IO_CAPS_NONE,
                              const Passkey_t          passkey       = NULL) {
-        /* avoid compiler warnings about unused variables */
+        /* Avoid compiler warnings about unused variables. */
         (void)enableBonding;
         (void)requireMITM;
         (void)iocaps;
         (void)passkey;
 
-        return BLE_ERROR_NOT_IMPLEMENTED; /* Requesting action from porter(s): override this API if security is supported. */
+        return BLE_ERROR_NOT_IMPLEMENTED; /* Requesting action from porters: override this API if security is supported. */
     }
 
     /**
      * Get the security status of a connection.
      *
      * @param[in]  connectionHandle   Handle to identify the connection.
-     * @param[out] securityStatusP    security status.
+     * @param[out] securityStatusP    Security status.
      *
-     * @return BLE_SUCCESS Or appropriate error code indicating reason for failure.
+     * @return BLE_ERROR_NONE or appropriate error code indicating the failure reason.
      */
     virtual ble_error_t getLinkSecurity(Gap::Handle_t connectionHandle, LinkSecurityStatus_t *securityStatusP) {
-        /* avoid compiler warnings about unused variables */
+        /* Avoid compiler warnings about unused variables. */
         (void)connectionHandle;
         (void)securityStatusP;
 
-        return BLE_ERROR_NOT_IMPLEMENTED; /* Requesting action from porter(s): override this API if security is supported. */
+        return BLE_ERROR_NOT_IMPLEMENTED; /* Requesting action from porters: override this API if security is supported. */
+    }
+
+    /**
+     * Set the security mode on a connection. Useful for elevating the security mode
+     * once certain conditions are met, e.g., a particular service is found.
+     *
+     * @param[in]  connectionHandle   Handle to identify the connection.
+     * @param[in]  securityMode       Requested security mode.
+     *
+     * @return BLE_ERROR_NONE or appropriate error code indicating the failure reason.
+     */
+    virtual ble_error_t setLinkSecurity(Gap::Handle_t connectionHandle, SecurityMode_t securityMode) {
+        /* Avoid compiler warnings about unused variables. */
+        (void)connectionHandle;
+        (void)securityMode;
+
+        return BLE_ERROR_NOT_IMPLEMENTED;
     }
 
     /**
@@ -135,30 +156,84 @@ public:
      * the database within the security manager.
      *
      * @retval BLE_ERROR_NONE             On success, else an error code indicating reason for failure.
-     * @retval BLE_ERROR_INVALID_STATE    If the API is called without module initialization and/or
+     * @retval BLE_ERROR_INVALID_STATE    If the API is called without module initialization or
      *                                    application registration.
      */
     virtual ble_error_t purgeAllBondingState(void) {
-        return BLE_ERROR_NOT_IMPLEMENTED; /* Requesting action from porter(s): override this API if security is supported. */
+        return BLE_ERROR_NOT_IMPLEMENTED; /* Requesting action from porters: override this API if security is supported. */
+    }
+
+    /**
+     * Get a list of addresses from all peers in the bond table.
+     *
+     * @param[in,out]   addresses
+     *                  (on input) addresses.capacity contains the maximum
+     *                  number of addresses to be returned.
+     *                  (on output) The populated table with copies of the
+     *                  addresses in the implementation's whitelist.
+     *
+     * @retval BLE_ERROR_NONE             On success, else an error code indicating reason for failure.
+     * @retval BLE_ERROR_INVALID_STATE    If the API is called without module initialization or
+     *                                    application registration.
+     *
+     * @experimental
+     */
+    virtual ble_error_t getAddressesFromBondTable(Gap::Whitelist_t &addresses) const {
+        /* Avoid compiler warnings about unused variables */
+        (void) addresses;
+
+        return BLE_ERROR_NOT_IMPLEMENTED; /* Requesting action from porters: override this API if security is supported. */
     }
 
     /* Event callback handlers. */
 public:
     /**
-     * To indicate that security procedure for link has started.
+     * Setup a callback to be invoked to notify the user application that the
+     * SecurityManager instance is about to shutdown (possibly as a result of a call
+     * to BLE::shutdown()).
+     *
+     * @note  It is possible to chain together multiple onShutdown callbacks
+     * (potentially from different modules of an application) to be notified
+     * before the SecurityManager is shutdown.
+     *
+     * @note  It is also possible to set up a callback into a member function of
+     * some object.
+     *
+     * @note It is possible to unregister a callback using onShutdown().detach(callback)
+     */
+    void onShutdown(const SecurityManagerShutdownCallback_t& callback) {
+        shutdownCallChain.add(callback);
+    }
+    template <typename T>
+    void onShutdown(T *objPtr, void (T::*memberPtr)(const SecurityManager *)) {
+        shutdownCallChain.add(objPtr, memberPtr);
+    }
+
+    /**
+     * @brief provide access to the callchain of shutdown event callbacks
+     * It is possible to register callbacks using onShutdown().add(callback);
+     * It is possible to unregister callbacks using onShutdown().detach(callback)
+     * @return The shutdown event callbacks chain
+     */
+    SecurityManagerShutdownCallbackChain_t& onShutdown() {
+        return shutdownCallChain;
+    }
+
+    /**
+     * To indicate that a security procedure for the link has started.
      */
     virtual void onSecuritySetupInitiated(SecuritySetupInitiatedCallback_t callback) {securitySetupInitiatedCallback = callback;}
 
     /**
-     * To indicate that security procedure for link has completed.
+     * To indicate that the security procedure for the link has completed.
      */
     virtual void onSecuritySetupCompleted(SecuritySetupCompletedCallback_t callback) {securitySetupCompletedCallback = callback;}
 
     /**
-     * To indicate that link with the peer is secured. For bonded devices,
-     * subsequent re-connections with bonded peer will result only in this callback
-     * when the link is secured and setup procedures will not occur unless the
-     * bonding information is either lost or deleted on either or both sides.
+     * To indicate that the link with the peer is secured. For bonded devices,
+     * subsequent reconnections with a bonded peer will result only in this callback
+     * when the link is secured; setup procedures will not occur (unless the
+     * bonding information is either lost or deleted on either or both sides).
      */
     virtual void onLinkSecured(LinkSecuredCallback_t callback) {linkSecuredCallback = callback;}
 
@@ -214,12 +289,43 @@ protected:
         /* empty */
     }
 
+public:
+    /**
+     * Notify all registered onShutdown callbacks that the SecurityManager is
+     * about to be shutdown and clear all SecurityManager state of the
+     * associated object.
+     *
+     * This function is meant to be overridden in the platform-specific
+     * sub-class. Nevertheless, the sub-class is only expected to reset its
+     * state and not the data held in SecurityManager members. This shall be
+     * achieved by a call to SecurityManager::reset() from the sub-class'
+     * reset() implementation.
+     *
+     * @return BLE_ERROR_NONE on success.
+     */
+    virtual ble_error_t reset(void) {
+        /* Notify that the instance is about to shutdown */
+        shutdownCallChain.call(this);
+        shutdownCallChain.clear();
+
+        securitySetupInitiatedCallback = NULL;
+        securitySetupCompletedCallback = NULL;
+        linkSecuredCallback            = NULL;
+        securityContextStoredCallback  = NULL;
+        passkeyDisplayCallback         = NULL;
+
+        return BLE_ERROR_NONE;
+    }
+
 protected:
     SecuritySetupInitiatedCallback_t securitySetupInitiatedCallback;
     SecuritySetupCompletedCallback_t securitySetupCompletedCallback;
     LinkSecuredCallback_t            linkSecuredCallback;
     HandleSpecificEvent_t            securityContextStoredCallback;
     PasskeyDisplayCallback_t         passkeyDisplayCallback;
+
+private:
+    SecurityManagerShutdownCallbackChain_t shutdownCallChain;
 };
 
 #endif /*__SECURITY_MANAGER_H__*/

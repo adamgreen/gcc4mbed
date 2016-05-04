@@ -21,41 +21,30 @@
 
 /**
 * @class DeviceInformationService
-* @brief BLE Device Information Service <br>
-* Service: https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.device_information.xml <br>
+* @brief BLE Device Information Service
+* Service: https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.device_information.xml
 * Manufacturer Name String Char: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.manufacturer_name_string.xml
 */
 class DeviceInformationService {
 public:
     /**
-     * @brief Device Information Service Constructor.
+     * @brief Device Information Service Constructor: copies device-specific information
+     * into the BLE stack.
      *
-     * @param[ref] _ble
-     *                BLE object for the underlying controller.
+     * @param[in] _ble
+     *                A reference to a BLE object for the underlying controller.
      * @param[in] manufacturersName
-     *                This characteristic represents the name of the
-     *                manufacturer of the device. The name is copied into the
-     *                BLE stack during this constructor.
+     *                The name of the manufacturer of the device.
      * @param[in] modelNumber
-     *                This characteristic represents the model number that is
-     *                assigned by the device vendor. The value is copied into
-     *                the BLE stack during this constructor.
+     *                The model number that is assigned by the device vendor.
      * @param[in] serialNumber
-     *                This characteristic represents the serial number for a
-     *                particular instance of the device.  The value is copied
-     *                into the BLE stack during this constructor.
+     *                The serial number for a particular instance of the device.
      * @param[in] hardwareRevision
-     *                This characteristic represents the hardware revision for
-     *                the hardware within the device. The value is copied
-     *                into the BLE stack during this constructor.
+     *                The hardware revision for the hardware within the device.
      * @param[in] firmwareRevision
-     *                This characteristic represents the firmware revision for
-     *                the firmware within the device. The value is copied
-     *                into the BLE stack during this constructor.
+     *                The device's firmware version.
      * @param[in] softwareRevision
-     *                This characteristic represents the software revision for
-     *                the software within the device. The value is copied
-     *                into the BLE stack during this constructor.
+     *                The device's software version.
      */
     DeviceInformationService(BLE        &_ble,
                              const char *manufacturersName = NULL,
@@ -67,36 +56,36 @@ public:
         ble(_ble),
         manufacturersNameStringCharacteristic(GattCharacteristic::UUID_MANUFACTURER_NAME_STRING_CHAR,
                                               (uint8_t *)manufacturersName,
-                                              (manufacturersName != NULL) ? strlen(manufacturersName) : 0, /* minLength */
-                                              (manufacturersName != NULL) ? strlen(manufacturersName) : 0, /* maxLength */
+                                              (manufacturersName != NULL) ? strlen(manufacturersName) : 0, /* Min length */
+                                              (manufacturersName != NULL) ? strlen(manufacturersName) : 0, /* Max length */
                                               GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ),
         modelNumberStringCharacteristic(GattCharacteristic::UUID_MODEL_NUMBER_STRING_CHAR,
                                         (uint8_t *)modelNumber,
-                                        (modelNumber != NULL) ? strlen(modelNumber) : 0, /* minLength */
-                                        (modelNumber != NULL) ? strlen(modelNumber) : 0, /* maxLength */
+                                        (modelNumber != NULL) ? strlen(modelNumber) : 0, /* Min length */
+                                        (modelNumber != NULL) ? strlen(modelNumber) : 0, /* Max length */
                                         GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ),
         serialNumberStringCharacteristic(GattCharacteristic::UUID_SERIAL_NUMBER_STRING_CHAR,
                                          (uint8_t *)serialNumber,
-                                         (serialNumber != NULL) ? strlen(serialNumber) : 0, /* minLength */
-                                         (serialNumber != NULL) ? strlen(serialNumber) : 0, /* maxLength */
+                                         (serialNumber != NULL) ? strlen(serialNumber) : 0, /* Min length */
+                                         (serialNumber != NULL) ? strlen(serialNumber) : 0, /* Max length */
                                          GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ),
         hardwareRevisionStringCharacteristic(GattCharacteristic::UUID_HARDWARE_REVISION_STRING_CHAR,
                                              (uint8_t *)hardwareRevision,
-                                             (hardwareRevision != NULL) ? strlen(hardwareRevision) : 0, /* minLength */
-                                             (hardwareRevision != NULL) ? strlen(hardwareRevision) : 0, /* maxLength */
+                                             (hardwareRevision != NULL) ? strlen(hardwareRevision) : 0, /* Min length */
+                                             (hardwareRevision != NULL) ? strlen(hardwareRevision) : 0, /* Max length */
                                              GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ),
         firmwareRevisionStringCharacteristic(GattCharacteristic::UUID_FIRMWARE_REVISION_STRING_CHAR,
                                              (uint8_t *)firmwareRevision,
-                                             (firmwareRevision != NULL) ? strlen(firmwareRevision) : 0, /* minLength */
-                                             (firmwareRevision != NULL) ? strlen(firmwareRevision) : 0, /* maxLength */
+                                             (firmwareRevision != NULL) ? strlen(firmwareRevision) : 0, /* Min length */
+                                             (firmwareRevision != NULL) ? strlen(firmwareRevision) : 0, /* Max length */
                                              GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ),
         softwareRevisionStringCharacteristic(GattCharacteristic::UUID_SOFTWARE_REVISION_STRING_CHAR,
                                              (uint8_t *)softwareRevision,
-                                             (softwareRevision != NULL) ? strlen(softwareRevision) : 0, /* minLength */
-                                             (softwareRevision != NULL) ? strlen(softwareRevision) : 0, /* maxLength */
+                                             (softwareRevision != NULL) ? strlen(softwareRevision) : 0, /* Min length */
+                                             (softwareRevision != NULL) ? strlen(softwareRevision) : 0, /* Max length */
                                              GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ)
     {
-        static bool serviceAdded = false; /* We should only ever need to add the information service once. */
+        static bool serviceAdded = false; /* We only add the information service once. */
         if (serviceAdded) {
             return;
         }
@@ -115,12 +104,34 @@ public:
     }
 
 protected:
+    /**
+     * A reference to the BLE instance object to which the services and
+     * characteristics will be added.
+     */
     BLE                &ble;
+    /**
+     * BLE characterising to allow BLE peers access to the manufacturer's name.
+     */
     GattCharacteristic  manufacturersNameStringCharacteristic;
+    /**
+     * BLE characterising to allow BLE peers access to the model number.
+     */
     GattCharacteristic  modelNumberStringCharacteristic;
+    /**
+     * BLE characterising to allow BLE peers access to the serial number.
+     */
     GattCharacteristic  serialNumberStringCharacteristic;
+    /**
+     * BLE characterising to allow BLE peers access to the hardware revision string.
+     */
     GattCharacteristic  hardwareRevisionStringCharacteristic;
+    /**
+     * BLE characterising to allow BLE peers access to the firmware revision string.
+     */
     GattCharacteristic  firmwareRevisionStringCharacteristic;
+    /**
+     * BLE characterising to allow BLE peers access to the software revision string.
+     */
     GattCharacteristic  softwareRevisionStringCharacteristic;
 };
 

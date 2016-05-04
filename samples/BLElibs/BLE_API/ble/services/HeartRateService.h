@@ -21,35 +21,35 @@
 
 /**
 * @class HeartRateService
-* @brief BLE Service for HeartRate. This BLE Service contains the location of the sensor, the heartrate in beats per minute. <br>
-* Service:  https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.heart_rate.xml <br>
-* HRM Char: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml <br>
+* @brief BLE Service for HeartRate. This BLE Service contains the location of the sensor and the heart rate in beats per minute.
+* Service:  https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.heart_rate.xml
+* HRM Char: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
 * Location: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.body_sensor_location.xml
 */
 class HeartRateService {
 public:
     /**
     * @enum SensorLocation
-    * @brief Location of HeartRate sensor on body.
+    * @brief Location of the heart rate sensor on body.
     */
     enum {
-        LOCATION_OTHER = 0, /*!< Other Location */
-        LOCATION_CHEST,     /*!< Chest */
-        LOCATION_WRIST,     /*!< Wrist */
-        LOCATION_FINGER,    /*!< Finger */
-        LOCATION_HAND,      /*!< Hand */
-        LOCATION_EAR_LOBE,  /*!< Earlobe */
-        LOCATION_FOOT,      /*!< Foot */
+        LOCATION_OTHER = 0, /*!< Other location. */
+        LOCATION_CHEST,     /*!< Chest. */
+        LOCATION_WRIST,     /*!< Wrist. */
+        LOCATION_FINGER,    /*!< Finger. */
+        LOCATION_HAND,      /*!< Hand. */
+        LOCATION_EAR_LOBE,  /*!< Earlobe. */
+        LOCATION_FOOT,      /*!< Foot. */
     };
 
 public:
     /**
-     * @brief Constructor with 8bit HRM Counter value.
+     * @brief Constructor with 8-bit HRM Counter value.
      *
      * @param[ref] _ble
      *               Reference to the underlying BLE.
      * @param[in] hrmCounter (8-bit)
-     *               initial value for the hrm counter.
+     *               Initial value for the HRM counter.
      * @param[in] location
      *               Sensor's location.
      */
@@ -70,7 +70,7 @@ public:
      * @param[in] _ble
      *               Reference to the underlying BLE.
      * @param[in] hrmCounter (8-bit)
-     *               initial value for the hrm counter.
+     *               Initial value for the HRM counter.
      * @param[in] location
      *               Sensor's location.
      */
@@ -86,10 +86,10 @@ public:
     }
 
     /**
-     * @brief Set a new 8-bit value for heart rate.
+     * @brief Set a new 8-bit value for the heart rate.
      *
      * @param[in] hrmCounter
-     *                  HeartRate in bpm.
+     *                  Heart rate in BPM.
      */
     void updateHeartRate(uint8_t hrmCounter) {
         valueBytes.updateHeartRate(hrmCounter);
@@ -97,10 +97,10 @@ public:
     }
 
     /**
-     * Set a new 16-bit value for heart rate.
+     * Set a new 16-bit value for the heart rate.
      *
      * @param[in] hrmCounter
-     *                  HeartRate in bpm.
+     *                  Heart rate in BPM.
      */
     void updateHeartRate(uint16_t hrmCounter) {
         valueBytes.updateHeartRate(hrmCounter);
@@ -108,8 +108,8 @@ public:
     }
 
     /**
-     * This callback allows the HeartRateService to receive updates to the
-     * controlPoint Characteristic.
+     * This callback allows the heart rate service to receive updates to the
+     * controlPoint characteristic.
      *
      * @param[in] params
      *     Information about the characterisitc being updated.
@@ -118,7 +118,7 @@ public:
         if (params->handle == controlPoint.getValueAttribute().getHandle()) {
             /* Do something here if the new value is 1; else you can override this method by
              * extending this class.
-             * @NOTE: if you are extending this class, be sure to also call
+             * @NOTE: If you are extending this class, be sure to also call
              * ble.onDataWritten(this, &ExtendedHRService::onDataWritten); in
              * your constructor.
              */
@@ -135,9 +135,9 @@ protected:
     }
 
 protected:
-    /* Private internal representation for the bytes used to work with the vaulue of the heart-rate characteristic. */
+    /* Private internal representation for the bytes used to work with the value of the heart rate characteristic. */
     struct HeartRateValueBytes {
-        static const unsigned MAX_VALUE_BYTES  = 3; /* FLAGS + up to two bytes for heart-rate */
+        static const unsigned MAX_VALUE_BYTES  = 3; /* Flags, and up to two bytes for heart rate. */
         static const unsigned FLAGS_BYTE_INDEX = 0;
 
         static const unsigned VALUE_FORMAT_BITNUM = 0;
@@ -175,8 +175,8 @@ protected:
         }
 
     private:
-        /* First byte = 8-bit values, no extra info, Second byte = uint8_t HRM value */
-        /* See --> https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml */
+        /* First byte: 8-bit values, no extra info. Second byte: uint8_t HRM value */
+        /* See https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml */
         uint8_t valueBytes[MAX_VALUE_BYTES];
     };
 

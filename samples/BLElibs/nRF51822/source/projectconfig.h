@@ -17,7 +17,7 @@
 #ifndef _PROJECTCONFIG_H_
 #define _PROJECTCONFIG_H_
 
-#include "ble/blecommon.h"
+#include "ble/GapAdvertisingData.h"
 
 /*=========================================================================
     MCU & BOARD SELCTION
@@ -112,7 +112,7 @@
     #define CFG_BLE_SEC_PARAM_MAX_KEY_SIZE             16
 
     /*--------------------------------- GAP -------------------------------*/
-    #define CFG_GAP_APPEARANCE                         BLE_APPEARANCE_GENERIC_TAG
+    #define CFG_GAP_APPEARANCE                         GapAdvertisingData::GENERIC_TAG
     #define CFG_GAP_LOCAL_NAME                         "nRF5x"
 
     #define CFG_GAP_CONNECTION_MIN_INTERVAL_MS           50                     /**< Minimum acceptable connection interval */

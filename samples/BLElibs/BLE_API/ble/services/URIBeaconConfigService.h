@@ -18,7 +18,12 @@
 #define SERVICES_URIBEACONCONFIGSERVICE_H_
 
 #include "ble/BLE.h"
+
+#ifdef YOTTA_CFG_MBED_OS
+#include "mbed-drivers/mbed.h"
+#else
 #include "mbed.h"
+#endif
 
 extern const uint8_t UUID_URI_BEACON_SERVICE[UUID::LENGTH_OF_LONG_UUID];
 extern const uint8_t UUID_LOCK_STATE_CHAR[UUID::LENGTH_OF_LONG_UUID];
@@ -42,18 +47,18 @@ extern const uint8_t BEACON_UUID[sizeof(UUID::ShortUUIDBytes_t)];
 class URIBeaconConfigService {
   public:
     /**
-     * @brief Transmission Power Modes for UriBeacon
+     * @brief Transmission power modes for UriBeacon.
      */
-    static const uint8_t TX_POWER_MODE_LOWEST = 0; /*!< Lowest TX power mode */
-    static const uint8_t TX_POWER_MODE_LOW    = 1; /*!< Low TX power mode */
-    static const uint8_t TX_POWER_MODE_MEDIUM = 2; /*!< Medium TX power mode */
-    static const uint8_t TX_POWER_MODE_HIGH   = 3; /*!< High TX power mode */
-    static const unsigned NUM_POWER_MODES     = 4; /*!< Number of Power Modes defined */
+    static const uint8_t TX_POWER_MODE_LOWEST = 0; /*!< Lowest TX power mode. */
+    static const uint8_t TX_POWER_MODE_LOW    = 1; /*!< Low TX power mode. */
+    static const uint8_t TX_POWER_MODE_MEDIUM = 2; /*!< Medium TX power mode. */
+    static const uint8_t TX_POWER_MODE_HIGH   = 3; /*!< High TX power mode. */
+    static const unsigned NUM_POWER_MODES     = 4; /*!< Number of power modes defined. */
 
     static const int ADVERTISING_INTERVAL_MSEC = 1000;  // Advertising interval for config service.
-    static const int SERVICE_DATA_MAX = 31;             // Maximum size of service data in ADV packets
+    static const int SERVICE_DATA_MAX = 31;             // Maximum size of service data in ADV packets.
 
-    typedef uint8_t Lock_t[16];               /* 128 bits */
+    typedef uint8_t Lock_t[16];               /* 128 bits. */
     typedef int8_t PowerLevels_t[NUM_POWER_MODES];
 
     static const int URI_DATA_MAX = 18;
@@ -64,8 +69,8 @@ class URIBeaconConfigService {
         uint8_t       uriDataLength;
         UriData_t     uriData;
         uint8_t       flags;
-        PowerLevels_t advPowerLevels; // Current value of AdvertisedPowerLevels
-        uint8_t       txPowerMode;    // Firmware power levels used with setTxPower()
+        PowerLevels_t advPowerLevels; // Current value of AdvertisedPowerLevels.
+        uint8_t       txPowerMode;    // Firmware power levels used with setTxPower().
         uint16_t      beaconPeriod;
     };
 
@@ -81,9 +86,9 @@ class URIBeaconConfigService {
      *                    un-initialized, and default values should be used
      *                    instead. Otherwise, paramsIn overrides the defaults.
      * @param[in]     defaultUriDataIn
-     *                    Default un-encoded URI; applies only if the resetToDefaultsFlag is true.
+     *                    Default un-encoded URI. Applies only if the resetToDefaultsFlag is true.
      * @param[in]     defaultAdvPowerLevelsIn
-     *                    Default power-levels array; applies only if the resetToDefaultsFlag is true.
+     *                    Default power-levels array. Applies only if the resetToDefaultsFlag is true.
      */
     URIBeaconConfigService(BLE          &bleIn,
                            Params_t      &paramsIn,
@@ -143,7 +148,7 @@ class URIBeaconConfigService {
         ble.addService(configService);
         ble.onDataWritten(this, &URIBeaconConfigService::onDataWrittenCallback);
 
-        setupURIBeaconConfigAdvertisements(); /* Setup advertising for the configService. */
+        setupURIBeaconConfigAdvertisements(); /* Set up advertising for the config service. */
 
         initSucceeded = true;
     }
@@ -152,9 +157,9 @@ class URIBeaconConfigService {
         return initSucceeded;
     }
 
-    /* Start out by advertising the configService for a limited time after
-     * startup; and switch to the normal non-connectible beacon functionality
-     * afterwards. */
+    /* Start out by advertising the config service for a limited time after
+     * startup. Then switch to the normal non-connectible beacon functionality.
+     */
     void setupURIBeaconConfigAdvertisements()
     {
         const char DEVICE_NAME[] = "mUriBeacon Config";
@@ -181,14 +186,14 @@ class URIBeaconConfigService {
         ble.gap().setAdvertisingInterval(GapAdvertisingParams::MSEC_TO_ADVERTISEMENT_DURATION_UNITS(ADVERTISING_INTERVAL_MSEC));
     }
 
-    /* Helper function to switch to the non-connectible normal mode for URIBeacon. This gets called after a timeout. */
+    /* Helper function to switch to the non-connectible normal mode for UriBeacon. This gets called after a timeout. */
     void setupURIBeaconAdvertisements()
     {
         /* Reinitialize the BLE stack. This will clear away the existing services and advertising state. */
         ble.shutdown();
         ble.init();
 
-        // Fields from the Service
+        // Fields from the service.
         unsigned beaconPeriod                                 = params.beaconPeriod;
         unsigned txPowerMode                                  = params.txPowerMode;
         unsigned uriDataLength                                = params.uriDataLength;
@@ -196,7 +201,7 @@ class URIBeaconConfigService {
         URIBeaconConfigService::PowerLevels_t &advPowerLevels = params.advPowerLevels;
         uint8_t flags                                         = params.flags;
 
-        extern void saveURIBeaconConfigParams(const Params_t *paramsP); /* forward declaration; necessary to avoid a circular dependency. */
+        extern void saveURIBeaconConfigParams(const Params_t *paramsP); /* Forward declaration; necessary to avoid a circular dependency. */
         saveURIBeaconConfigParams(&params);
 
         ble.gap().clearAdvertisingPayload();
@@ -219,7 +224,7 @@ class URIBeaconConfigService {
     }
 
   private:
-    // True if the lock bits are non-zero
+    // True if the lock bits are non-zero.
     bool isLocked() {
         Lock_t testLock;
         memset(testLock, 0, sizeof(Lock_t));
@@ -228,19 +233,19 @@ class URIBeaconConfigService {
 
     /*
      * This callback is invoked when a GATT client attempts to modify any of the
-     * characteristics of this service. Attempts to do so are also applied to
+     * characteristics of this service. These attempts are also applied to
      * the internal state of this service object.
      */
     void onDataWrittenCallback(const GattWriteCallbackParams *writeParams) {
         uint16_t handle = writeParams->handle;
 
         if (handle == lockChar.getValueHandle()) {
-            // Validated earlier
+            // Validated earlier,
             memcpy(params.lock, writeParams->data, sizeof(Lock_t));
-            // use isLocked() in case bits are being set to all 0's
+            // Use isLocked() in case bits are being set to all zeros.
             lockedState = isLocked();
         } else if (handle == unlockChar.getValueHandle()) {
-            // Validated earlier
+            // Validated earlier.
             memset(params.lock, 0, sizeof(Lock_t));
             lockedState = false;
         } else if (handle == uriDataChar.getValueHandle()) {
@@ -255,7 +260,7 @@ class URIBeaconConfigService {
         } else if (handle == beaconPeriodChar.getValueHandle()) {
             params.beaconPeriod = *((uint16_t *)(writeParams->data));
 
-            /* Re-map beaconPeriod to within permissible bounds if necessary. */
+            /* Remap beaconPeriod to within permissible bounds if necessary. */
             if (params.beaconPeriod != 0) {
                 bool paramsUpdated = false;
                 if (params.beaconPeriod < ble.gap().getMinAdvertisingInterval()) {
@@ -373,9 +378,9 @@ protected:
     BLE           &ble;
     Params_t      &params;
 
-    size_t        defaultUriDataLength;   // Default value that is restored on reset
-    UriData_t     defaultUriData;         // Default value that is restored on reset
-    PowerLevels_t &defaultAdvPowerLevels; // Default value that is restored on reset
+    size_t        defaultUriDataLength;   // Default value that is restored on reset.
+    UriData_t     defaultUriData;         // Default value that is restored on reset.
+    PowerLevels_t &defaultAdvPowerLevels; // Default value that is restored on reset.
 
     uint8_t       lockedState;
     bool          initSucceeded;
@@ -393,7 +398,7 @@ protected:
 
 public:
     /*
-     *  Encode a human-readable URI into the binary format defined by URIBeacon spec (https://github.com/google/uribeacon/tree/master/specification).
+     *  Encode a human-readable URI into the binary format defined by the UriBeacon spec (https://github.com/google/uribeacon/tree/master/specification).
      */
     static void encodeURI(const char *uriDataIn, UriData_t uriDataOut, size_t &sizeofURIDataOut) {
         const char *prefixes[] = {
@@ -442,7 +447,7 @@ public:
         }
 
         /*
-         * handle suffixes
+         * Handle suffixes.
          */
         while (*uriDataIn && (sizeofURIDataOut < URI_DATA_MAX)) {
             /* check for suffix match */
@@ -452,10 +457,10 @@ public:
                 if (strncmp(uriDataIn, suffixes[i], suffixLen) == 0) {
                     uriDataOut[sizeofURIDataOut++]  = i;
                     uriDataIn                      += suffixLen;
-                    break; /* from the for loop for checking against suffixes */
+                    break; /* From the for loop for checking against suffixes. */
                 }
             }
-            /* This is the default case where we've got an ordinary character which doesn't match a suffix. */
+            /* This is the default case where we've got an ordinary character that doesn't match a suffix. */
             if (i == NUM_SUFFIXES) {
                 uriDataOut[sizeofURIDataOut++] = *uriDataIn;
                 ++uriDataIn;

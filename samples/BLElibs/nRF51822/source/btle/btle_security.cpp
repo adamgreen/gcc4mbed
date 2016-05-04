@@ -15,16 +15,41 @@
  */
 
 #include "btle.h"
+
+#include "nRF5xn.h"
+
+extern "C" {
 #include "pstorage.h"
-
-#include "nRF5xGap.h"
-#include "nRF5xSecurityManager.h"
-
 #include "device_manager.h"
+#include "id_manager.h"
+}
+
 #include "btle_security.h"
 
 static dm_application_instance_t applicationInstance;
+static bool                      initialized = false;
 static ret_code_t dm_handler(dm_handle_t const *p_handle, dm_event_t const *p_event, ret_code_t event_result);
+
+// default security parameters
+static ble_gap_sec_params_t securityParameters = {
+    .bond          = true,         /**< Perform bonding. */
+    .mitm          = true,         /**< Man In The Middle protection required. */
+    .io_caps       = SecurityManager::IO_CAPS_NONE, /**< IO capabilities, see @ref BLE_GAP_IO_CAPS. */
+    .oob           = 0,            /**< Out Of Band data available. */
+    .min_key_size  = 16,           /**< Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance. */
+    .max_key_size  = 16,           /**< Maximum encryption key size in octets between min_key_size and 16. */
+    .kdist_periph  = {
+      .enc  = 1,                   /**< Long Term Key and Master Identification. */
+      .id   = 1,                   /**< Identity Resolving Key and Identity Address Information. */
+      .sign = 1,                   /**< Connection Signature Resolving Key. */
+    },                             /**< Key distribution bitmap: keys that the peripheral device will distribute. */
+};
+
+bool
+btle_hasInitializedSecurity(void)
+{
+    return initialized;
+}
 
 ble_error_t
 btle_initializeSecurity(bool                                      enableBonding,
@@ -33,7 +58,6 @@ btle_initializeSecurity(bool                                      enableBonding,
                         const SecurityManager::Passkey_t          passkey)
 {
     /* guard against multiple initializations */
-    static bool initialized = false;
     if (initialized) {
         return BLE_ERROR_NONE;
     }
@@ -68,22 +92,15 @@ btle_initializeSecurity(bool                                      enableBonding,
         return BLE_ERROR_UNSPECIFIED;
     }
 
+    // update default security parameters with function call parameters
+    securityParameters.bond = enableBonding;
+    securityParameters.mitm = requireMITM;
+    securityParameters.io_caps = iocaps;
+
     const dm_application_param_t dm_param = {
         .evt_handler  = dm_handler,
         .service_type = DM_PROTOCOL_CNTXT_GATT_CLI_ID,
-        .sec_param    = {
-            .bond          = enableBonding,/**< Perform bonding. */
-            .mitm          = requireMITM,  /**< Man In The Middle protection required. */
-            .io_caps       = iocaps,       /**< IO capabilities, see @ref BLE_GAP_IO_CAPS. */
-            .oob           = 0,            /**< Out Of Band data available. */
-            .min_key_size  = 16,           /**< Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance. */
-            .max_key_size  = 16,           /**< Maximum encryption key size in octets between min_key_size and 16. */
-            .kdist_periph  = {
-              .enc  = 1,                     /**< Long Term Key and Master Identification. */
-              .id   = 1,                     /**< Identity Resolving Key and Identity Address Information. */
-              .sign = 1,                     /**< Connection Signature Resolving Key. */
-            },                             /**< Key distribution bitmap: keys that the peripheral device will distribute. */
-        }
+        .sec_param    = securityParameters
     };
 
     if ((rc = dm_register(&applicationInstance, &dm_param)) != NRF_SUCCESS) {
@@ -148,20 +165,65 @@ btle_getLinkSecurity(Gap::Handle_t connectionHandle, SecurityManager::LinkSecuri
     return BLE_ERROR_NONE;
 }
 
+ble_error_t
+btle_setLinkSecurity(Gap::Handle_t connectionHandle, SecurityManager::SecurityMode_t securityMode)
+{
+    // use default and updated parameters as starting point
+    // and modify structure based on security mode.
+    ble_gap_sec_params_t params = securityParameters;
+
+    switch (securityMode) {
+        case SecurityManager::SECURITY_MODE_ENCRYPTION_OPEN_LINK:
+            /**< Require no protection, open link. */
+            securityParameters.bond = false;
+            securityParameters.mitm = false;
+            break;
+
+        case SecurityManager::SECURITY_MODE_ENCRYPTION_NO_MITM:
+            /**< Require encryption, but no MITM protection. */
+            securityParameters.bond = true;
+            securityParameters.mitm = false;
+            break;
+
+        // not yet implemented security modes
+        case SecurityManager::SECURITY_MODE_NO_ACCESS:
+        case SecurityManager::SECURITY_MODE_ENCRYPTION_WITH_MITM:
+            /**< Require encryption and MITM protection. */
+        case SecurityManager::SECURITY_MODE_SIGNED_NO_MITM:
+            /**< Require signing or encryption, but no MITM protection. */
+        case SecurityManager::SECURITY_MODE_SIGNED_WITH_MITM:
+            /**< Require signing or encryption, and MITM protection. */
+        default:
+            return BLE_ERROR_NOT_IMPLEMENTED;
+    }
+
+    // update security settings for given connection
+    uint32_t result = sd_ble_gap_authenticate(connectionHandle, &params);
+
+    if (result == NRF_SUCCESS) {
+        return BLE_ERROR_NONE;
+    } else {
+        return BLE_ERROR_UNSPECIFIED;
+    }
+}
+
 ret_code_t
 dm_handler(dm_handle_t const *p_handle, dm_event_t const *p_event, ret_code_t event_result)
 {
+    nRF5xn               &ble             = nRF5xn::Instance(BLE::DEFAULT_INSTANCE);
+    nRF5xSecurityManager &securityManager = (nRF5xSecurityManager &) ble.getSecurityManager();
+
     switch (p_event->event_id) {
         case DM_EVT_SECURITY_SETUP: /* started */ {
             const ble_gap_sec_params_t *peerParams = &p_event->event_param.p_gap_param->params.sec_params_request.peer_params;
-            nRF5xSecurityManager::getInstance().processSecuritySetupInitiatedEvent(p_event->event_param.p_gap_param->conn_handle,
+            securityManager.processSecuritySetupInitiatedEvent(p_event->event_param.p_gap_param->conn_handle,
                                                                                    peerParams->bond,
                                                                                    peerParams->mitm,
                                                                                    (SecurityManager::SecurityIOCapabilities_t)peerParams->io_caps);
             break;
         }
         case DM_EVT_SECURITY_SETUP_COMPLETE:
-            nRF5xSecurityManager::getInstance().
+            securityManager.
                 processSecuritySetupCompletedEvent(p_event->event_param.p_gap_param->conn_handle,
                                                    (SecurityManager::SecurityCompletionStatus_t)(p_event->event_param.p_gap_param->params.auth_status.auth_status));
             break;
@@ -195,15 +257,60 @@ dm_handler(dm_handle_t const *p_handle, dm_event_t const *p_event, ret_code_t ev
                     break;
             }
 
-            nRF5xSecurityManager::getInstance().processLinkSecuredEvent(p_event->event_param.p_gap_param->conn_handle, resolvedSecurityMode);
+            securityManager.processLinkSecuredEvent(p_event->event_param.p_gap_param->conn_handle, resolvedSecurityMode);
             break;
         }
         case DM_EVT_DEVICE_CONTEXT_STORED:
-            nRF5xSecurityManager::getInstance().processSecurityContextStoredEvent(p_event->event_param.p_gap_param->conn_handle);
+            securityManager.processSecurityContextStoredEvent(p_event->event_param.p_gap_param->conn_handle);
             break;
         default:
             break;
     }
 
     return NRF_SUCCESS;
+}
+
+ble_error_t
+btle_createWhitelistFromBondTable(ble_gap_whitelist_t *p_whitelist)
+{
+    if (!btle_hasInitializedSecurity()) {
+        return BLE_ERROR_INITIALIZATION_INCOMPLETE;
+    }
+    ret_code_t err = dm_whitelist_create(&applicationInstance, p_whitelist);
+    if (err == NRF_SUCCESS) {
+        return BLE_ERROR_NONE;
+    } else if (err == NRF_ERROR_NULL) {
+        return BLE_ERROR_PARAM_OUT_OF_RANGE;
+    } else {
+        return BLE_ERROR_INVALID_STATE;
+    }
+}
+
+
+bool
+btle_matchAddressAndIrk(ble_gap_addr_t const * p_addr, ble_gap_irk_t const * p_irk)
+{
+    /*
+     * Use a helper function from the Nordic SDK to test whether the BLE
+     * address can be generated using the IRK.
+     */
+    return im_address_resolve(p_addr, p_irk);
+}
+
+void
+btle_generateResolvableAddress(const ble_gap_irk_t &irk, ble_gap_addr_t &address)
+{
+    /* Set type to resolvable */
+    address.addr_type = BLE_GAP_ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE;
+
+    /*
+     * Assign a random number to the most significant 3 bytes
+     * of the address.
+     */
+    address.addr[BLE_GAP_ADDR_LEN - 3] = 0x8E;
+    address.addr[BLE_GAP_ADDR_LEN - 2] = 0x4F;
+    address.addr[BLE_GAP_ADDR_LEN - 1] = 0x7C;
+
+    /* Calculate the hash and store it in the top half of the address */
+    ah(irk.irk, &address.addr[BLE_GAP_ADDR_LEN - 3], address.addr);
 }

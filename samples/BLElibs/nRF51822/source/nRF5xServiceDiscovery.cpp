@@ -27,22 +27,32 @@ nRF5xServiceDiscovery::launchCharacteristicDiscovery(Gap::Handle_t connectionHan
         .start_handle = startHandle,
         .end_handle   = endHandle
     };
-    uint32_t rc;
-    if ((rc = sd_ble_gattc_characteristics_discover(connectionHandle, &handleRange)) != NRF_SUCCESS) {
-        terminateCharacteristicDiscovery();
-        switch (rc) {
-            case BLE_ERROR_INVALID_CONN_HANDLE:
-            case NRF_ERROR_INVALID_ADDR:
-                return BLE_ERROR_INVALID_PARAM;
-            case NRF_ERROR_BUSY:
-                return BLE_STACK_BUSY;
-            default:
-            case NRF_ERROR_INVALID_STATE:
-                return BLE_ERROR_INVALID_STATE;
-        }
+    uint32_t rc = sd_ble_gattc_characteristics_discover(connectionHandle, &handleRange);
+    ble_error_t err = BLE_ERROR_NONE;
+
+    switch (rc) {
+        case NRF_SUCCESS:
+            err = BLE_ERROR_NONE;
+            break;
+        case BLE_ERROR_INVALID_CONN_HANDLE:
+        case NRF_ERROR_INVALID_ADDR:
+            err = BLE_ERROR_INVALID_PARAM;
+            break;
+        case NRF_ERROR_BUSY:
+            err = BLE_STACK_BUSY;
+            break;
+        case NRF_ERROR_INVALID_STATE:
+            err = BLE_ERROR_INVALID_STATE;
+            break;
+        default:
+            err = BLE_ERROR_UNSPECIFIED;
+            break;
     }
 
-    return BLE_ERROR_NONE;
+    if (err) {
+        terminateCharacteristicDiscovery(err);
+    }
+    return err;
 }
 
 void
@@ -78,7 +88,6 @@ nRF5xServiceDiscovery::setupDiscoveredServices(const ble_gattc_evt_prim_srvc_dis
 void
 nRF5xServiceDiscovery::setupDiscoveredCharacteristics(const ble_gattc_evt_char_disc_rsp_t *response)
 {
-    characteristicIndex = 0;
     numCharacteristics  = response->count;
 
     /* Account for the limitation on the number of discovered characteristics we can handle at a time. */
@@ -114,37 +123,61 @@ nRF5xServiceDiscovery::setupDiscoveredCharacteristics(const ble_gattc_evt_char_d
 void
 nRF5xServiceDiscovery::progressCharacteristicDiscovery(void)
 {
-    /* Iterate through the previously discovered characteristics cached in characteristics[]. */
-    while ((state == CHARACTERISTIC_DISCOVERY_ACTIVE) && (characteristicIndex < numCharacteristics)) {
-        if ((matchingCharacteristicUUID == UUID::ShortUUIDBytes_t(BLE_UUID_UNKNOWN)) ||
-            ((matchingCharacteristicUUID == characteristics[characteristicIndex].getUUID()) &&
-             (matchingServiceUUID != UUID::ShortUUIDBytes_t(BLE_UUID_UNKNOWN)))) {
-            if (characteristicCallback) {
-                characteristicCallback(&characteristics[characteristicIndex]);
-            }
-        }
-
-        characteristicIndex++;
+    if (state != CHARACTERISTIC_DISCOVERY_ACTIVE) {
+        return;
     }
 
-    /* Relaunch discovery of new characteristics beyond the last entry cached in characteristics[]. */
-    if (state == CHARACTERISTIC_DISCOVERY_ACTIVE) {
-        /* Determine the ending handle of the last cached characteristic. */
-        Gap::Handle_t startHandle = characteristics[characteristicIndex - 1].getValueHandle() + 1;
-        Gap::Handle_t endHandle   = services[serviceIndex].getEndHandle();
-        resetDiscoveredCharacteristics(); /* Note: resetDiscoveredCharacteristics() must come after fetching start and end Handles. */
+    if ((discoveredCharacteristic != nRF5xDiscoveredCharacteristic()) && (numCharacteristics > 0)) {
+        discoveredCharacteristic.setLastHandle(characteristics[0].getDeclHandle() - 1);
 
-        if (startHandle < endHandle) {
-            ble_gattc_handle_range_t handleRange = {
-                .start_handle = startHandle,
-                .end_handle   = endHandle
-            };
-            if (sd_ble_gattc_characteristics_discover(connHandle, &handleRange) != NRF_SUCCESS) {
-                terminateCharacteristicDiscovery();
+        if ((matchingCharacteristicUUID == UUID::ShortUUIDBytes_t(BLE_UUID_UNKNOWN)) ||
+            ((matchingCharacteristicUUID == discoveredCharacteristic.getUUID()) &&
+             (matchingServiceUUID != UUID::ShortUUIDBytes_t(BLE_UUID_UNKNOWN)))) {
+            if (characteristicCallback) {
+                characteristicCallback(&discoveredCharacteristic);
             }
-        } else {
-            terminateCharacteristicDiscovery();
         }
+    }
+
+    for (uint8_t i = 0; i < numCharacteristics; ++i) {
+        if (state != CHARACTERISTIC_DISCOVERY_ACTIVE) {
+            return;
+        }
+
+        if (i == (numCharacteristics - 1)) {
+            discoveredCharacteristic = characteristics[i];
+            break;
+        } else {
+            characteristics[i].setLastHandle(characteristics[i + 1].getDeclHandle() - 1);
+        }
+
+        if ((matchingCharacteristicUUID == UUID::ShortUUIDBytes_t(BLE_UUID_UNKNOWN)) ||
+            ((matchingCharacteristicUUID == characteristics[i].getUUID()) &&
+             (matchingServiceUUID != UUID::ShortUUIDBytes_t(BLE_UUID_UNKNOWN)))) {
+            if (characteristicCallback) {
+                characteristicCallback(&characteristics[i]);
+            }
+        }
+    }
+
+    if (state != CHARACTERISTIC_DISCOVERY_ACTIVE) {
+        return;
+    }
+
+    Gap::Handle_t startHandle = (numCharacteristics > 0) ? characteristics[numCharacteristics - 1].getValueHandle() + 1 : SRV_DISC_END_HANDLE;
+    Gap::Handle_t endHandle   = services[serviceIndex].getEndHandle();
+    resetDiscoveredCharacteristics(); /* Note: resetDiscoveredCharacteristics() must come after fetching start and end Handles. */
+
+    if (startHandle < endHandle) {
+        ble_gattc_handle_range_t handleRange = {
+            .start_handle = startHandle,
+            .end_handle   = endHandle
+        };
+        if (sd_ble_gattc_characteristics_discover(connHandle, &handleRange) != NRF_SUCCESS) {
+            terminateCharacteristicDiscovery(BLE_ERROR_UNSPECIFIED);
+        }
+    } else {
+        terminateCharacteristicDiscovery(BLE_ERROR_NONE);
     }
 }
 
@@ -251,13 +284,10 @@ nRF5xServiceDiscovery::processDiscoverUUIDResponse(const ble_gattc_evt_char_val_
     if (state == DISCOVER_SERVICE_UUIDS) {
         if ((response->count == 1) && (response->value_len == UUID::LENGTH_OF_LONG_UUID)) {
             UUID::LongUUIDBytes_t uuid;
-            /* Switch longUUID bytes to MSB */
-            for (unsigned i = 0; i < UUID::LENGTH_OF_LONG_UUID; i++) {
-                uuid[i] = response->handle_value[0].p_value[UUID::LENGTH_OF_LONG_UUID - 1 - i];
-            }
+            memcpy(uuid, response->handle_value[0].p_value, UUID::LENGTH_OF_LONG_UUID);
 
             unsigned serviceIndex = serviceUUIDDiscoveryQueue.dequeue();
-            services[serviceIndex].setupLongUUID(uuid);
+            services[serviceIndex].setupLongUUID(uuid, UUID::LSB);
 
             serviceUUIDDiscoveryQueue.triggerFirst();
         } else {
@@ -266,13 +296,11 @@ nRF5xServiceDiscovery::processDiscoverUUIDResponse(const ble_gattc_evt_char_val_
     } else if (state == DISCOVER_CHARACTERISTIC_UUIDS) {
         if ((response->count == 1) && (response->value_len == UUID::LENGTH_OF_LONG_UUID + 1 /* props */ + 2 /* value handle */)) {
             UUID::LongUUIDBytes_t uuid;
-            /* Switch longUUID bytes to MSB */
-            for (unsigned i = 0; i < UUID::LENGTH_OF_LONG_UUID; i++) {
-                uuid[i] = response->handle_value[0].p_value[3 + UUID::LENGTH_OF_LONG_UUID - 1 - i];
-            }
+
+            memcpy(uuid, &(response->handle_value[0].p_value[3]), UUID::LENGTH_OF_LONG_UUID);
 
             unsigned charIndex = charUUIDDiscoveryQueue.dequeue();
-            characteristics[charIndex].setupLongUUID(uuid);
+            characteristics[charIndex].setupLongUUID(uuid, UUID::LSB);
 
             charUUIDDiscoveryQueue.triggerFirst();
         } else {

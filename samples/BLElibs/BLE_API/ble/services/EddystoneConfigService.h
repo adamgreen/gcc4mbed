@@ -17,6 +17,8 @@
 #ifndef SERVICES_EDDYSTONE_BEACON_CONFIG_SERVICE_H_
 #define SERVICES_EDDYSTONE_BEACON_CONFIG_SERVICE_H_
 
+#warning ble/services/EddystoneConfigService.h is deprecated. Please use the example in 'github.com/ARMmbed/ble-examples/tree/master/BLE_EddystoneService'.
+
 #include "mbed.h"
 #include "ble/BLE.h"
 #include "ble/services/EddystoneService.h"
@@ -40,7 +42,7 @@ extern const uint8_t BEACON_EDDYSTONE[2];
 
 /**
 * @class EddystoneConfigService
-* @brief Eddystone Configuration Service. Can be used to set URL, adjust power levels, and set flags.
+* @brief Eddystone Configuration Service. Used to set URL, adjust power levels, and set flags.
 * See https://github.com/google/eddystone
 *
 */
@@ -59,54 +61,54 @@ public:
     };
 
     static const unsigned ADVERTISING_INTERVAL_MSEC = 1000; // Advertising interval for config service.
-    static const unsigned SERVICE_DATA_MAX          = 31;   // Maximum size of service data in ADV packets
+    static const unsigned SERVICE_DATA_MAX          = 31;   // Maximum size of service data in ADV packets.
 
-    typedef uint8_t Lock_t[16];                             /* 128 bits */
+    typedef uint8_t Lock_t[16];                             /* 128 bits. */
     typedef int8_t PowerLevels_t[NUM_POWER_MODES];
 
-    // There are currently 3 subframes defined, URI, UID, and TLM
+    // There are currently three subframes defined: URI, UID, and TLM.
 #define EDDYSTONE_MAX_FRAMETYPE 3
     static const unsigned URI_DATA_MAX = 18;
     typedef uint8_t UriData_t[URI_DATA_MAX];
 
-    // UID Frame Type subfields
+    // UID Frame Type subfields.
     static const size_t UID_NAMESPACEID_SIZE = 10;
     typedef uint8_t UIDNamespaceID_t[UID_NAMESPACEID_SIZE];
     static const size_t UID_INSTANCEID_SIZE = 6;
     typedef uint8_t UIDInstanceID_t[UID_INSTANCEID_SIZE];
 
-    // Eddystone Frame Type ID
+    // Eddystone Frame Type ID.
     static const uint8_t FRAME_TYPE_UID = 0x00;
     static const uint8_t FRAME_TYPE_URL = 0x10;
     static const uint8_t FRAME_TYPE_TLM = 0x20;
 
-    static const uint8_t FRAME_SIZE_TLM = 14; // TLM frame is a constant 14Bytes
-    static const uint8_t FRAME_SIZE_UID = 20; // includes RFU bytes
+    static const uint8_t FRAME_SIZE_TLM = 14; // TLM frame is a constant 14B.
+    static const uint8_t FRAME_SIZE_UID = 20; // includes RFU bytes.
 
     struct Params_t {
         // Config Data
-        bool             isConfigured; // Flag for configuration being complete,
-                                       //   True = configured, false = not configured. Reset at instantiation, used for external callbacks.
+        bool             isConfigured; // Flag for configuration being complete:
+                                       //   True = configured, False = not configured. Reset at instantiation, used for external callbacks.
         uint8_t          lockedState;
         Lock_t           lock;
         uint8_t          flags;
-        PowerLevels_t    advPowerLevels;  // Current value of AdvertisedPowerLevels
-        uint8_t          txPowerMode;     // Firmware power levels used with setTxPower()
+        PowerLevels_t    advPowerLevels;  // Current value of AdvertisedPowerLevels.
+        uint8_t          txPowerMode;     // Firmware power levels used with setTxPower().
         uint16_t         beaconPeriod;
         // TLM Frame Data
-        uint8_t          tlmVersion;      // version of TLM packet
+        uint8_t          tlmVersion;      // Version of TLM packet.
         bool             tlmEnabled;
-        float            tlmBeaconPeriod; // how often to broadcat TLM frame, in seconds.
+        float            tlmBeaconPeriod; // How often to broadcat TLM frame, in seconds.
         // URI Frame Data
         uint8_t          uriDataLength;
         UriData_t        uriData;
         bool             uriEnabled;
-        float            uriBeaconPeriod; // how often to broadcast URIFrame, in seconds.
+        float            uriBeaconPeriod; // How often to broadcast URIFrame, in seconds.
         // UID Frame Data
-        UIDNamespaceID_t uidNamespaceID;  // UUID type, Namespace ID, 10B
-        UIDInstanceID_t  uidInstanceID;   // UUID type, Instance ID,  6B
+        UIDNamespaceID_t uidNamespaceID;  // UUID type, Namespace ID, 10B.
+        UIDInstanceID_t  uidInstanceID;   // UUID type, Instance ID, 6B.
         bool             uidEnabled;
-        float            uidBeaconPeriod; // how often to broadcast UID Frame, in seconds.
+        float            uidBeaconPeriod; // How often to broadcast UID Frame, in seconds.
     };
 
     /**
@@ -116,19 +118,19 @@ public:
      *                    Reference to application-visible beacon state, loaded
      *                    from persistent storage at startup.
      * @param[in]     defaultAdvPowerLevelsIn
-     *                    Default power-levels array; applies only if the resetToDefaultsFlag is true.
+     *                    Default power-levels array; applies only if resetToDefaultsFlag is true.
      */
     EddystoneConfigService(BLEDevice     &bleIn,
                            Params_t      &paramsIn,
                            PowerLevels_t &defaultAdvPowerLevelsIn,
                            PowerLevels_t &radioPowerLevelsIn) :
         ble(bleIn),
-        params(paramsIn),       // Initialize URL Data
+        params(paramsIn),       // Initialize URL data.
         defaultAdvPowerLevels(defaultAdvPowerLevelsIn),
         radioPowerLevels(radioPowerLevelsIn),
         initSucceeded(false),
         resetFlag(),
-        defaultUidNamespaceID(), // Initialize UID Data
+        defaultUidNamespaceID(), // Initialize UID data.
         defaultUidInstanceID(),
         defaultUidPower(defaultAdvPowerLevelsIn[params.txPowerMode]),
         uidIsSet(false),
@@ -147,7 +149,7 @@ public:
         txPowerModeChar(UUID_TX_POWER_MODE_CHAR, &params.txPowerMode),
         beaconPeriodChar(UUID_BEACON_PERIOD_CHAR, &params.beaconPeriod),
         resetChar(UUID_RESET_CHAR, &resetFlag) {
-        // set eddystone as not configured yet. Used to exit config before timeout if GATT services are written to.
+        // Set Eddystone as not configured yet. Used to exit config before timeout if GATT services are written to.
         params.isConfigured = false;
 
         lockChar.setWriteAuthorizationCallback(this, &EddystoneConfigService::lockAuthorizationCallback);
@@ -193,12 +195,12 @@ public:
             updateCharacteristicValues();
         }
 
-        setupEddystoneConfigAdvertisements(); /* Setup advertising for the configService. */
+        setupEddystoneConfigAdvertisements(); /* Set up advertising for the config service. */
         initSucceeded = true;
     }
 
     /*
-    * Check if eddystone initialized successfully
+    * Check if Eddystone initialized successfully.
     */
     bool initSuccessfully(void) const {
         return initSucceeded;
@@ -207,47 +209,47 @@ public:
     /*
     * @brief Function to update the default values for the TLM frame. Only applied if Reset Defaults is applied.
     *
-    * @param[in] tlmVersionIn     Version of the TLM frame being used
-    * @param[in] advPeriodInMin how long between TLM frames being advertised, this is measured in minutes.
+    * @param[in] tlmVersionIn     Version of the TLM frame being used.
+    * @param[in] advPeriodInMin How long between TLM frames being advertised, measured in minutes.
     *
     */
     void setDefaultTLMFrameData(uint8_t tlmVersionIn = 0, float advPeriodInSec = 60){
         DBG("Setting Default TLM Data, version = %d, advPeriodInMind= %f", tlmVersionIn, advPeriodInSec);
         defaultTlmVersion   = tlmVersionIn;
         TlmBatteryVoltage   = 0;
-        TlmBeaconTemp       = 0;
+        TlmBeaconTemp       = 0x8000;
         TlmPduCount         = 0;
         TlmTimeSinceBoot    = 0;
         defaultTlmAdvPeriod = advPeriodInSec;
-        tlmIsSet            = true; // flag to add this to eddystone service when config is done
+        tlmIsSet            = true; // Flag to add this to Eddystone service when config is done.
     }
 
     /*
     * @brief Function to update the default values for the URI frame. Only applied if Reset Defaults is applied.
     *
-    * @param[in] uriIn      url to advertise
-    * @param[in] advPeriod  how long to advertise the url for, measured in number of ADV frames.
+    * @param[in] uriIn      URL to advertise.
+    * @param[in] advPeriod  How long to advertise the URL, measured in number of ADV frames.
     *
     */
     void setDefaultURIFrameData(const char *uriIn, float advPeriod = 1){
         DBG("Setting Default URI Data");
         // Set URL Frame
-        EddystoneService::encodeURL(uriIn, defaultUriData, defaultUriDataLength);   // encode URL to URL Formatting
+        EddystoneService::encodeURL(uriIn, defaultUriData, defaultUriDataLength);   // Encode URL to URL Formatting.
         if (defaultUriDataLength > URI_DATA_MAX) {
             return;
         }
         INFO("\t  URI input = %s : %d", uriIn, defaultUriDataLength);
         INFO("\t default URI = %s : %d ", defaultUriData, defaultUriDataLength );
         defaultUriAdvPeriod = advPeriod;
-        urlIsSet            = true; // flag to add this to eddystone service when config is done
+        urlIsSet            = true; // Flag to add this to Eddystone service when config is done.
     }
 
     /*
     * @brief Function to update the default values for the UID frame. Only applied if Reset Defaults is applied.
     *
-    * @param[in] namespaceID 10Byte Namespace ID
-    * @param[in] instanceID  6Byte Instance ID
-    * @param[in] advPeriod   how long to advertise the URL for, measured in the number of adv frames.
+    * @param[in] namespaceID 10Byte Namespace ID.
+    * @param[in] instanceID  6Byte Instance ID.
+    * @param[in] advPeriod   How long to advertise the URL, measured in the number of ADV frames.
     *
     */
     void setDefaultUIDFrameData(UIDNamespaceID_t *namespaceID, UIDInstanceID_t *instanceID, float advPeriod = 10){
@@ -256,12 +258,12 @@ public:
         memcpy(defaultUidNamespaceID, namespaceID, UID_NAMESPACEID_SIZE);
         memcpy(defaultUidInstanceID,  instanceID,  UID_INSTANCEID_SIZE);
         defaultUidAdvPeriod = advPeriod;
-        uidIsSet            = true; // flag to add this to eddystone service when config is done
+        uidIsSet            = true; // Flag to add this to Eddystone service when config is done.
     }
 
-    /* Start out by advertising the configService for a limited time after
-     * startup; and switch to the normal non-connectible beacon functionality
-     * afterwards. */
+    /* Start out by advertising the config service for a limited time after
+     * startup, then switch to the normal non-connectible beacon functionality.
+     */
     void setupEddystoneConfigAdvertisements() {
         const char DEVICE_NAME[] = "eddystone Config";
 
@@ -269,7 +271,7 @@ public:
 
         ble.accumulateAdvertisingPayload(GapAdvertisingData::BREDR_NOT_SUPPORTED | GapAdvertisingData::LE_GENERAL_DISCOVERABLE);
 
-        // UUID is in different order in the ADV frame (!)
+        // UUID is in a different order in the ADV frame (!)
         uint8_t reversedServiceUUID[sizeof(UUID_URI_BEACON_SERVICE)];
         for (unsigned int i = 0; i < sizeof(UUID_URI_BEACON_SERVICE); i++) {
             reversedServiceUUID[i] = UUID_URI_BEACON_SERVICE[sizeof(UUID_URI_BEACON_SERVICE) - i - 1];
@@ -285,28 +287,28 @@ public:
         ble.setTxPower(radioPowerLevels[params.txPowerMode]);
         ble.setDeviceName(reinterpret_cast<const uint8_t *>(&DEVICE_NAME));
         ble.setAdvertisingType(GapAdvertisingParams::ADV_CONNECTABLE_UNDIRECTED);
-        ble.setAdvertisingInterval(GapAdvertisingParams::MSEC_TO_ADVERTISEMENT_DURATION_UNITS(ADVERTISING_INTERVAL_MSEC));
+        ble.setAdvertisingInterval(ADVERTISING_INTERVAL_MSEC);
     }
 
     /*
     *   This function actually impliments the Eddystone Beacon service. It can be called with the help of the wrapper function
-    *   to load saved config params, or it can be called explicitly to reset the eddystone beacon to hardcoded values on each reset.
+    *   to load saved config params, or it can be called explicitly to reset the Eddystone beacon to hardcoded values on each reset.
     *
     */
     void setupEddystoneAdvertisements() {
         DBG("Switching Config -> adv");
-        // Save params to storage
+        // Save params to storage.
         extern void saveURIBeaconConfigParams(const Params_t *paramsP); /* forward declaration; necessary to avoid a circular dependency. */
         saveURIBeaconConfigParams(&params);
         INFO("Saved Params to Memory.")
-        // Setup Eddystone Service
+        // Set up Eddystone Service.
         static EddystoneService eddyServ(ble, params.beaconPeriod, radioPowerLevels[params.txPowerMode]);
-        // Set configured frames (TLM,UID,URI...etc)
+        // Set configured frames (TLM, UID, URI and so on).
         if (params.tlmEnabled) {
             eddyServ.setTLMFrameData(params.tlmVersion, params.tlmBeaconPeriod);
         }
         if (params.uriEnabled) {
-            eddyServ.setURLFrameData(params.advPowerLevels[params.txPowerMode], (const char *) params.uriData, params.uriBeaconPeriod);
+            eddyServ.setURLFrameEncodedData(params.advPowerLevels[params.txPowerMode], (const char *) params.uriData, params.uriDataLength, params.uriBeaconPeriod);
         }
         if (params.uidEnabled) {
             eddyServ.setUIDFrameData(params.advPowerLevels[params.txPowerMode],
@@ -314,7 +316,7 @@ public:
                                      (uint8_t *)params.uidInstanceID,
                                      params.uidBeaconPeriod);
         }
-        // Start Advertising the eddystone service.
+        // Start advertising the Eddystone service.
         eddyServ.start();
     }
 
@@ -328,19 +330,19 @@ private:
         uint16_t handle = writeParams->handle;
 
         if (handle == lockChar.getValueHandle()) {
-            // Validated earlier
+            // Validated earlier.
             memcpy(params.lock, writeParams->data, sizeof(Lock_t));
-            // Set the state to be locked by the lock code (note: zeros are a valid lock)
+            // Set the state to be locked by the lock code (note: zeros are a valid lock).
             params.lockedState = true;
             INFO("Device Locked");
         } else if (handle == unlockChar.getValueHandle()) {
-            // Validated earlier
+            // Validated earlier.
             params.lockedState = false;
             INFO("Device Unlocked");
         } else if (handle == uriDataChar.getValueHandle()) {
             params.uriDataLength = writeParams->len;
-            memset(params.uriData, 0x00, URI_DATA_MAX);                      // clear URI string
-            memcpy(params.uriData, writeParams->data, params.uriDataLength); // set URI string
+            memset(params.uriData, 0x00, URI_DATA_MAX);                      // Clear URI string.
+            memcpy(params.uriData, writeParams->data, writeParams->len); // Set URI string.
             params.uriEnabled = true;
             INFO("URI = %s, URILen = %d", writeParams->data, writeParams->len);
         } else if (handle == flagsChar.getValueHandle()) {
@@ -375,7 +377,7 @@ private:
             resetToDefaults();
         }
         updateCharacteristicValues();
-        params.isConfigured = true; // some configuration data has been passed, on disconnect switch to advertising mode.
+        params.isConfigured = true; // Some configuration data has been passed; on disconnect switch to advertising mode.
     }
 
     /*
@@ -383,26 +385,26 @@ private:
      */
     void resetToDefaults(void) {
         INFO("Resetting to defaults");
-        // General
+        // General.
         params.lockedState = false;
         memset(params.lock, 0, sizeof(Lock_t));
         params.flags = 0x10;
         memcpy(params.advPowerLevels, defaultAdvPowerLevels, sizeof(PowerLevels_t));
         params.txPowerMode  = TX_POWER_MODE_LOW;
-        params.beaconPeriod = 1000;
+        params.beaconPeriod = (uint16_t) defaultUriAdvPeriod * 1000;
 
-        // TLM Frame
+        // TLM Frame.
         params.tlmVersion      = defaultTlmVersion;
         params.tlmBeaconPeriod = defaultTlmAdvPeriod;
         params.tlmEnabled      = tlmIsSet;
 
-        // URL Frame
+        // URL Frame.
         memcpy(params.uriData, defaultUriData, URI_DATA_MAX);
         params.uriDataLength   = defaultUriDataLength;
         params.uriBeaconPeriod = defaultUriAdvPeriod;
         params.uriEnabled      = urlIsSet;
 
-        // UID Frame
+        // UID Frame.
         memcpy(params.uidNamespaceID, defaultUidNamespaceID, UID_NAMESPACEID_SIZE);
         memcpy(params.uidInstanceID,  defaultUidInstanceID,  UID_INSTANCEID_SIZE);
         params.uidBeaconPeriod = defaultUidAdvPeriod;
@@ -494,15 +496,15 @@ private:
     Params_t                                   &params;
     Ticker                                     timeSinceBootTick;
     Timeout                                    switchFrame;
-    // Default value that is restored on reset
-    PowerLevels_t                              &defaultAdvPowerLevels; // this goes into the advertising frames (radio power measured at 1m from device)
-    PowerLevels_t                              &radioPowerLevels;      // this configures the power levels of the radio
+    // Default value that is restored on reset.
+    PowerLevels_t                              &defaultAdvPowerLevels; // This goes into the advertising frames (radio power measured at 1m from device).
+    PowerLevels_t                              &radioPowerLevels;      // This configures the power levels of the radio.
     uint8_t                                    lockedState;
     bool                                       initSucceeded;
     uint8_t                                    resetFlag;
     bool                                       switchFlag;
 
-    //UID Default value that is restored on reset
+    //UID default value that is restored on reset.
     UIDNamespaceID_t                           defaultUidNamespaceID;
     UIDInstanceID_t                            defaultUidInstanceID;
     float                                      defaultUidAdvPeriod;
@@ -510,14 +512,14 @@ private:
     uint16_t                                   uidRFU;
     bool                                       uidIsSet;
 
-    //URI  Default value that is restored on reset
+    //URI default value that is restored on reset.
     uint8_t                                    defaultUriDataLength;
     UriData_t                                  defaultUriData;
     int8_t                                     defaultUrlPower;
     float                                      defaultUriAdvPeriod;
     bool                                       urlIsSet;
 
-    //TLM  Default value that is restored on reset
+    //TLM default value that is restored on reset.
     uint8_t                                    defaultTlmVersion;
     float                                      defaultTlmAdvPeriod;
     volatile uint16_t                          TlmBatteryVoltage;
@@ -537,4 +539,4 @@ private:
     WriteOnlyGattCharacteristic<uint8_t>       resetChar;
 };
 
-#endif  // SERVICES_EDDYSTONE_BEACON_CONFIG_SERVICE_H_
+#endif  // SERVICES_EDDYSTONE_BEACON_CONFIG_SERVICE_H_

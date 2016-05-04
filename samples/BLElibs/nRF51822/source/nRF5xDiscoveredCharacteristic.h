@@ -36,6 +36,10 @@ public:
                ble_gatt_char_props_t    propsIn,
                GattAttribute::Handle_t  declHandleIn,
                GattAttribute::Handle_t  valueHandleIn);
+
+    void setLastHandle(GattAttribute::Handle_t last) {
+      lastHandle = last;
+    }
 };
 
 #endif /* __NRF_DISCOVERED_CHARACTERISTIC_H__ */

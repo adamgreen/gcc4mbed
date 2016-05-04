@@ -17,23 +17,25 @@
 #ifndef __GATT_SERVER_EVENTS_H__
 #define __GATT_SERVER_EVENTS_H__
 
-/*!
-    \brief
-    The base class used to abstract away the callback events that can be
-    triggered with the GATT Server.
-*/
+/**
+ *  @brief The base class used to abstract away the callback events that can be
+ *         triggered with the GATT Server.
+ */
 class GattServerEvents
 {
 public:
+    /**
+     * Enumeration for GattServer events.
+     */
     typedef enum gattEvent_e {
-        GATT_EVENT_DATA_SENT               = 1,  /**< Fired when a msg was successfully sent out (notify only?) */
-        GATT_EVENT_DATA_WRITTEN            = 2,  /**< Client wrote data to Server (separate into char and descriptor writes?) */
-        GATT_EVENT_UPDATES_ENABLED         = 3,  /**< Notify/Indicate Enabled in CCCD */
-        GATT_EVENT_UPDATES_DISABLED        = 4,  /**< Notify/Indicate Disabled in CCCD */
-        GATT_EVENT_CONFIRMATION_RECEIVED   = 5,  /**< Response received from Indicate message */
-        GATT_EVENT_READ_AUTHORIZATION_REQ  = 6,  /**< Request application to authorize read */
-        GATT_EVENT_WRITE_AUTHORIZATION_REQ = 7,  /**< Request application to authorize write */
+        GATT_EVENT_DATA_SENT               = 1,  /**< Fired when a message was successfully sent out (notify only?) */
+        GATT_EVENT_DATA_WRITTEN            = 2,  /**< Client wrote data to the server (separate into char and descriptor writes?) */
+        GATT_EVENT_UPDATES_ENABLED         = 3,  /**< Notify/Indicate enabled in CCCD. */
+        GATT_EVENT_UPDATES_DISABLED        = 4,  /**< Notify/Indicate disabled in CCCD. */
+        GATT_EVENT_CONFIRMATION_RECEIVED   = 5,  /**< Response received from Indicate message. */
+        GATT_EVENT_READ_AUTHORIZATION_REQ  = 6,  /**< Request application to authorize read. */
+        GATT_EVENT_WRITE_AUTHORIZATION_REQ = 7,  /**< Request application to authorize write. */
     } gattEvent_t;
 };
 
-#endif // ifndef __GATT_SERVER_EVENTS_H__
+#endif /* ifndef __GATT_SERVER_EVENTS_H__ */

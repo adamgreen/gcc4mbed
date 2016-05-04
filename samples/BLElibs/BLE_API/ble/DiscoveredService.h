@@ -25,34 +25,82 @@
  */
 class DiscoveredService {
 public:
-     void setup(UUID uuidIn, GattAttribute::Handle_t startHandleIn, GattAttribute::Handle_t endHandleIn) {
-         uuid        = uuidIn;
-         startHandle = startHandleIn;
-         endHandle   = endHandleIn;
-     }
+    /**
+     * Set information about the discovered service.
+     *
+     * @param[in] uuidIn
+     *              The UUID of the discovered service.
+     * @param[in] startHandleIn
+     *              The start handle of the discovered service in the peer's
+     *              ATT table.
+     * @param[in] endHandleIn
+     *              The end handle of the discovered service in the peer's
+     *              ATT table.
+     */
+    void setup(UUID uuidIn, GattAttribute::Handle_t startHandleIn, GattAttribute::Handle_t endHandleIn) {
+        uuid        = uuidIn;
+        startHandle = startHandleIn;
+        endHandle   = endHandleIn;
+    }
 
-     void setup(GattAttribute::Handle_t startHandleIn, GattAttribute::Handle_t endHandleIn) {
-         startHandle = startHandleIn;
-         endHandle   = endHandleIn;
-     }
+    /**
+     * Set the start and end handle of the discovered service.
+     * @param[in] startHandleIn
+     *              The start handle of the discovered service in the peer's
+     *              ATT table.
+     * @param[in] endHandleIn
+     *              The end handle of the discovered service in the peer's
+     *              ATT table.
+     */
+    void setup(GattAttribute::Handle_t startHandleIn, GattAttribute::Handle_t endHandleIn) {
+        startHandle = startHandleIn;
+        endHandle   = endHandleIn;
+    }
 
-    void setupLongUUID(UUID::LongUUIDBytes_t longUUID) {
-         uuid.setupLong(longUUID);
+    /**
+     * Set the long UUID of the discovered service.
+     *
+     * @param[in] longUUID
+     *              The long UUID of the discovered service.
+     * @param[in] order
+     *              The byte ordering of @p longUUID.
+     */
+    void setupLongUUID(UUID::LongUUIDBytes_t longUUID, UUID::ByteOrder_t order = UUID::MSB) {
+         uuid.setupLong(longUUID, order);
     }
 
 public:
+    /**
+     * Get the UUID of the discovered service.
+     *
+     * @return A reference to the UUID of the discovered service.
+     */
     const UUID &getUUID(void) const {
         return uuid;
     }
 
+    /**
+     * Get the start handle of the discovered service in the peer's ATT table.
+     *
+     * @return A reference to the start handle.
+     */
     const GattAttribute::Handle_t& getStartHandle(void) const {
         return startHandle;
     }
+
+    /**
+     * Get the end handle of the discovered service in the peer's ATT table.
+     *
+     * @return A reference to the end handle.
+     */
     const GattAttribute::Handle_t& getEndHandle(void) const {
         return endHandle;
     }
 
 public:
+    /**
+     * Construct a DiscoveredService instance.
+     */
     DiscoveredService() : uuid(UUID::ShortUUIDBytes_t(0)),
                           startHandle(GattAttribute::INVALID_HANDLE),
                           endHandle(GattAttribute::INVALID_HANDLE) {

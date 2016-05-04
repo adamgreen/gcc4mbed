@@ -21,18 +21,18 @@
 
 /**
 * @class BatteryService
-* @brief BLE Battery Service. This service displays the battery level from 0%->100% represented as a 8bit number.<br>
-* Service:  https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.battery_service.xml <br>
+* @brief BLE Battery Service. This service displays the battery level from 0% to 100%, represented as an 8bit number.
+* Service:  https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.battery_service.xml
 * Battery Level Char:  https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.battery_level.xml
 */
 class BatteryService {
 public:
     /**
-    * @param[ref] _ble
-    *               BLE object for the underlying controller.
-    * @param[in] level
-    *               8bit batterly level. Usually used to represent percentage of batterly charge remaining.
-    */
+     * @param[in] _ble
+     *               BLE object for the underlying controller.
+     * @param[in] level
+     *               8bit batterly level. Usually used to represent percentage of batterly charge remaining.
+     */
     BatteryService(BLE &_ble, uint8_t level = 100) :
         ble(_ble),
         batteryLevel(level),
@@ -45,11 +45,11 @@ public:
     }
 
     /**
-     * @brief Update the battery level with a new value. Valid values range from
-     * 0..100. Anything outside this range will be ignored.
+     * @brief Update the battery level with a new value. Valid values lie between 0 and 100,
+     * anything outside this range will be ignored.
      *
      * @param newLevel
-     *              update to battery level.
+     *              Update to battery level.
      */
     void updateBatteryLevel(uint8_t newLevel) {
         batteryLevel = newLevel;
@@ -57,9 +57,20 @@ public:
     }
 
 protected:
+    /**
+     * A reference to the underlying BLE instance that this object is attached to.
+     * The services and characteristics will be registered in this BLE instance.
+     */
     BLE &ble;
 
+    /**
+     * The current battery level represented as an integer from 0% to 100%.
+     */
     uint8_t    batteryLevel;
+    /**
+     * A ReadOnlyGattCharacteristic that allows access to the peer device to the
+     * batteryLevel value through BLE.
+     */
     ReadOnlyGattCharacteristic<uint8_t> batteryLevelCharacteristic;
 };
 

@@ -15,17 +15,16 @@
  */
 
 #include "nRF5xGattServer.h"
-#include "mbed.h"
+#ifdef YOTTA_CFG_MBED_OS
+    #include "mbed-drivers/mbed.h"
+#else
+    #include "mbed.h"
+#endif
 
 #include "common/common.h"
 #include "btle/custom/custom_helper.h"
 
-#include "nRF5xGap.h"
-
-nRF5xGattServer &nRF5xGattServer::getInstance(void) {
-    static nRF5xGattServer m_instance;
-    return m_instance;
-}
+#include "nRF5xn.h"
 
 /**************************************************************************/
 /*!
@@ -45,7 +44,6 @@ nRF5xGattServer &nRF5xGattServer::getInstance(void) {
 /**************************************************************************/
 ble_error_t nRF5xGattServer::addService(GattService &service)
 {
-    /* ToDo: Make sure we don't overflow the array, etc. */
     /* ToDo: Make sure this service UUID doesn't already exist (?) */
     /* ToDo: Basic validation */
 
@@ -63,11 +61,14 @@ ble_error_t nRF5xGattServer::addService(GattService &service)
 
     /* Add characteristics to the service */
     for (uint8_t i = 0; i < service.getCharacteristicCount(); i++) {
+        if (characteristicCount >= BLE_TOTAL_CHARACTERISTICS) {
+            return BLE_ERROR_NO_MEM;
+        }
         GattCharacteristic *p_char = service.getCharacteristic(i);
 
         /* Skip any incompletely defined, read-only characteristics. */
         if ((p_char->getValueAttribute().getValuePtr() == NULL) &&
-            (p_char->getValueAttribute().getInitialLength() == 0) &&
+            (p_char->getValueAttribute().getLength() == 0) &&
             (p_char->getProperties() == GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ)) {
             continue;
         }
@@ -93,8 +94,9 @@ ble_error_t nRF5xGattServer::addService(GattService &service)
                                               p_char->getProperties(),
                                               p_char->getRequiredSecurity(),
                                               p_char->getValueAttribute().getValuePtr(),
-                                              p_char->getValueAttribute().getInitialLength(),
+                                              p_char->getValueAttribute().getLength(),
                                               p_char->getValueAttribute().getMaxLength(),
+                                              p_char->getValueAttribute().hasVariableLength(),
                                               userDescriptionDescriptorValuePtr,
                                               userDescriptionDescriptorValueLen,
                                               p_char->isReadAuthorizationEnabled(),
@@ -108,8 +110,11 @@ ble_error_t nRF5xGattServer::addService(GattService &service)
         characteristicCount++;
 
         /* Add optional descriptors if any */
-        /* ToDo: Make sure we don't overflow the array */
         for (uint8_t j = 0; j < p_char->getDescriptorCount(); j++) {
+            if (descriptorCount >= BLE_TOTAL_DESCRIPTORS) {
+                return BLE_ERROR_NO_MEM;
+            }
+
             GattAttribute *p_desc = p_char->getDescriptor(j);
             /* skip the user-description-descriptor here; this has already been handled when adding the characteristic (above). */
             if (p_desc->getUUID() == BLE_UUID_DESCRIPTOR_CHAR_USER_DESC) {
@@ -122,13 +127,15 @@ ble_error_t nRF5xGattServer::addService(GattService &service)
                    custom_add_in_descriptor(BLE_GATT_HANDLE_INVALID,
                                             &nordicUUID,
                                             p_desc->getValuePtr(),
-                                            p_desc->getInitialLength(),
+                                            p_desc->getLength(),
                                             p_desc->getMaxLength(),
+                                            p_desc->hasVariableLength(),
                                             &nrfDescriptorHandles[descriptorCount]),
                 BLE_ERROR_PARAM_OUT_OF_RANGE);
 
-            p_descriptors[descriptorCount++] = p_desc;
+            p_descriptors[descriptorCount] = p_desc;
             p_desc->setHandle(nrfDescriptorHandles[descriptorCount]);
+            descriptorCount++;
         }
     }
 
@@ -234,7 +241,8 @@ ble_error_t nRF5xGattServer::write(Gap::Handle_t connectionHandle, GattAttribute
         hvx_params.p_len  = &len;
 
         if (connectionHandle == BLE_CONN_HANDLE_INVALID) { /* use the default connection handle if the caller hasn't specified a valid connectionHandle. */
-            connectionHandle = nRF5xGap::getInstance().getConnectionHandle();
+            nRF5xGap &gap = (nRF5xGap &) nRF5xn::Instance(BLE::DEFAULT_INSTANCE).getGap();
+            connectionHandle = gap.getConnectionHandle();
         }
         error_t error = (error_t) sd_ble_gatts_hvx(connectionHandle, &hvx_params);
         if (error != ERROR_NONE) {
@@ -261,10 +269,28 @@ ble_error_t nRF5xGattServer::write(Gap::Handle_t connectionHandle, GattAttribute
             }
         }
     } else {
-        returnValue = BLE_ERROR_INVALID_STATE; // if assert is not used
-        ASSERT_INT( ERROR_NONE,
-                    sd_ble_gatts_value_set(connectionHandle, attributeHandle, &value),
-                    BLE_ERROR_PARAM_OUT_OF_RANGE );
+        uint32_t err = sd_ble_gatts_value_set(connectionHandle, attributeHandle, &value);
+        switch(err) {
+            case NRF_SUCCESS:
+                returnValue = BLE_ERROR_NONE;
+                break;
+            case NRF_ERROR_INVALID_ADDR:
+            case NRF_ERROR_INVALID_PARAM:
+                returnValue = BLE_ERROR_INVALID_PARAM;
+                break;
+            case NRF_ERROR_NOT_FOUND:
+            case NRF_ERROR_DATA_SIZE:
+            case BLE_ERROR_INVALID_CONN_HANDLE:
+            case BLE_ERROR_GATTS_INVALID_ATTR_TYPE:
+                returnValue = BLE_ERROR_PARAM_OUT_OF_RANGE;
+                break;
+            case NRF_ERROR_FORBIDDEN:
+                returnValue = BLE_ERROR_OPERATION_NOT_PERMITTED;
+                break;
+            default:
+                returnValue = BLE_ERROR_UNSPECIFIED;
+                break;
+        }
     }
 
     return returnValue;
@@ -273,7 +299,8 @@ ble_error_t nRF5xGattServer::write(Gap::Handle_t connectionHandle, GattAttribute
 ble_error_t nRF5xGattServer::areUpdatesEnabled(const GattCharacteristic &characteristic, bool *enabledP)
 {
     /* Forward the call with the default connection handle. */
-    return areUpdatesEnabled(nRF5xGap::getInstance().getConnectionHandle(), characteristic, enabledP);
+    nRF5xGap &gap = (nRF5xGap &) nRF5xn::Instance(BLE::DEFAULT_INSTANCE).getGap();
+    return areUpdatesEnabled(gap.getConnectionHandle(), characteristic, enabledP);
 }
 
 ble_error_t nRF5xGattServer::areUpdatesEnabled(Gap::Handle_t connectionHandle, const GattCharacteristic &characteristic, bool *enabledP)
@@ -299,6 +326,33 @@ ble_error_t nRF5xGattServer::areUpdatesEnabled(Gap::Handle_t connectionHandle, c
     if ((cccdValue & BLE_GATT_HVX_NOTIFICATION) || (cccdValue & BLE_GATT_HVX_INDICATION)) {
         *enabledP = true;
     }
+
+    return BLE_ERROR_NONE;
+}
+
+/**************************************************************************/
+/*!
+    @brief  Clear nRF5xGattServer's state.
+
+    @returns    ble_error_t
+
+    @retval     BLE_ERROR_NONE
+                Everything executed properly
+*/
+/**************************************************************************/
+ble_error_t nRF5xGattServer::reset(void)
+{
+    /* Clear all state that is from the parent, including private members */
+    if (GattServer::reset() != BLE_ERROR_NONE) {
+        return BLE_ERROR_INVALID_STATE;
+    }
+
+    /* Clear derived class members */
+    memset(p_characteristics,        0, sizeof(p_characteristics));
+    memset(p_descriptors,            0, sizeof(p_descriptors));
+    memset(nrfCharacteristicHandles, 0, sizeof(ble_gatts_char_handles_t));
+    memset(nrfDescriptorHandles,     0, sizeof(nrfDescriptorHandles));
+    descriptorCount = 0;
 
     return BLE_ERROR_NONE;
 }

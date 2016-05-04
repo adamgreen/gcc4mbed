@@ -26,7 +26,7 @@ typedef struct {
     UUID::LongUUIDBytes_t uuid;
     uint8_t         type;
 } converted_uuid_table_entry_t;
-static const unsigned UUID_TABLE_MAX_ENTRIES = 8; /* This is the maximum number of 128-bit UUIDs with distinct bases that
+static const unsigned UUID_TABLE_MAX_ENTRIES = 4; /* This is the maximum number of 128-bit UUIDs with distinct bases that
                                                    * we expect to be in use; increase this limit if needed. */
 static unsigned uuidTableEntries = 0; /* current usage of the table */
 converted_uuid_table_entry_t convertedUUIDTable[UUID_TABLE_MAX_ENTRIES];
@@ -148,9 +148,8 @@ uint8_t custom_add_uuid_base(uint8_t const *const p_uuid_base)
     ble_uuid128_t base_uuid;
     uint8_t       uuid_type = 0;
 
-    /* Reverse the bytes since ble_uuid128_t is LSB */
     for (unsigned i = 0; i < UUID::LENGTH_OF_LONG_UUID; i++) {
-        base_uuid.uuid128[i] = p_uuid_base[UUID::LENGTH_OF_LONG_UUID - 1 - i];
+        base_uuid.uuid128[i] = p_uuid_base[i];
     }
 
     ASSERT_INT( ERROR_NONE, sd_ble_uuid_vs_add( &base_uuid, &uuid_type ), 0);
@@ -168,9 +167,8 @@ error_t custom_decode_uuid_base(uint8_t const *const p_uuid_base,
 {
     UUID::LongUUIDBytes_t uuid_base_le;
 
-    /* Reverse the bytes since ble_uuid128_t is LSB */
     for (uint8_t i = 0; i < UUID::LENGTH_OF_LONG_UUID; i++) {
-        uuid_base_le[i] = p_uuid_base[UUID::LENGTH_OF_LONG_UUID - 1 - i];
+        uuid_base_le[i] = p_uuid_base[i];
     }
 
     ASSERT_STATUS( sd_ble_uuid_decode(UUID::LENGTH_OF_LONG_UUID, uuid_base_le, p_uuid));
@@ -191,6 +189,8 @@ error_t custom_decode_uuid_base(uint8_t const *const p_uuid_base,
     @param[in]  char_props        The characteristic properties, as
                                   defined by ble_gatt_char_props_t
     @param[in]  max_length        The maximum length of this characeristic
+    @param[in]  has_variable_len  Whether the characteristic data has
+                                  variable length.
     @param[out] p_char_handle
 
     @returns
@@ -202,8 +202,9 @@ error_t custom_add_in_characteristic(uint16_t                  service_handle,
                                      uint8_t                   properties,
                                      SecurityManager::SecurityMode_t       requiredSecurity,
                                      uint8_t                  *p_data,
-                                     uint16_t                  min_length,
+                                     uint16_t                  length,
                                      uint16_t                  max_length,
+                                     bool                      has_variable_len,
                                      const uint8_t            *userDescriptionDescriptorValuePtr,
                                      uint16_t                  userDescriptionDescriptorValueLen,
                                      bool                      readAuthorization,
@@ -242,7 +243,8 @@ error_t custom_add_in_characteristic(uint16_t                  service_handle,
     attr_md.wr_auth = writeAuthorization;
 
     attr_md.vloc = BLE_GATTS_VLOC_STACK;
-    attr_md.vlen = (min_length == max_length) ? 0 : 1;
+    /* Always set variable size */
+    attr_md.vlen = has_variable_len;
 
     if (char_props.read || char_props.notify || char_props.indicate) {
         switch (requiredSecurity) {
@@ -292,7 +294,7 @@ error_t custom_add_in_characteristic(uint16_t                  service_handle,
 
     attr_char_value.p_uuid    = p_uuid;
     attr_char_value.p_attr_md = &attr_md;
-    attr_char_value.init_len  = min_length;
+    attr_char_value.init_len  = length;
     attr_char_value.max_len   = max_length;
     attr_char_value.p_value   = p_data;
 
@@ -317,23 +319,27 @@ error_t custom_add_in_characteristic(uint16_t                  service_handle,
                                   since 1 is typically used by the primary
                                   service).
     @param[in]  max_length        The maximum length of this descriptor
+    @param[in]  has_variable_len  Whether the characteristic data has
+                                  variable length.
 
     @returns
     @retval     ERROR_NONE        Everything executed normally
 */
 /**************************************************************************/
 error_t custom_add_in_descriptor(uint16_t    char_handle,
-                                             ble_uuid_t *p_uuid,
-                                             uint8_t    *p_data,
-                                             uint16_t    min_length,
-                                             uint16_t    max_length,
-                                             uint16_t   *p_desc_handle)
+                                 ble_uuid_t *p_uuid,
+                                 uint8_t    *p_data,
+                                 uint16_t    length,
+                                 uint16_t    max_length,
+                                 bool        has_variable_len,
+                                 uint16_t   *p_desc_handle)
 {
     /* Descriptor metadata */
     ble_gatts_attr_md_t   desc_md = {0};
 
     desc_md.vloc = BLE_GATTS_VLOC_STACK;
-    desc_md.vlen = (min_length == max_length) ? 0 : 1;
+    /* Always set variable size */
+    desc_md.vlen = has_variable_len;
 
     /* Make it readable and writable */
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&desc_md.read_perm);
@@ -343,7 +349,7 @@ error_t custom_add_in_descriptor(uint16_t    char_handle,
 
     attr_desc.p_uuid    = p_uuid;
     attr_desc.p_attr_md = &desc_md;
-    attr_desc.init_len  = min_length;
+    attr_desc.init_len  = length;
     attr_desc.max_len   = max_length;
     attr_desc.p_value   = p_data;
 

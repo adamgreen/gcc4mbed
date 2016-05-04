@@ -18,76 +18,101 @@
 #define MBED_FUNCTIONPOINTER_WITH_CONTEXT_H
 
 #include <string.h>
-
+#include "SafeBool.h"
 
 /** A class for storing and calling a pointer to a static or member void function
- *  which takes a context.
+ *  that takes a context.
  */
 template <typename ContextType>
-class FunctionPointerWithContext {
+class FunctionPointerWithContext : public SafeBool<FunctionPointerWithContext<ContextType> > {
 public:
     typedef FunctionPointerWithContext<ContextType> *pFunctionPointerWithContext_t;
+    typedef const FunctionPointerWithContext<ContextType> *cpFunctionPointerWithContext_t;
     typedef void (*pvoidfcontext_t)(ContextType context);
 
-    /** Create a FunctionPointerWithContext, attaching a static function
+    /** Create a FunctionPointerWithContext, attaching a static function.
      *
-     *  @param function The void static function to attach (default is none)
+     *  @param function The void static function to attach (default is none).
      */
     FunctionPointerWithContext(void (*function)(ContextType context) = NULL) :
-        _function(NULL), _object(NULL), _member(), _membercaller(NULL), _next(NULL) {
+        _memberFunctionAndPointer(), _caller(NULL), _next(NULL) {
         attach(function);
     }
 
-    /** Create a FunctionPointerWithContext, attaching a member function
+    /** Create a FunctionPointerWithContext, attaching a member function.
      *
-     *  @param object The object pointer to invoke the member function on (i.e. the this pointer)
-     *  @param function The address of the void member function to attach
+     *  @param object The object pointer to invoke the member function on (the "this" pointer).
+     *  @param function The address of the void member function to attach.
      */
     template<typename T>
     FunctionPointerWithContext(T *object, void (T::*member)(ContextType context)) :
-        _function(NULL), _object(NULL), _member(), _membercaller(NULL), _next(NULL) {
+        _memberFunctionAndPointer(), _caller(NULL), _next(NULL) {
         attach(object, member);
     }
 
-    /** Attach a static function
+    FunctionPointerWithContext(const FunctionPointerWithContext& that) : 
+        _memberFunctionAndPointer(that._memberFunctionAndPointer), _caller(that._caller), _next(NULL) {
+    }
+
+    FunctionPointerWithContext& operator=(const FunctionPointerWithContext& that) {
+        _memberFunctionAndPointer = that._memberFunctionAndPointer;
+        _caller = that._caller; 
+        _next = NULL;
+        return *this;
+    }
+
+    /** Attach a static function.
      *
-     *  @param function The void static function to attach (default is none)
+     *  @param function The void static function to attach (default is none).
      */
     void attach(void (*function)(ContextType context) = NULL) {
         _function = function;
+        _caller = functioncaller;
     }
 
-    /** Attach a member function
+    /** Attach a member function.
      *
-     *  @param object The object pointer to invoke the member function on (i.e. the this pointer)
-     *  @param function The address of the void member function to attach
+     *  @param object The object pointer to invoke the member function on (the "this" pointer).
+     *  @param function The address of the void member function to attach.
      */
     template<typename T>
     void attach(T *object, void (T::*member)(ContextType context)) {
-        _object = static_cast<void *>(object);
-        memcpy(_member, (char *)&member, sizeof(member));
-        _membercaller = &FunctionPointerWithContext::membercaller<T>;
+        _memberFunctionAndPointer._object = static_cast<void *>(object);
+        memcpy(_memberFunctionAndPointer._memberFunction, (char*) &member, sizeof(member));
+        _caller = &FunctionPointerWithContext::membercaller<T>;
     }
 
-    /** Call the attached static or member function; and if there are chained
+    /** Call the attached static or member function; if there are chained
      *  FunctionPointers their callbacks are invoked as well.
-     *  @Note: all chained callbacks stack up; so hopefully there won't be too
+     *  @Note: All chained callbacks stack up, so hopefully there won't be too
      *  many FunctionPointers in a chain. */
-    void call(ContextType context) {
-        if (_function) {
-            _function(context);
-        } else if (_object && _membercaller) {
-            _membercaller(_object, _member, context);
-        }
-
-        /* Propagate the call to next in the chain. */
-        if (_next) {
-            _next->call(context);
-        }
+    void call(ContextType context) const {
+        _caller(this, context);
     }
 
     /**
-     * Setup an external FunctionPointer as a next in the chain of related
+     * @brief Same as above
+     */
+    void operator()(ContextType context) const {
+        call(context);
+    }
+
+    /** Same as above, workaround for mbed os FunctionPointer implementation. */
+    void call(ContextType context) {
+        ((const FunctionPointerWithContext*)  this)->call(context);
+    }
+
+    typedef void (FunctionPointerWithContext::*bool_type)() const;
+
+    /** 
+     * implementation of safe bool operator
+     */
+    bool toBool() const {
+        return (_function || _memberFunctionAndPointer._object);
+    }
+
+    /**
+     * Set up an external FunctionPointer as a next in the chain of related
      * callbacks. Invoking call() on the head FunctionPointer will invoke all
      * chained callbacks.
      *
@@ -105,25 +130,83 @@ public:
         return (pvoidfcontext_t)_function;
     }
 
-private:
-    template<typename T>
-    static void membercaller(void *object, char *member, ContextType context) {
-        T *o = static_cast<T *>(object);
-        void (T::*m)(ContextType);
-        memcpy((char *)&m, member, sizeof(m));
-        (o->*m)(context);
+    friend bool operator==(const FunctionPointerWithContext& lhs, const FunctionPointerWithContext& rhs) {
+        return rhs._caller == lhs._caller &&
+               memcmp(
+                   &rhs._memberFunctionAndPointer, 
+                   &lhs._memberFunctionAndPointer, 
+                   sizeof(rhs._memberFunctionAndPointer)
+               ) == 0;
     }
 
-    void (*_function)(ContextType context);             /**< static function pointer - NULL if none attached */
-    void *_object;                                      /**< object this pointer - NULL if none attached */
-    char _member[16];                                   /**< raw member function pointer storage - converted back by
-                                                         *   registered _membercaller */
-    void (*_membercaller)(void *, char *, ContextType); /**< registered membercaller function to convert back and call
-                                                         *   _member on _object passing the context. */
-    pFunctionPointerWithContext_t _next;                /**< Optional link to make a chain out of functionPointers; this
+private:
+    template<typename T>
+    static void membercaller(cpFunctionPointerWithContext_t self, ContextType context) {
+        if (self->_memberFunctionAndPointer._object) {
+            T *o = static_cast<T *>(self->_memberFunctionAndPointer._object);
+            void (T::*m)(ContextType);
+            memcpy((char*) &m, self->_memberFunctionAndPointer._memberFunction, sizeof(m));
+            (o->*m)(context);
+        }
+    }
+
+    static void functioncaller(cpFunctionPointerWithContext_t self, ContextType context) {
+        if (self->_function) {
+            self->_function(context);
+        }
+    }
+
+    struct MemberFunctionAndPtr {
+        /*
+         * Forward declaration of a class and a member function to this class.
+         * Because the compiler doesn't know anything about the forwarded member
+         * function, it will always use the biggest size and the biggest alignment
+         * that a member function can take for objects of type UndefinedMemberFunction.
+         */
+        class UndefinedClass;
+        typedef void (UndefinedClass::*UndefinedMemberFunction)(ContextType);
+
+        void* _object;
+        union {
+            char _memberFunction[sizeof(UndefinedMemberFunction)];
+            UndefinedMemberFunction _alignment;
+        };
+    };
+
+    union {
+        pvoidfcontext_t _function;                      /**< Static function pointer - NULL if none attached */
+        /**
+         * object this pointer and pointer to member -
+         * _memberFunctionAndPointer._object will be NULL if none attached
+         */
+        mutable MemberFunctionAndPtr _memberFunctionAndPointer;
+    };
+
+    void (*_caller)(const FunctionPointerWithContext*, ContextType);
+
+    pFunctionPointerWithContext_t _next;                /**< Optional link to make a chain out of functionPointers. This
                                                          *   allows chaining function pointers without requiring
-                                                         *   external memory to manage the chain. Also refer to
+                                                         *   external memory to manage the chain. Refer to
                                                          *   'CallChain' as an alternative. */
 };
+
+/**
+ * @brief Create a new FunctionPointerWithContext which bind an instance and a  
+ * a member function together.
+ * @details This little helper is a just here to eliminate the need to write the
+ * FunctionPointerWithContext type each time you want to create one by kicking 
+ * automatic type deduction of function templates. With this function, it is easy 
+ * to write only one entry point for functions which expect a FunctionPointer 
+ * in parameters.
+ * 
+ * @param object to bound with member function
+ * @param member The member function called
+ * @return a new FunctionPointerWithContext
+ */
+template<typename T, typename ContextType>
+FunctionPointerWithContext<ContextType> makeFunctionPointer(T *object, void (T::*member)(ContextType context)) 
+{
+    return FunctionPointerWithContext<ContextType>(object, member);
+}
 
 #endif // ifndef MBED_FUNCTIONPOINTER_WITH_CONTEXT_H
