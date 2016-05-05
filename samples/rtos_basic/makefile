@@ -1,4 +1,4 @@
-# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2016 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@ PROJECT         := rtos_basic
 DEVICES         := DISCO_F407VG \
                    DISCO_F429ZI \
                    KL25Z \
+                   K64F \
                    LPC1768 \
                    LPC11U24 \
                    LPC4330_M4 \

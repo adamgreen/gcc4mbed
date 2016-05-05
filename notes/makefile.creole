@@ -33,6 +33,7 @@ The **DEVICES** variable is used in an application's makefile to specify a space
 * LPC1768
 * LPC11U24
 * KL25Z
+* K64F
 * NRF51822
 
 These devices are currently in beta:
