@@ -24,8 +24,11 @@ DEVICES         := DISCO_F407VG \
                    NUCLEO_F446RE \
                    B96B_F446VE \
                    NUCLEO_F072RB \
-                   NUCLEO_F103RB
+                   NUCLEO_F103RB \
+                   NUCLEO_F303K8
+
 GCC4MBED_DIR    := ../..
+
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
 MBED_LIBS       := rtos

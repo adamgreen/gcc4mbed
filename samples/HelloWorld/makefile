@@ -27,9 +27,13 @@ DEVICES         := DISCO_F407VG \
                    B96B_F446VE \
                    NUCLEO_F072RB \
                    NUCLEO_F103RB \
-                   NUCLEO_L053R8
+                   NUCLEO_L053R8 \
+                   NUCLEO_F303K8
+
 GCC4MBED_DIR    := ../..
+
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
 
 include $(GCC4MBED_DIR)/build/gcc4mbed.mk
+

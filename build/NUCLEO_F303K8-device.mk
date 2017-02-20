@@ -1,4 +1,4 @@
-# Copyright 2015 Larry Littlefield (https://developer.mbed.org/users/svkatielee/)
+# Copyright 2017 Sebastian Viviani (https://developer.mbed.org/users/guilly/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
