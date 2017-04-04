@@ -19,8 +19,4 @@ debug
 /mac_install.log
 /win_install.log
 /linux_install.log
-/external/mbed/.git/
-/external/mbed/.gitignore
-/external/mbed/.gitattributes
-/external/mbed/workspace_tools/
 !/mri/*.a

@@ -1,4 +1,4 @@
-/* Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
+/* Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
    to be built under GCC.
 */
 #include <mbed.h>
-#include <SDFileSystem.h>
+#include <FATFileSystem.h>
+#include "SDBlockDevice.h"
 
 
 static void _RecursiveDir(const char* pDirectoryName, DIR* pDirectory = NULL);
@@ -24,8 +25,9 @@ static void _RecursiveDir(const char* pDirectoryName, DIR* pDirectory = NULL);
 
 int main() 
 {
-    static const unsigned int testFileSize = 1 * 1024 * 1024;
-    static SDFileSystem       sdFatFileSystem(p5, p6, p7, p8, "sd");
+
+    static SDBlockDevice      sd(p5, p6, p7, p8);
+    static FATFileSystem      fs("sd", &sd);
     static Timer              timer;
     FILE*                     pFile = NULL;
     size_t                    bytesTransferred = 0;
@@ -34,6 +36,8 @@ int main()
     char                      filenameBuffer[256];
     static __attribute((section("AHBSRAM0"),aligned)) unsigned char buffer[16 * 1024];
     static __attribute((section("AHBSRAM1"),aligned)) char          cache[16 * 1024];
+    static const unsigned int testFileIterations = 128;
+    static const unsigned int testFileSize = testFileIterations * sizeof(buffer);
     
 
     // Search for a unique filename to test with.
@@ -65,7 +69,7 @@ int main()
     setvbuf(pFile, cache, _IOFBF, sizeof(cache));
 
     timer.start();
-    for (i = 0 ; i < testFileSize / sizeof(buffer) ; i++)
+    for (i = 0 ; i < testFileIterations ; i++)
     {
         bytesTransferred = fwrite(buffer, 1, sizeof(buffer), pFile);
         if (bytesTransferred != sizeof(buffer))

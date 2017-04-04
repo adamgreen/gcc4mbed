@@ -1,4 +1,4 @@
-# Copyright 2016 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,24 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 PROJECT         := HelloWorld
-DEVICES         := DISCO_F407VG \
-                   DISCO_F429ZI \
-                   KL25Z \
-                   K64F \
-                   LPC1768 \
-                   LPC11C24 \
-                   LPC11U24 \
-                   LPC4330_M4 \
-                   NRF51822 \
-                   NUCLEO_F401RE \
-                   NUCLEO_F411RE \
-                   NUCLEO_F446RE \
-                   B96B_F446VE \
-                   NUCLEO_F072RB \
-                   NUCLEO_F103RB \
-                   NUCLEO_L053R8 \
-                   NUCLEO_F303K8
-
+DEVICES         := LPC1768
+                   
 GCC4MBED_DIR    := ../..
 
 NO_FLOAT_SCANF  := 1

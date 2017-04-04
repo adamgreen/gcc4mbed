@@ -1,4 +1,4 @@
-# Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 PROJECT         := LocalFileSystem
-DEVICES         := LPC1768 LPC11U24
+DEVICES         := LPC1768
 GCC4MBED_DIR    := ../..
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1

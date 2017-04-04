@@ -1,4 +1,4 @@
-# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,15 +20,9 @@ DIRS := HelloWorld\
         LocalFileSystem\
         FileTest\
         SdPerf\
-        rtos_basic\
         TCPSocket_HelloWorld\
-        USBMouse\
-        USBHostMouse\
-        USBHostKeyboard\
-        USBHostMSD\
-        USBHostHub\
-        USBHostSerial\
-        BLEHeartRate
+        USBMouse
+
 DIRSCLEAN    := $(addsuffix .clean,$(DIRS))
 DIRSCLEANALL := $(addsuffix .cleanall,$(DIRS))
 
@@ -62,6 +56,10 @@ SHELL=cmd.exe
 endif
 
 
+# Do sub-builds with multiple processes if J variable has been set.
+J?=1
+
+
 # Rules
 all: $(DIRS)
 
@@ -71,7 +69,7 @@ clean-all: $(DIRSCLEANALL)
 
 $(DIRS):
 	@echo Building $@
-	$(Q) $(MAKE) --no-print-directory -C $@ all
+	$(Q) $(MAKE) --no-print-directory -C $@ all -j$(J)
 
 $(DIRSCLEAN): %.clean:
 	$(Q) $(MAKE) --no-print-directory -C $* clean

@@ -1,4 +1,4 @@
-# Copyright 2015 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,15 +14,21 @@
 
 # Vendor/device for which the library should be built.
 MBED_DEVICE        := LPC1768
-MBED_CLEAN         := $(MBED_DEVICE)-MBED-clean
 
 
 # Compiler flags which are specifc to this device.
-TARGETS_FOR_DEVICE := TARGET_LPC1768 TARGET_M3 TARGET_NXP TARGET_LPC176X TARGET_MBED_LPC1768 TARGET_CORTEX_M
+TARGETS_FOR_DEVICE := $(BUILD_TYPE_TARGET) TARGET_LPCTarget TARGET_LPC1768 TARGET_M3 TARGET_CORTEX_M TARGET_LIKE_CORTEX_M3 TARGET_NXP TARGET_LPC176X TARGET_MBED_LPC1768 TARGET_UVISOR_UNSUPPORTED
+FEATURES_FOR_DEVICE := FEATURE_LWIP
+PERIPHERALS_FOR_DEVICE := DEVICE_ANALOGIN DEVICE_ANALOGOUT DEVICE_CAN DEVICE_DEBUG_AWARENESS DEVICE_ERROR_PATTERN \
+                          DEVICE_ETHERNET DEVICE_I2C DEVICE_I2CSLAVE DEVICE_INTERRUPTIN DEVICE_LOCALFILESYSTEM \
+                          DEVICE_PORTIN DEVICE_PORTINOUT DEVICE_PORTOUT DEVICE_PWMOUT DEVICE_RTC DEVICE_SEMIHOST \
+                          DEVICE_SERIAL DEVICE_SERIAL_FC DEVICE_SLEEP DEVICE_SPI DEVICE_SPISLAVE DEVICE_STDIO_MESSAGES
 GCC_DEFINES := $(patsubst %,-D%,$(TARGETS_FOR_DEVICE))
-GCC_DEFINES += -D__CORTEX_M3 -DARM_MATH_CM3
+GCC_DEFINES += $(patsubst %,-D%=1,$(FEATURES_FOR_DEVICE))
+GCC_DEFINES += $(patsubst %,-D%=1,$(PERIPHERALS_FOR_DEVICE))
+GCC_DEFINES += -D__CORTEX_M3 -DARM_MATH_CM3 -D__MBED_CMSIS_RTOS_CM -D__CMSIS_RTOS
 
-C_FLAGS   := -mcpu=cortex-m3 -mthumb -mthumb-interwork
+C_FLAGS   := -mcpu=cortex-m3 -mthumb
 ASM_FLAGS := -mcpu=cortex-m3 -mthumb
 LD_FLAGS  := -mcpu=cortex-m3 -mthumb
 
@@ -35,9 +41,13 @@ DEVICE_OBJECTS :=
 DEVICE_MRI_LIB := $(GCC4MBED_DIR)/mri/libmri_mbed1768.a
 
 
-# Linker script to be used.  Indicates what code should be placed where in memory.
-LPC1768_LSCRIPT ?= $(GCC4MBED_DIR)/external/mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC176X/TOOLCHAIN_GCC_ARM/LPC1768.ld
-LSCRIPT = $(LPC1768_LSCRIPT)
+# Determine all mbed source folders which are a match for this device so that it only needs to be done once.
+DEVICE_MBED_DIRS := $(call filter_dirs,$(call recurse_dir,$(MBED_SRC_ROOT)),$(TARGETS_FOR_DEVICE),$(FEATURES_FOR_DEVICE))
+
+
+# Linker script to be used.  Indicates what should be placed where in memory.
+LPC1768_LSCRIPT  ?= $(call find_target_linkscript,$(DEVICE_MBED_DIRS))
+LSCRIPT          := $(LPC1768_LSCRIPT)
 
 
 include $(GCC4MBED_DIR)/build/device-common.mk

@@ -75,46 +75,17 @@ int __wrap__isatty(int file)
 }
 
 
-/* Wrap memory allocation routines to make sure that they aren't being called from interrupt handler. */
-static void breakOnHeapOpFromInterruptHandler(void)
-{
-    /* UNDONE: I don't enable the check for KL25Z since the USBDevice implementation currently makes allocations from
-       its ISR to realize endpoint buffers. */
-#if !defined(TARGET_KL25Z)
-    if (__get_IPSR() != 0)
-        __debugbreak();
-#endif
-}
-
-void* __real_malloc(size_t size);
-void* __wrap_malloc(size_t size)
-{
-    breakOnHeapOpFromInterruptHandler();
-    return __real_malloc(size);
-}
-
-
-void* __real_realloc(void* ptr, size_t size);
-void* __wrap_realloc(void* ptr, size_t size)
-{
-    breakOnHeapOpFromInterruptHandler();
-    return __real_realloc(ptr, size);
-}
-
-
-void __real_free(void* ptr);
-void __wrap_free(void* ptr)
-{
-    breakOnHeapOpFromInterruptHandler();
-    __real_free(ptr);
-}
-
-
 int __wrap_semihost_connected(void)
 {
     /* MRI makes it look like there is no mbed interface attached since it disables the JTAG portion but MRI does
        support some of the mbed semihost calls when it is running so force it to return -1, indicating that the
        interface is attached. */
+    return -1;
+}
+
+int __wrap_semihost_disabledebug(void)
+{
+    /* MRI has already disabled mbed interface so do nothing and just return -1. */
     return -1;
 }
 

@@ -1,4 +1,4 @@
-/* Copyright 2012 Adam Green (http://mbed.org/users/AdamGreen/)
+/* Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,4 +30,16 @@ int main()
         }
     }
     return 0;
+}
+
+#define __debugbreak()  { __asm volatile ("bkpt #0"); }
+
+// Provide minimal implementations of exit() path since we don't need to flush stdio/stderr, etc.
+void _exit(int status)
+{
+    __debugbreak();
+
+    while (1)
+    {
+    }
 }

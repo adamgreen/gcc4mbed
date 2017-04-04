@@ -1,0 +1,13 @@
+# In most of the other parts of the tree, we want to ignore binary files but not within this part of the tree.
+!*.a
+!*.hex
+!*.bin
+!*.elf
+!*.o
+Release/
+Develop/
+Debug/
+/mbed-os/.git/
+/mbed-os/.github/
+/mbed-os/.gitignore
+/mbed-os/.gitattributes

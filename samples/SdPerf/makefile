@@ -1,4 +1,4 @@
-# Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,5 @@ PROJECT         := SdPerf
 DEVICES         := LPC1768
 GCC4MBED_DIR    := ../..
 NO_FLOAT_SCANF  := 1
-MBED_LIBS       := fs
 
 include $(GCC4MBED_DIR)/build/gcc4mbed.mk
