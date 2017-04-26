@@ -522,6 +522,13 @@ define add_user_lib #,lib_dir
     endif
 endef
 
+
+# Recurse and find all mbed-os and main application folders once from this main makefile.
+# This list of folders will be filtered later based on TARGET_* and FEATURE_* settings for each device.
+RAW_MBED_DIRS := $(call recurse_dir,$(MBED_SRC_ROOT))
+RAW_MAIN_DIRS := $(call recurse_dir,$(SRC))
+
+
 # Rules for building all of the desired device targets
 .PHONY: all clean clean-libs clean-mbed clean-all deploy help
 all: $(DEVICES)

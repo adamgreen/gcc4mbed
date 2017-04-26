@@ -13,29 +13,27 @@
 # limitations under the License.
 
 
-# Can skip parsing of this makefile if user hasn't requested this device.
-ifeq "$(findstring $(MBED_DEVICE),$(DEVICES))" "$(MBED_DEVICE)"
-
-
 ###############################################################################
 # Setup flags that are common across the different pieces of code to be built.
 ###############################################################################
 # Preprocessor defines to use when compiling/assembling code with GCC. Append to list from device specific makefile.
 GCC_DEFINES += $(TOOLCHAIN_DEFINES) -D_C99_SOURCE
 
+# Preprocessor flags common to multiple source file types (C/C++/ASM/Preprocess/etc).
+ALL_DEFINES := -include $(MBED_CONFIG_H) $(GCC_DEFINES) $(MBED_DEFINES)
+
 # Flags to be used with C/C++ compiler that are shared between Debug and Release builds.
 C_FLAGS += -g3 -ffunction-sections -fdata-sections -fno-exceptions -fno-delete-null-pointer-checks -fomit-frame-pointer
 C_FLAGS += -funsigned-char
 C_FLAGS += -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wno-missing-braces
-C_FLAGS += -include $(MBED_CONFIG_H)
-C_FLAGS += $(GCC_DEFINES) $(MBED_DEFINES)
+C_FLAGS += $(ALL_DEFINES)
 C_FLAGS += $(DEP_FLAGS)
 
 CPP_FLAGS := $(C_FLAGS) -fno-rtti -std=gnu++11 -Wvla
 C_FLAGS   += -std=gnu99
 
 # Flags used to assemble assembly languages sources.
-ASM_FLAGS += -g3 -x assembler-with-cpp $(GCC_DEFINES) $(MBED_DEFINES)
+ASM_FLAGS += -g3 -x assembler-with-cpp $(ALL_DEFINES)
 
 # Clear out the include path for the libraries required to build this project.
 MBED_INCLUDES :=
@@ -61,6 +59,24 @@ $(foreach i,$(USER_LIBS),$(eval $(call add_user_lib,$i)))
 
 
 ###############################################################################
+# Library mbedos.a source directories
+###############################################################################
+ifeq "$(MBED_LIB_NAME)" "mbedos"
+MBED_DIRS := $(call remove_ignored_dirs,$(DEVICE_MBED_DIRS),$(MBED_IGNORE))
+endif
+
+###############################################################################
+# Library mbed.a source directories
+###############################################################################
+ifeq "$(MBED_LIB_NAME)" "mbed"
+MBED_DIRS := $(call remove_ignored_dirs,$(DEVICE_MBED_DIRS),$(MBED2_IGNORE))
+endif
+
+# Some of the mbed code is included as pre-built binaries licensed under the BPL.
+MBED_EXTRA_LIBS := $(subst //,/,$(foreach i,a o,$(foreach j,$(MBED_DIRS),$(wildcard $j/*.$i))))
+
+
+###############################################################################
 # Build Main Application
 ###############################################################################
 # Output Object Directory.
@@ -77,7 +93,7 @@ else
 endif
 
 # List of the objects files to be compiled/assembled based on source files in SRC.
-MAIN_DIRS := $(call filter_dirs,$(call recurse_dir,$(SRC)),$(TARGETS_FOR_DEVICE),$(FEATURES_FOR_DEVICE))
+MAIN_DIRS := $(call filter_dirs,$(RAW_MAIN_DIRS),$(TARGETS_FOR_DEVICE),$(FEATURES_FOR_DEVICE))
 OBJECTS := $(call srcs2objs,$(MAIN_DIRS),$(SRC),$(OUTDIR))
 PAT_MATCH = $(foreach v,$(2),$(if $(findstring $(1),$(v)),$(v),))
 EXCL_OBJECTS := $(foreach e,$(EXCLUDE),$(call PAT_MATCH,$(e),$(OBJECTS)))
@@ -121,9 +137,10 @@ LIBS += $(MBED_LIBRARIES)
 LIBS += $(LIBS_SUFFIX)
 
 # Compiler/Assembler options to use when building application for this device.
-$(MBED_DEVICE): C_FLAGS   := -O$(OPTIMIZATION) $(C_FLAGS) $(MAIN_DEFINES) $(INCLUDE_DIRS) $(GCFLAGS)
-$(MBED_DEVICE): CPP_FLAGS := -O$(OPTIMIZATION) $(CPP_FLAGS) $(MAIN_DEFINES) $(INCLUDE_DIRS) $(GPFLAGS)
-$(MBED_DEVICE): ASM_FLAGS := $(ASM_FLAGS) $(MAIN_DEFINES) $(INCLUDE_DIRS) $(GAFLAGS)
+$(MBED_DEVICE): C_FLAGS     := -O$(OPTIMIZATION) $(C_FLAGS) $(MAIN_DEFINES) $(INCLUDE_DIRS) $(GCFLAGS)
+$(MBED_DEVICE): CPP_FLAGS   := -O$(OPTIMIZATION) $(CPP_FLAGS) $(MAIN_DEFINES) $(INCLUDE_DIRS) $(GPFLAGS)
+$(MBED_DEVICE): ASM_FLAGS   := $(ASM_FLAGS) $(MAIN_DEFINES) $(INCLUDE_DIRS) $(GAFLAGS)
+$(MBED_DEVICE): ALL_DEFINES := $(ALL_DEFINES)
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger.
 ifeq "$(DEVICE_MRI_ENABLE)" "1"
@@ -172,9 +189,14 @@ $(OUTDIR)/$(PROJECT).disasm: $(OUTDIR)/$(PROJECT).elf
 	@echo Extracting disassembly to $@
 	$(Q) $(OBJDUMP) -d -f -M reg-names-std --demangle $< >$@
 
-$(OUTDIR)/$(PROJECT).elf: $(LSCRIPT) $(OBJECTS) $(LIBS)
+$(OUTDIR)/$(PROJECT).elf: $(OUTDIR)/$(PROJECT).ld $(OBJECTS) $(LIBS) $(MBED_EXTRA_LIBS)
 	@echo Linking $@
 	$(Q) $(LD) $(LD_FLAGS) -T$(call all_objs_from_mbed,$+) $(SYS_LIBS) -o $@
+
+$(OUTDIR)/$(PROJECT).ld: $(LSCRIPT)
+	@echo Preprocessing $<
+	$(Q) $(MKDIR) $(call convert-slash,$(dir $@)) $(QUIET)
+	$(Q) $(GCC) -E -P  $(ALL_DEFINES) -x c $< -o $@
 
 $(MBED_DEVICE)-size: $(OUTDIR)/$(PROJECT).elf
 	$(Q) $(SIZE) $<
@@ -223,7 +245,6 @@ $(OUTDIR)/%.o : $(SRC)/%.s  $(firstword $(MAKEFILE_LIST))
 # Library mbedos.a
 ###############################################################################
 ifeq "$(MBED_LIB_NAME)" "mbedos"
-MBED_DIRS := $(call remove_ignored_dirs,$(DEVICE_MBED_DIRS),$(MBED_IGNORE))
 $(eval $(call build_mbed_lib,mbedos,\
                        $(MBED_DIRS),\
                        $(MBED_SRC_ROOT) $(MBED_DIRS)))
@@ -233,7 +254,6 @@ endif
 # Library mbed.a
 ###############################################################################
 ifeq "$(MBED_LIB_NAME)" "mbed"
-MBED_DIRS := $(call remove_ignored_dirs,$(DEVICE_MBED_DIRS),$(MBED2_IGNORE))
 $(eval $(call build_mbed_lib,mbed,\
                        $(MBED_DIRS),\
                        $(MBED_SRC_ROOT) $(MBED_DIRS)))
@@ -313,18 +333,3 @@ $(MBED_DEVICE): MBED_INCLUDES := $(patsubst %,-I%,$(MBED_INCLUDES))
 
 # Do the same for the user libraries.
 $(MBED_DEVICE): LIB_INCLUDES  := $(patsubst %,-I%,$(LIB_INCLUDES))
-
-
-else
-# Have an empty rule for this device since it isn't supported.
-.PHONY: $(MBED_DEVICE)
-
-ifeq "$(OS)" "Windows_NT"
-$(MBED_DEVICE):
-	@REM >nul
-else
-$(MBED_DEVICE):
-	@#
-endif
-
-endif # ifeq "$(findstring $(MBED_DEVICE),$(DEVICES))"...

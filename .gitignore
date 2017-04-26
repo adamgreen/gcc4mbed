@@ -19,4 +19,6 @@ debug
 /mac_install.log
 /win_install.log
 /linux_install.log
+/samples/HelloWorld/TestPass*.mk
+/mbedUpdater/mbedUpdater
 !/mri/*.a
