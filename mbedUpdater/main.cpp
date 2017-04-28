@@ -1657,7 +1657,8 @@ static bool parseTargetAttribute(TargetObject* pTarget, const char* pRaw, jsmnto
         { "EXPECTED_SOFTDEVICES_WITH_OFFSETS", NULL },
         { "overrides", NULL },
         { "forced_reset_timeout", NULL },
-        { "target_overrides", NULL }
+        { "target_overrides", NULL },
+        { "bootloader_select_index", NULL }
     };
 
     if (pCurr >= pEnd)
