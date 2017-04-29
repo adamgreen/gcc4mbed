@@ -1,5 +1,5 @@
 @echo off
-rem Copyright 2016 Adam Green (http://mbed.org/users/AdamGreen/)
+rem Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 rem
 rem Licensed under the Apache License, Version 2.0 (the "License");
 rem you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ setlocal
 set ROOTDIR=%~dp0
 set LOGFILE=%ROOTDIR%win_install.log
 set ERRORFILE=%ROOTDIR%win_install.err
-set GCC4ARM_VERSION=gcc-arm-none-eabi-5_2-2015q4
-set GCC4ARM_FILENAME=gcc-arm-none-eabi-5_2-2015q4-20151219-win32.zip
-set GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/%GCC4ARM_FILENAME%
+set GCC4ARM_VERSION=gcc-arm-none-eabi-6-2017-q1-update
+set GCC4ARM_FILENAME=gcc-arm-none-eabi-6-2017-q1-update-win32.zip
+set GCC4ARM_URL=https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/6_1-2017q1/%GCC4ARM_FILENAME%
 set GCC4ARM_TAR=%ROOTDIR%%GCC4ARM_FILENAME%
-set GCC4ARM_MD5=5b513d3453ecd5e2034eeb951a79607f
+set GCC4ARM_MD5=ec8b98945d4faf0c28a05bcdc1c2e537
 set GCC4ARM_MD5_FILENAME=%ROOTDIR%gcc-arm-none-eabi.md5
 set GCC4ARM_DIR=%ROOTDIR%gcc-arm-none-eabi
 set GCC4ARM_BINDIR=%GCC4ARM_DIR%\bin
@@ -31,6 +31,7 @@ set OUR_MAKE=%ROOTDIR%external\win32\make.exe
 set BUILDENV_CMD=%GCC4ARM_BINDIR%\buildenv.cmd
 set BUILDSHELL_CMD=%ROOTDIR%BuildShell.cmd
 set BUILDSHELL_DEBUG_CMD=%ROOTDIR%BuildShellDebug.cmd
+set BUILDSHELL_DEVELOP_CMD=%ROOTDIR%BuildShellDevelop.cmd
 
 
 rem Make sure that we are running with current directory set to where this
@@ -71,14 +72,14 @@ rem
 echo @cmd.exe /K %%~dp0\gcc-arm-none-eabi\bin\buildenv.cmd>%BUILDSHELL_CMD%
 rem
 echo @cmd.exe /K "set GCC4MBED_TYPE=Debug& %%~dp0\gcc-arm-none-eabi\bin\buildenv.cmd">%BUILDSHELL_DEBUG_CMD%
+rem
+echo @cmd.exe /K "set GCC4MBED_TYPE=Develop& %%~dp0\gcc-arm-none-eabi\bin\buildenv.cmd">%BUILDSHELL_DEVELOP_CMD%
 
 rem Place GNU Tool for ARM Embedded Processors in the path before building gcc4mbed code.
 set path=%GCC4ARM_BINDIR%;%ROOTDIR%external\win32;%PATH%
 
 echo Performing a clean build of the gcc4mbed samples...
-call :RunAndLog %OUR_MAKE% clean
-if errorlevel 1 goto ExitOnError
-call :RunAndLog %OUR_MAKE%
+call :RunAndLog %OUR_MAKE% -C samples/ clean-all LPC1768
 if errorlevel 1 goto ExitOnError
 
 echo Cleaning up intermediate files...

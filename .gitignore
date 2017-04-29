@@ -13,8 +13,10 @@ deploy
 debug
 /BuildShell
 /BuildShellDebug
+/BuildShellDevelop
 /BuildShell.cmd
 /BuildShellDebug.cmd
+/BuildShellDevelop.cmd
 /gcc-arm-none-eabi/
 /mac_install.log
 /win_install.log

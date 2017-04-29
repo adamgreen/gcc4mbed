@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-# Copyright 2016 Adam Green (http://mbed.org/users/AdamGreen/)
+# Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,17 +37,18 @@ pushd $ROOTDIR
 ROOTDIR=$PWD
 LOGFILE=$ROOTDIR/linux_install.log
 ERRORFILE=$ROOTDIR/linux_install.err
-GCC4ARM_VERSION=gcc-arm-none-eabi-5_2-2015q4
-GCC4ARM_FILENAME=gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2
-GCC4ARM_URL=https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/$GCC4ARM_FILENAME
+GCC4ARM_VERSION=gcc-arm-none-eabi-6-2017-q1-update
+GCC4ARM_FILENAME=gcc-arm-none-eabi-6-2017-q1-update-linux.tar.bz2
+GCC4ARM_URL=https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/6_1-2017q1/$GCC4ARM_FILENAME
 GCC4ARM_TAR=$ROOTDIR/$GCC4ARM_FILENAME
-GCC4ARM_MD5=f88caac80b4444a17344f57ccb760b90
+GCC4ARM_MD5=30004c24f4632bc594952462bb0cd1c9
 GCC4ARM_EXTRACT=$ROOTDIR/$GCC4ARM_VERSION
 GCC4ARM_DIR=$ROOTDIR/gcc-arm-none-eabi
 GCC4ARM_BINDIR=$GCC4ARM_DIR/bin
 OUR_MAKE=make
 BUILDSHELL_CMD=$ROOTDIR/BuildShell
 BUILDSHELL_DEBUG_CMD=$ROOTDIR/BuildShellDebug
+BUILDSHELL_DEVELOP_CMD=$ROOTDIR/BuildShellDevelop
 
 
 echo Logging install results to $LOGFILE
@@ -102,12 +103,24 @@ echo "export GCC4MBED_TYPE=Debug">>$BUILDSHELL_DEBUG_CMD
 echo "exec bash">>$BUILDSHELL_DEBUG_CMD
 chmod +x $BUILDSHELL_DEBUG_CMD
 
+echo "#! /usr/bin/env bash">$BUILDSHELL_DEVELOP_CMD
+echo "# Modify next line and set destination drive to match mbed device">>$BUILDSHELL_DEVELOP_CMD
+echo "export GCC4MBED_DEPLOY='cp PROJECT.bin /media/MBED/ ; sync'">>$BUILDSHELL_DEVELOP_CMD
+echo>>$BUILDSHELL_DEVELOP_CMD
+echo "SCRIPT_PATH=\$0">>$BUILDSHELL_DEVELOP_CMD
+echo "SCRIPT_PATH=\${SCRIPT_PATH%/*}">>$BUILDSHELL_DEVELOP_CMD
+echo "cd \$SCRIPT_PATH">>$BUILDSHELL_DEVELOP_CMD
+echo "SCRIPT_PATH=\$PWD">>$BUILDSHELL_DEVELOP_CMD
+echo "export PATH=\$SCRIPT_PATH/gcc-arm-none-eabi/bin:\$PATH">>$BUILDSHELL_DEVELOP_CMD
+echo "export GCC4MBED_TYPE=Develop">>$BUILDSHELL_DEVELOP_CMD
+echo "exec bash">>$BUILDSHELL_DEVELOP_CMD
+chmod +x $BUILDSHELL_DEVELOP_CMD
+
 # Place arm-none-eabi-* tools in the path before building gcc4mbed code.
 PATH=$GCC4ARM_BINDIR:$PATH
 
 echo Performing a clean build of the gcc4mbed samples...
-RunAndLog $OUR_MAKE clean
-RunAndLog $OUR_MAKE
+RunAndLog $OUR_MAKE -C samples/ clean-all LPC1768
 
 echo Cleaning up intermediate files...
 RunAndLog rm $GCC4ARM_TAR
