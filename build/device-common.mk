@@ -29,6 +29,10 @@ C_FLAGS += -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -
 C_FLAGS += $(ALL_DEFINES)
 C_FLAGS += $(DEP_FLAGS)
 
+ifeq "$(NEWLIB_NANO)" "1"
+C_FLAGS += -specs=nano.specs
+endif
+
 CPP_FLAGS := $(C_FLAGS) -fno-rtti -std=gnu++11 -Wvla
 C_FLAGS   += -std=gnu99
 
@@ -169,7 +173,7 @@ $(MBED_DEVICE): LD_FLAGS += -u _printf_float
 endif
 
 ifeq "$(NEWLIB_NANO)" "1"
-$(MBED_DEVICE): LD_FLAGS += -specs=$(GCC4MBED_DIR)/build/nano.specs
+$(MBED_DEVICE): LD_FLAGS  += -specs=nano.specs
 endif
 
 
