@@ -17,11 +17,10 @@ DIRS := HelloWorld\
         Blink\
         Ticker\
         StdIO\
-        LocalFileSystem\
-        FileTest\
         SdPerf\
         TCPSocket_HelloWorld\
-        USBMouse
+        USBMouse\
+        BLEHeartRate
 
 DIRSCLEAN    := $(addsuffix .clean,$(DIRS))
 DIRSCLEANALL := $(addsuffix .cleanall,$(DIRS))

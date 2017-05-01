@@ -20,13 +20,28 @@
 #include "SDBlockDevice.h"
 
 
+// Chose pins to use for SD card based on target device type.
+#if defined(TARGET_LPC1768)
+    #define SD_MOSI p5
+    #define SD_MISO p6
+    #define SD_SCLK p7
+    #define SD_CS   p8
+#elif defined(TARGET_K64F)
+    #define SD_MOSI PTE3
+    #define SD_MISO PTE1
+    #define SD_SCLK PTE2
+    #define SD_CS   PTE4
+#else
+    #error Target device not currently supported for this sample.
+#endif
+
 static void _RecursiveDir(const char* pDirectoryName, DIR* pDirectory = NULL);
 
 
 int main() 
 {
 
-    static SDBlockDevice      sd(p5, p6, p7, p8);
+    static SDBlockDevice      sd(SD_MOSI, SD_MISO, SD_SCLK, SD_CS);
     static FATFileSystem      fs("sd", &sd);
     static Timer              timer;
     FILE*                     pFile = NULL;
