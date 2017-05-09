@@ -31,13 +31,6 @@ These are the quick steps to get gcc4mbed installed on your computer:
 * Builds can fail on **Windows** with weird errors when using a version of make other than the version of GNU make found
   in external/win32. You may need to make sure that Cygwin/MingW versions of the shell or make don't interfere as the
   gcc4mbed scripts/makefiles are built to work on stock Windows and not require such Posix compatibility environments.
-* The **Linux** install only installs 32-bit Intel binaries.  If you are running a 64-bit version of Intel Linux then you
-  will need to install the 32-bit support libraries.  This problem typically shows up as a file not found error when you
-  attempt to run tools such as arm-none-eabi-g++.  On Ubuntu 12.04, the necessary libraries can be installed by running
-  {{{sudo apt-get install ia32-libs}}}.  Ubuntu >=13.10 should use
-  {{{sudo apt-get install -y lib32z1 lib32ncurses5 lib32bz2-1.0}}} instead.
-* The **OS X** install only supports 64-bit Intel machines.  The installers for the other platforms only install 32-bit
-  Intel binaries.
 * **OS X** Mountain Lion and newer will fail to execute mac_install by simply clicking on it.  Instead right click on
   mac_install in the Finder, select the Open option, and then click the Open button in the resulting security warning
   dialog.
@@ -45,30 +38,40 @@ These are the quick steps to get gcc4mbed installed on your computer:
   Windows) first and then copy to a FAT drive after installation.
 * If the installation should fail, please refer to win_install.log, linux_install.log, or mac_install.log.  It will
   contain the details of the installation process and any errors that were encountered.
-* If you don't need floating point support from scanf() and printf() routines in your program then you can reduce your
-  binary size by setting NO_FLOAT_SCANF and NO_FLOAT_PRINTF make variables to 1.  See samples/HelloWorld/makefile for an
-  example.
+
+==Release Tests
+When releasing GCC4MBED I test installing, building, and deploying from these operating systems:
+* macOS Sierra 10.12
+* Windows 10
+* Linux 16.04
+
+I build, deploy, and run the samples on these target devices:
+* LPC1768
+* K64F
+* NRF51_DK
+
+Please feel free to open GitHub issues to let me and the community know if you hit any issues for a target that should
+be supported with the GCC_ARM toolchain so that we can investigate.
 
 ==More Information
-**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/eclipse.creole|Eclipse]]:**  Learn how to use the Eclipse IDE to build and debug GCC4MBED programs.\\
-\\
-**[[https://github.com/adamgreen/mri/blob/master/README.creole#mri---monitor-for-remote-inspection|Debugging]]:**  Learn how to use the GNU Debugger, GDB, with the new MRI debug monitor in GCC4MBED.\\
-\\
-**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/overview.creole#overview|Overview]]:**  Overview and a bit of history related to this GCC4MBED project.\\
-\\
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/install.creole#installation|Installation]]:**  For more information about how to install, uninstall, and use the GCC4MBED project.\\
+\\
+**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/new_project.creole#starting-a-new-project|New Project]]:**  How to start your own new project in GCC4MBED.\\
 \\
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/makefile.creole#make-variables|Makefile Configuration]]:**  Information about makefile options to customize your project's binary.\\
 \\
-**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/porting.creole#readme|Porting]]:**  Notes on porting applications from mbed cloud compiler to offline GCC4MBED project.\\
+**[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/size_analysis.creole#analyzing-firmware-size|Analyzing Firmware Size]]:**  How to measure and reduce FLASH/RAM memory usage.\\
 \\
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/new_devices.creole#adding-new-devices-to-gcc4mbed|Adding Devices]]:**  Notes on how to add new device support to GCC4MBED.\\
 
 ==Thanks
-The author wants to thank Arthur Wolf for the [[http://developer.mbed.org/forum/mbed/topic/2336/|posting]] he made back in May on 2011 which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
+The author wants to thank Arthur Wolf for the [[http://developer.mbed.org/forum/mbed/topic/2336/|posting]] he made back 
+in May 2011 which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
 
-Thanks to Felyza Wishbringer for writing the first Windows install script which provided the inspiration for the Windows, Mac, and Linux scripts that are now included in the gcc4mbed project.
+Thanks to Felyza Wishbringer for writing the first Windows install script which provided the inspiration for the 
+Windows, Mac, and Linux scripts that are now included in the gcc4mbed project.
 
-Thanks for all of the others who have provided valuable feedback since this project was first released.  Much of that feedback can be found in this [[http://developer.mbed.org/forum/mbed/topic/2701/|mbed forum thread]]
+Thanks for all of the others who have provided valuable feedback since this project was first released.  Much of that 
+feedback can be found in this [[http://developer.mbed.org/forum/mbed/topic/2701/|mbed forum thread]]
 
 ==Have fun!!

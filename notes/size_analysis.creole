@@ -1,0 +1,1122 @@
+==Analyzing Firmware Size
+This document will take a look at the 
+[[https://github.com/adamgreen/gcc4mbed/tree/master/samples/HelloWorld | HelloWorld sample]] to analyze its FLASH and
+RAM usage and then suggest things that can be done to reduce each.
+
+==GCC4MBED Build
+For the purpose of this document, we will kick off a clean build and just generate a LPC1768 binary.
+
+{{{
+/gcc4mbed/samples/HelloWorld$ make clean-all LPC1768
+Cleaning HelloWorld/K64F
+Cleaning HelloWorld/LPC1768
+Cleaning HelloWorld/NRF51_DK
+Cleaning ../../external/mbed-os/Debug
+Cleaning ../../external/mbed-os/Develop
+Cleaning ../../external/mbed-os/Release
+Preprocessing ../../external/mbed-os/targets/TARGET_NXP/TARGET_LPC176X/device/TOOLCHAIN_GCC_ARM/LPC1768.ld
+Compiling main.cpp
+
+...
+
+Assembling ../../external/mbed-os/rtos/rtx/TARGET_CORTEX_M/TARGET_M3/TOOLCHAIN_GCC/HAL_CM3.S
+Assembling ../../external/mbed-os/rtos/rtx/TARGET_CORTEX_M/TARGET_M3/TOOLCHAIN_GCC/SVC_Table.S
+Assembling ../../external/mbed-os/targets/TARGET_NXP/TARGET_LPC176X/device/TOOLCHAIN_GCC_ARM/startup_LPC17xx.S
+Linking release library ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a
+Linking LPC1768/HelloWorld.elf
+Extracting LPC1768/HelloWorld.bin
+Extracting LPC1768/HelloWorld.hex
+Extracting disassembly to LPC1768/HelloWorld.disasm
+   text	   data	    bss	    dec	    hex	filename
+  12600	    144	   7468	  20212	   4ef4	LPC1768/HelloWorld.elf
+
+/gcc4mbed/samples/HelloWorld$ 
+}}}
+
+The last few lines of the GCC4MBED build output provide an overview of the FLASH and RAM usage for this firmware image. 
+It breaks the memory usage down into **text**, **data**, and **bss** regions:
+* **.text** contains the executable machine code and read-only data. Read-only data is another name for **const** 
+  globals. This region lives in FLASH.
+* **.data** contains read-write globals which are initialized with non-zero data. This region lives in both FLASH and 
+  RAM. At runtime the global lives in RAM so that it can be modified by the program. The C startup code will initialize 
+  these globals in RAM by copying over the desired initial data from FLASH.
+* **.bss** contains read-write globals which are initialized with all zeroes. This region lives in RAM. The C startup 
+  code will initialize these globals in RAM to be zero filled.
+
+FLASH size = .text size + .data size\\
+RAM size = .data size + .bss size\\
+
+==Map Files
+GCC4MBED generates a .map file each time it builds an .elf output image, in the same output directory. If we look in the 
+output folder for the LPC1768 build, we will see something like:
+{{{
+/gcc4mbed/samples/HelloWorld$ ls -l LPC1768
+total 10104
+-rwxr-xr-x  1 adamgreen  wheel    12744 May  2 22:45 HelloWorld.bin
+-rw-r--r--  1 adamgreen  wheel   205351 May  2 22:45 HelloWorld.disasm
+-rwxr-xr-x  1 adamgreen  wheel   667764 May  2 22:45 HelloWorld.elf
+-rw-r--r--  1 adamgreen  wheel    35883 May  2 22:45 HelloWorld.hex
+-rw-r--r--  1 adamgreen  wheel     2460 May  2 22:45 HelloWorld.ld
+-rw-r--r--  1 adamgreen  wheel  3942621 May  2 22:45 HelloWorld.map
+-rw-r--r--  1 adamgreen  wheel     1174 May  2 22:45 gcc4mbed.d
+-rw-r--r--  1 adamgreen  wheel   100668 May  2 22:45 gcc4mbed.o
+-rw-r--r--  1 adamgreen  wheel    14459 May  2 22:45 main.d
+-rw-r--r--  1 adamgreen  wheel   164596 May  2 22:45 main.o
+/gcc4mbed/samples/HelloWorld$ 
+}}}
+
+Here we see the **HelloWorld.map** file sitting in the same folder as the output binaries: HelloWorld.elf, 
+HelloWorld.bin, and HelloWorld.hex.
+
+Let's take a quick peek at this **HelloWorld.map** and get an overview of each of its sections.
+
+===Archive member included to satisfy reference by file (symbol)
+The HelloWorld sample pulls in code from a few libraries (mbedos.a and standard C/C++ libraries). Another name for a 
+library is archive since they are an archive of object modules. The first section of the .map file tells us which 
+objects from which archives/libraries were initially pulled in by the linker.
+
+What follows is a snippet of the first and last couple of lines from this section of the **HelloWorld.map** file:
+{{{
+Archive member included to satisfy reference by file (symbol)
+
+../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(equeue.o)
+                              (--whole-archive)
+../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(equeue_posix.o)
+                              (--whole-archive)
+
+...
+
+/depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libm.a(lib_a-s_floor.o)
+                              ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(spi_api.o) (floor)
+/depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/libgcc.a(_arm_cmpdf2.o)
+                              /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libm.a(lib_a-s_floor.o) (__aeabi_dcmpgt)
+}}}
+
+Let's look at a few of these lines in a little more detail:
+{{{
+../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(equeue.o)
+                              (--whole-archive)
+}}}
+This line indicates that the {{{equeue.o}}} object file from the {{{mbedos.a}}} library was read in by the linker. This 
+{{{equeue.o}}} object in the mbedos.a library was generated from {{{equeue.c}}}, found 
+[[https://github.com/adamgreen/gcc4mbed/blob/master/external/mbed-os/events/equeue/equeue.c | here]]. The linker will 
+typically only pull in a module from an archive if it resolves a reference to a function or global variable from 
+previously linked in objects so it will typically list this unresolved reference as the reason for inclusion. In this 
+case, the reason is listed as {{{(--whole-archive)}}}. So the reason for this module from the mbed library being pulled 
+in is because the GCC4MBED makefile asks the linker to pull in every object file from this library by specifying that 
+flag to the linker. This makes sure that code from mbed-os is pulled into the code base, even if unresolved reference 
+won't be seen until later in the linking process. No need to worry about the final binary getting bloated because of 
+this forced linkage though since the {{{-Wl,--gc-sections}}} command line flag is passed into the linker to allow it to 
+later garbage collect and throw away sections that aren't actually required.
+
+{{{
+/depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libm.a(lib_a-s_floor.o)
+                              ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(spi_api.o) (floor)
+}}}
+This line indicates that the {{{lib_a-s_floor.o}}} object file from the {{{libm.a}}} library was read in by the linker. 
+It was pulled in by the linker because the {{{spi_api.o}}} object file from {{{mbedos.a}}} makes a call to the 
+{{{floor}}} function and the {{{lib_a-s_floor.o}}} has an implementation of this floor() function.
+
+===Allocating common symbols
+{{{
+Allocating common symbols
+Common symbol       size              file
+
+netif_list          0x4               ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(lwip_netif.o)
+os_robin            0x8               ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Robin.o)
+
+...
+}}}
+
+Common symbols are used by the compiler to describe the uninitialized global variables that it has encountered in each 
+object module. The linker can then coalesce references to the same common symbol name across modules so that they point 
+to a single global variable in the .data or .bss region.
+
+===Discarded input sections
+Remember how earlier I said to not worry about all of the modules that were pulled in from {{{mbedos.a}}} since they 
+would be garbage collected later and any unused sections would be discarded. This "Discarded input sections" is the 
+longest section of the .map file because so many sections end up being discarded and listed here.
+
+{{{
+Discarded input sections
+...
+ .text.ecallback_dispatch
+                0x0000000000000000        0x6 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(equeue.o)
+ .text.equeue_enqueue
+                0x0000000000000000       0xa6 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(equeue.o)
+...
+}}}
+
+===Memory Configuration
+{{{
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x0000000000000000 0x0000000000080000 xr
+RAM              0x00000000100000c8 0x0000000000007f38 xrw
+USB_RAM          0x000000002007c000 0x0000000000004000 xrw
+ETH_RAM          0x0000000020080000 0x0000000000004000 xrw
+*default*        0x0000000000000000 0xffffffffffffffff
+}}}
+
+This section gives an overview of how the 32-bit address space of the ARM processor is split across various memory 
+types. The following table displays the same information in a slightly more human readable format:
+
+|= Region Name |= Origin |= Length |= Attributes |
+| FLASH | 0x00000000 | 524,288 bytes | Executable & Readable |
+| RAM | 0x100000c8 | 32,568 bytes | Executable, Readable & Writeable |
+| USB_RAM | 0x2007c000 | 16,384 bytes | Executable, Readable & Writeable |
+| ETH_RAM | 0x20080000 | 16,384 bytes | Executable, Readable & Writeable |
+
+===Linker script and memory map
+The first portion of this section gives an overview of the libraries that the linker was instructed to use while 
+building this firmware image.
+
+{{{
+Linker script and memory map
+
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/crti.o
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/crtbegin.o
+LOAD LPC1768/main.o
+LOAD LPC1768/gcc4mbed.o
+LOAD ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libstdc++_nano.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libsupc++_nano.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/libgcc.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/libgcc.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libc_nano.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libnosys.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libstdc++_nano.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libm.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libc_nano.a
+START GROUP
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/libgcc.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libc_nano.a
+END GROUP
+START GROUP
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/libgcc.a
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libc_nano.a
+END GROUP
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/crtend.o
+LOAD /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/crtn.o
+}}}
+
+The following portion of this section is where the really interesting information is located in the .map file.
+{{{
+.text           0x0000000000000000     0x3130
+ *(.isr_vector)
+ .isr_vector    0x0000000000000000       0xcc ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(startup_LPC17xx.o)
+                0x0000000000000000                __isr_vector
+ *(.text*)
+ .text          0x00000000000000cc       0x6c /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/crtbegin.o
+ .text.startup.main
+                0x0000000000000138       0x28 LPC1768/main.o
+                0x0000000000000138                main
+ .text.startup._GLOBAL__sub_I_myled
+                0x0000000000000160       0x24 LPC1768/main.o
+ .text._start   0x0000000000000184       0x28 LPC1768/gcc4mbed.o
+                0x0000000000000184                _start
+...
+}}}
+
+This section shows what has been placed by the linker in each memory location. For example the following 2 lines show 
+that the {{{__isr_vector}}}, interrupt vector table, from the {{{startup_LPC17xx.o}}} object file in the {{{mbedos.a}}} 
+library has been located at the beginning of FLASH and it is {{{0xcc}}} bytes in length.
+{{{
+ .isr_vector    0x0000000000000000       0xcc ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(startup_LPC17xx.o)
+                0x0000000000000000                __isr_vector
+}}}
+
+Later sections of this document will spend quite a bit of time going through this section of the .map file to find large 
+and unexpected objects that are using up memory.
+
+===Cross Reference Table
+{{{
+Cross Reference Table
+
+Symbol                                            File
+ADC_IRQHandler                                    ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(startup_LPC17xx.o)
+BOD_IRQHandler                                    ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(startup_LPC17xx.o)
+BusFault_Handler                                  ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(startup_LPC17xx.o)
+CANActivity_IRQHandler                            ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(startup_LPC17xx.o)
+CAN_IRQHandler                                    ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(startup_LPC17xx.o)
+...
+}}}
+
+The cross reference table lists all of the global symbols. For each symbol, it lists the symbol name, the object file in 
+which it was defined and on subsequent lines it lists the other object files containing references to the symbol. For 
+example the following two lines indicate that the {{{wait}}} function was found in the {{{mbed_wait_api_rtos.o}}} object 
+file and was referenced from code in the {{{main.o}}} object file.
+{{{
+wait                                              ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(mbed_wait_api_rtos.o)
+                                                  LPC1768/main.o
+}}}
+
+==Disassembly Files
+GCC4MBED also generates a .disasm disassembly file each time it builds an output image. The disassembly can be useful to 
+look at for the purpose of seeing which functions call what. In this document, we will concentrate on looking at 
+function calls in the disassembly and ignore the bulk of the other assembly language code.
+
+Let's take a quick peek at the C++ code for {{{main()}}} in **main.cpp**:
+{{{
+int main() 
+{
+    while(1) 
+    {
+        myled = 1;
+        wait(0.2);
+        myled = 0;
+        wait(0.2);
+    }
+}
+}}}
+
+And then take a look at its disassembly in **HelloWorld.disasm**:
+{{{
+00000138 <main>:
+     138:	b508      	push	{r3, lr}
+     13a:	4c07      	ldr	r4, [pc, #28]	; (158 <main+0x20>)
+     13c:	4d07      	ldr	r5, [pc, #28]	; (15c <main+0x24>)
+     13e:	68e3      	ldr	r3, [r4, #12]
+     140:	6862      	ldr	r2, [r4, #4]
+     142:	4628      	mov	r0, r5
+     144:	601a      	str	r2, [r3, #0]
+     146:	f002 f96d 	bl	2424 <wait>
+     14a:	6923      	ldr	r3, [r4, #16]
+     14c:	6862      	ldr	r2, [r4, #4]
+     14e:	4628      	mov	r0, r5
+     150:	601a      	str	r2, [r3, #0]
+     152:	f002 f967 	bl	2424 <wait>
+     156:	e7f2      	b.n	13e <main+0x6>
+     158:	10000174 	.word	0x10000174
+     15c:	3e4ccccd 	.word	0x3e4ccccd
+}}}
+
+When we look at the C++ code we see that the main loop has 2 calls to wait(). These 2 calls are easy to spot in the 
+disassembly as well since the typical ARM instruction for making function calls is **BL** (**B**ranch and **L**ink):
+{{{
+     146:	f002 f96d 	bl	2424 <wait>
+}}}
+and
+{{{
+     152:	f002 f967 	bl	2424 <wait>
+}}}
+
+There are a few other instructions that can be used for transferring control from one function to another.
+
+If a function call is made at the end of function, also known as a tail call, then a simple **B** (**B**ranch) 
+instruction can be used instead. For example {{{gpio_init_out()}}} in **mbed-os/hal/mbed_gpio.c**, just calls through to 
+{{{gpio_init_out_ex()}}}, passing in a zero as the last parameter:
+{{{
+void gpio_init_out(gpio_t* gpio, PinName pin) {
+    gpio_init_out_ex(gpio, pin, 0);
+}
+}}}
+
+The disassembly for this function shows an example of a tail call implementation using the **B** instruction.
+{{{
+0000021e <gpio_init_out>:
+     21e:	2200      	movs	r2, #0
+     220:	f7ff bfed 	b.w	1fe <gpio_init_out_ex>
+}}}
+It also shows how the **R2** register is used to pass in the value for the 3rd parameter of gpio_init_out_ex(). Just for 
+completion: the first parameter is passed in via **R0**, the second parameter is passed in via **R1**, the fourth 
+parameter is passed in via **R3**, and return values from a function are returned in the **R0** register.
+
+The **BLX** (**B**ranch **L**ink and Optionally E**x**change) instruction is also used to make a call via function 
+pointers or vtable entries:
+{{{
+void rtos_idle_loop(void)
+{
+    //Continuously call the idle hook function pointer
+    while (1) {
+        idle_hook_fptr();
+    }
+}
+}}}
+
+When calling through the {{{idle_hook_fptr}}} function pointer, a **BLX** instruction is used to make the call:
+{{{
+0000042c <rtos_idle_loop>:
+     42c:	b508      	push	{r3, lr}
+     42e:	4c02      	ldr	r4, [pc, #8]	; (438 <rtos_idle_loop+0xc>)
+     430:	6823      	ldr	r3, [r4, #0]
+     432:	4798      	blx	r3
+     434:	e7fc      	b.n	430 <rtos_idle_loop+0x4>
+     436:	bf00      	nop
+     438:	100000c8 	.word	0x100000c8
+}}}
+
+
+==Where is Our Memory Going?
+Can we make this sample use less memory? Where do we start our investigation to answer that question? Typically my first 
+area to investigate would be the **memory map** section of **HelloWorld.map**. I go through that section with my text 
+editor and bookmark any large or unexpected entries that I see. 
+
+For this sample, I scanned the memory map and bookmarked any functions or objects that were 128 (0x80) bytes or larger:
+{{{
+ .text.rt_init_stack
+                0x000000000000043c       0x94 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(HAL_CM.o)
+                0x000000000000043c                rt_init_stack
+}}}
+{{{
+ .text.osKernelStart
+                0x00000000000006cc       0x90 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_CMSIS.o)
+                0x00000000000006cc                osKernelStart
+}}}
+{{{
+ .text.rt_mbx_wait
+                0x0000000000000ea8       0xac ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Mailbox.o)
+                0x0000000000000ea8                rt_mbx_wait
+}}}
+{{{
+ .text.rt_mbx_psh
+                0x0000000000000fbc       0xe4 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Mailbox.o)
+                0x0000000000000fbc                rt_mbx_psh
+}}}
+{{{
+ .text.rt_mut_release
+                0x000000000000113c       0xe0 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Mutex.o)
+                0x000000000000113c                rt_mut_release
+}}}
+{{{
+ .text.rt_tsk_create
+                0x0000000000001574       0xac ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Task.o)
+                0x0000000000001574                rt_tsk_create
+ .text.rt_tsk_delete
+                0x0000000000001620      0x154 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Task.o)
+                0x0000000000001620                rt_tsk_delete
+ .text.rt_sys_init
+                0x0000000000001774       0xf4 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Task.o)
+                0x0000000000001774                rt_sys_init
+ .text.rt_sys_start
+                0x0000000000001868       0x8c ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Task.o)
+                0x0000000000001868                rt_sys_start
+}}}
+{{{
+ .text.serial_irq_set_internal
+                0x0000000000001aa4       0xcc ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+ .text.serial_baud
+                0x0000000000001b70      0x1a8 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+                0x0000000000001b70                serial_baud
+}}}
+{{{
+ .text.serial_set_flow_control
+                0x0000000000001dc8      0x108 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+                0x0000000000001dc8                serial_set_flow_control
+ .text.serial_init
+                0x0000000000001ed0      0x148 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+                0x0000000000001ed0                serial_init
+}}}
+{{{
+ .text.SystemInit
+                0x0000000000002124       0xa4 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(system_LPC17xx.o)
+                0x0000000000002124                SystemInit
+}}}
+{{{
+ .text          0x000000000000245c      0x128 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(HAL_CM3.o)
+                0x000000000000245c                rt_set_PSP
+                0x0000000000002462                rt_get_PSP
+                0x0000000000002468                os_set_env
+                0x0000000000002480                _alloc_box
+                0x000000000000249c                _free_box
+                0x00000000000024b8                SVC_Handler
+                0x0000000000002522                PendSV_Handler
+                0x0000000000002526                Sys_Switch
+                0x0000000000002558                SysTick_Handler
+                0x0000000000002560                OS_Tick_Handler
+}}}
+{{{
+ .text          0x00000000000025c8      0x2a0 /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/libgcc.a(_arm_muldivsf3.o)
+                0x00000000000025c8                __mulsf3
+                0x00000000000025c8                __aeabi_fmul
+                0x0000000000002730                __divsf3
+                0x0000000000002730                __aeabi_fdiv
+}}}
+{{{
+ .text.__sflush_r
+                0x00000000000028c0      0x110 /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libc_nano.a(lib_a-fflush.o)
+                0x00000000000028c0                __sflush_r
+}}}
+{{{
+ .text._free_r  0x0000000000002c34       0x98 /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libc_nano.a(lib_a-nano-freer.o)
+                0x0000000000002c34                _free_r
+ .text._malloc_r
+                0x0000000000002ccc       0xbc /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libc_nano.a(lib_a-nano-mallocr.o)
+                0x0000000000002ccc                _malloc_r
+}}}
+{{{
+ .data.impure_data
+                0x00000000100000ec       0x60 /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/libc_nano.a(lib_a-impure.o)
+                0x000000001000014c                . = ALIGN (0x4)
+}}}
+{{{
+ .bss.thread_stack_main
+                0x0000000010000200     0x1000 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(RTX_Conf_CM.o)
+}}}
+{{{
+ .bss.uart_data
+                0x000000001000121c       0xe0 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+}}}
+{{{
+ .bss._ZL11filehandles
+                0x0000000010001300      0x100 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(mbed_retarget.o)
+}}}
+{{{
+ COMMON         0x0000000010001418      0x9c8 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(RTX_Conf_CM.o)
+                0x0000000010001418                mp_stk
+                0x0000000010001628                os_active_TCB
+                0x0000000010001664                os_fifo
+                0x00000000100016e8                osMessageQId_osTimerMessageQ
+                0x00000000100016ec                singleton_mutex_id
+                0x00000000100016f0                os_thread_def_stack_osTimerThread
+                0x0000000010001a10                mp_tcb
+                0x0000000010001ddc                osThreadId_osTimerThread
+}}}
+
+Let's take a look at some of these large memory uses and see if we can remove or reduce them.
+
+==Floating Point Overhead
+One thing that I always keep an eye out for when looking at mbed programs is the use of floating point libraries when 
+they might not really be required. This HelloWorld sample is a pretty simple program yet I see the following floating 
+point routines showing up in the **HelloWorld.map** file:
+{{{
+ .text          0x00000000000025c8      0x2a0 /depots/gcc-arm-none-eabi/install-native/lib/gcc/arm-none-eabi/6.3.1/thumb/v7-m/libgcc.a(_arm_muldivsf3.o)
+                0x00000000000025c8                __mulsf3
+                0x00000000000025c8                __aeabi_fmul
+                0x0000000000002730                __divsf3
+                0x0000000000002730                __aeabi_fdiv
+}}}
+
+If I search for {{{__aeabi_fmul}}} in **HelloWorld.disasm**, the first hit is in the following part of the disassembly:
+{{{
+00002424 <wait>:
+    2424:	b508      	push	{r3, lr}
+    2426:	4904      	ldr	r1, [pc, #16]	; (2438 <wait+0x14>)
+    2428:	f000 f8ce 	bl	25c8 <__aeabi_fmul>
+    242c:	f000 fa1c 	bl	2868 <__aeabi_f2iz>
+    2430:	e8bd 4008 	ldmia.w	sp!, {r3, lr}
+    2434:	f7ff bfdd 	b.w	23f2 <wait_us>
+    2438:	49742400 	.word	0x49742400
+}}}
+
+Earlier when we were looking at {{{main()}}} we saw two calls to the {{{wait()}}} function. Unfortunately this sample is 
+calling the version of {{{wait()}}} which takes a floating point parameter representing the number of seconds that wait 
+should take. There are integer versions of this function, {{{wait_ms()}}} for example, which we could call instead to 
+wait the desired 200 milliseconds. What happens if we switch to using that function instead?
+
+Change made to **main.cpp**:
+{{{
+@@ -10,8 +10,8 @@ int main()
+     while(1) 
+     {
+         myled = 1;
+-        wait(0.2);
++        wait_ms(200);
+         myled = 0;
+-        wait(0.2);
++        wait_ms(200);
+     }
+ }
+}}}
+
+Build size summary after applying this change:
+{{{
+   text	   data	    bss	    dec	    hex	filename
+  11820	    144	   7468	  19432	   4be8	LPC1768/HelloWorld.elf
+}}}
+
+Table comparing sizes:
+|= Description |= text |= data |= bss |
+| Original Build | 12600 | 144 | 7468	|
+| Patched Build | 11820 | 144 | 7468 |
+| Delta | 780 | 0 | 0 |
+
+This change saved us 780 bytes of code space in the FLASH. If we go back and look at the map file, we will see that the 
+floating point routines from {{{_arm_muldivsf3.o}}} are no longer being pulled in so this patch to the code did get rid 
+of our only usage of floating point.
+
+
+==Serial Stream Overhead
+I did notice something else that seemed unexpected to me when I was looking through the larger routines in the 
+**HelloWorld.map** file. 
+
+{{{
+ .text.serial_irq_set_internal
+                0x0000000000001aa4       0xcc ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+ .text.serial_baud
+                0x0000000000001b70      0x1a8 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+                0x0000000000001b70                serial_baud
+}}}
+{{{
+ .text.serial_set_flow_control
+                0x0000000000001dc8      0x108 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+                0x0000000000001dc8                serial_set_flow_control
+ .text.serial_init
+                0x0000000000001ed0      0x148 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+                0x0000000000001ed0                serial_init
+}}}
+{{{
+ .bss.uart_data
+                0x000000001000121c       0xe0 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(serial_api.o)
+}}}
+
+Why are so many UART/serial routines being pulled into this simple sample which doesn't make use of the serial port 
+directly or indirectly through stdout or stderr? Getting to the bottom of this one will take some backtracking through 
+the **HelloWorld.disasm** disassembly.
+
+Let's start by finding out what calls the 0x148 byte {{{serial_init()}}} function that we see in the above list of 
+memory map entries. It is called by {{{init_serial()}}} at address 0x21da. This function also calls the 'large' 
+{{{serial_baud()}}} routine as well at address 0x21e8.
+
+{{{
+000021cc <init_serial()>:
+    21cc:	b508      	push	{r3, lr}
+    21ce:	4b08      	ldr	r3, [pc, #32]	; (21f0 <init_serial()+0x24>)
+    21d0:	681b      	ldr	r3, [r3, #0]
+    21d2:	b95b      	cbnz	r3, 21ec <init_serial()+0x20>
+    21d4:	4907      	ldr	r1, [pc, #28]	; (21f4 <init_serial()+0x28>)
+    21d6:	4808      	ldr	r0, [pc, #32]	; (21f8 <init_serial()+0x2c>)
+    21d8:	4a08      	ldr	r2, [pc, #32]	; (21fc <init_serial()+0x30>)
+    21da:	f7ff fe77 	bl	1ecc <serial_init>
+    21de:	f44f 5116 	mov.w	r1, #9600	; 0x2580
+    21e2:	e8bd 4008 	ldmia.w	sp!, {r3, lr}
+    21e6:	4804      	ldr	r0, [pc, #16]	; (21f8 <init_serial()+0x2c>)
+    21e8:	f7ff bcc0 	b.w	1b6c <serial_baud>
+    21ec:	bd08      	pop	{r3, pc}
+    21ee:	bf00      	nop
+    21f0:	10001218 	.word	0x10001218
+    21f4:	2009c002 	.word	0x2009c002
+    21f8:	10001e78 	.word	0x10001e78
+    21fc:	2009c003 	.word	0x2009c003
+}}}
+
+So what calls {{{init_serial()}}}? It is called from {{{_write()}}} at address 0x225e. It is also called from 
+{{{_read()}}} but lets ignore that for now and come back to it if following the {{{_write()}}} path doesn't get us 
+anywhere.
+
+{{{
+00002244 <_write>:
+    2244:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+    2246:	4605      	mov	r5, r0
+    2248:	460e      	mov	r6, r1
+    224a:	4614      	mov	r4, r2
+    224c:	f000 f9ac 	bl	25a8 <__errno>
+    2250:	2309      	movs	r3, #9
+    2252:	2d02      	cmp	r5, #2
+    2254:	6003      	str	r3, [r0, #0]
+    2256:	dc0f      	bgt.n	2278 <_write+0x34>
+    2258:	4b12      	ldr	r3, [pc, #72]	; (22a4 <_write+0x60>)
+    225a:	681b      	ldr	r3, [r3, #0]
+    225c:	b90b      	cbnz	r3, 2262 <_write+0x1e>
+    225e:	f7ff ffb5 	bl	21cc <init_serial()>
+    2262:	4635      	mov	r5, r6
+    2264:	1937      	adds	r7, r6, r4
+    2266:	4e10      	ldr	r6, [pc, #64]	; (22a8 <_write+0x64>)
+    2268:	42bd      	cmp	r5, r7
+    226a:	d015      	beq.n	2298 <_write+0x54>
+    226c:	f815 1b01 	ldrb.w	r1, [r5], #1
+    2270:	4630      	mov	r0, r6
+    2272:	f7ff fd8f 	bl	1d94 <serial_putc>
+    2276:	e7f7      	b.n	2268 <_write+0x24>
+    2278:	4b0c      	ldr	r3, [pc, #48]	; (22ac <_write+0x68>)
+    227a:	3d03      	subs	r5, #3
+    227c:	f853 0025 	ldr.w	r0, [r3, r5, lsl #2]
+    2280:	b160      	cbz	r0, 229c <_write+0x58>
+    2282:	6803      	ldr	r3, [r0, #0]
+    2284:	4622      	mov	r2, r4
+    2286:	68db      	ldr	r3, [r3, #12]
+    2288:	4631      	mov	r1, r6
+    228a:	4798      	blx	r3
+    228c:	1e04      	subs	r4, r0, #0
+    228e:	da03      	bge.n	2298 <_write+0x54>
+    2290:	f000 f98a 	bl	25a8 <__errno>
+    2294:	4263      	negs	r3, r4
+    2296:	6003      	str	r3, [r0, #0]
+    2298:	4620      	mov	r0, r4
+    229a:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
+    229c:	f04f 34ff 	mov.w	r4, #4294967295	; 0xffffffff
+    22a0:	e7fa      	b.n	2298 <_write+0x54>
+    22a2:	bf00      	nop
+    22a4:	10001218 	.word	0x10001218
+    22a8:	10001e78 	.word	0x10001e78
+    22ac:	10001300 	.word	0x10001300
+}}}
+
+It turns out that {{{_write()}}} is only called from one place, {{{_write_r()}}} at address 0x2b34.
+{{{
+00002b24 <_write_r>:
+    2b24:	b538      	push	{r3, r4, r5, lr}
+    2b26:	4605      	mov	r5, r0
+    2b28:	4608      	mov	r0, r1
+    2b2a:	4611      	mov	r1, r2
+    2b2c:	2200      	movs	r2, #0
+    2b2e:	4c05      	ldr	r4, [pc, #20]	; (2b44 <_write_r+0x20>)
+    2b30:	6022      	str	r2, [r4, #0]
+    2b32:	461a      	mov	r2, r3
+    2b34:	f7ff fb86 	bl	2244 <_write>
+    2b38:	1c43      	adds	r3, r0, #1
+    2b3a:	d102      	bne.n	2b42 <_write_r+0x1e>
+    2b3c:	6823      	ldr	r3, [r4, #0]
+    2b3e:	b103      	cbz	r3, 2b42 <_write_r+0x1e>
+    2b40:	602b      	str	r3, [r5, #0]
+    2b42:	bd38      	pop	{r3, r4, r5, pc}
+    2b44:	10001e80 	.word	0x10001e80
+}}}
+
+The {{{_write_r()}}} routine is only called from {{{__swrite()}}} at address 0x2af2.
+{{{
+00002abe <__swrite>:
+    2abe:	e92d 41f0 	stmdb	sp!, {r4, r5, r6, r7, r8, lr}
+    2ac2:	461f      	mov	r7, r3
+    2ac4:	898b      	ldrh	r3, [r1, #12]
+    2ac6:	4605      	mov	r5, r0
+    2ac8:	05db      	lsls	r3, r3, #23
+    2aca:	460c      	mov	r4, r1
+    2acc:	4616      	mov	r6, r2
+    2ace:	d505      	bpl.n	2adc <__swrite+0x1e>
+    2ad0:	2302      	movs	r3, #2
+    2ad2:	2200      	movs	r2, #0
+    2ad4:	f9b1 100e 	ldrsh.w	r1, [r1, #14]
+    2ad8:	f000 f846 	bl	2b68 <_lseek_r>
+    2adc:	89a3      	ldrh	r3, [r4, #12]
+    2ade:	4632      	mov	r2, r6
+    2ae0:	f423 5380 	bic.w	r3, r3, #4096	; 0x1000
+    2ae4:	81a3      	strh	r3, [r4, #12]
+    2ae6:	f9b4 100e 	ldrsh.w	r1, [r4, #14]
+    2aea:	463b      	mov	r3, r7
+    2aec:	4628      	mov	r0, r5
+    2aee:	e8bd 41f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, lr}
+    2af2:	f000 b817 	b.w	2b24 <_write_r>
+}}}
+
+Searching for {{{__swrite()}}} in **HelloWorld.disasm** didn't come up with any hits for me. Was this the end of this 
+trail? It must not be because if this function wasn't referenced from somewhere else in the code, it would have been 
+dropped by the linker during section garbage collection. We can access the newlib source code on the Internet to search 
+for references to this function but I had a suspicion that I knew where I might find it in the disassembly using a 
+slightly different approach. My suspicion was that {{{__swrite()}}} was used as a function pointer. This means that we 
+want to search for the address of {{{__swrite()}}}, **2abe**, in the disassembly instead. There is one little trick that 
+we need to know before starting that search though. Cortex-M processors use the Thumb-2 instruction set. This means that 
+function pointers should always have the least significant bit in the address set high to indicate that the function is 
+a Thumb routine. This means that we want to search for **2abf** and not **2abe**. Searching for **2abf** gets only one 
+hit in {{{std.isra.0}}} at address 0x2784 and it looks promising!
+
+{{{
+00002748 <std.isra.0>:
+    2748:	2300      	movs	r3, #0
+    274a:	b510      	push	{r4, lr}
+    274c:	4604      	mov	r4, r0
+    274e:	6003      	str	r3, [r0, #0]
+    2750:	6043      	str	r3, [r0, #4]
+    2752:	6083      	str	r3, [r0, #8]
+    2754:	8181      	strh	r1, [r0, #12]
+    2756:	6643      	str	r3, [r0, #100]	; 0x64
+    2758:	81c2      	strh	r2, [r0, #14]
+    275a:	6103      	str	r3, [r0, #16]
+    275c:	6143      	str	r3, [r0, #20]
+    275e:	6183      	str	r3, [r0, #24]
+    2760:	4619      	mov	r1, r3
+    2762:	2208      	movs	r2, #8
+    2764:	305c      	adds	r0, #92	; 0x5c
+    2766:	f000 f8d7 	bl	2918 <memset>
+    276a:	4b05      	ldr	r3, [pc, #20]	; (2780 <std.isra.0+0x38>)
+    276c:	6224      	str	r4, [r4, #32]
+    276e:	6263      	str	r3, [r4, #36]	; 0x24
+    2770:	4b04      	ldr	r3, [pc, #16]	; (2784 <std.isra.0+0x3c>)
+    2772:	62a3      	str	r3, [r4, #40]	; 0x28
+    2774:	4b04      	ldr	r3, [pc, #16]	; (2788 <std.isra.0+0x40>)
+    2776:	62e3      	str	r3, [r4, #44]	; 0x2c
+    2778:	4b04      	ldr	r3, [pc, #16]	; (278c <std.isra.0+0x44>)
+    277a:	6323      	str	r3, [r4, #48]	; 0x30
+    277c:	bd10      	pop	{r4, pc}
+    277e:	bf00      	nop
+    2780:	00002a9d 	.word	0x00002a9d
+    2784:	00002abf 	.word	0x00002abf
+    2788:	00002af7 	.word	0x00002af7
+    278c:	00002b1b 	.word	0x00002b1b
+}}}
+
+This {{{std.isra.0}}} function is called from {{{__sinit()}}} 3 times at addresses 0x27f6, 0x2800, and 0x280a.
+{{{
+000027bc <__sinit>:
+    27bc:	6983      	ldr	r3, [r0, #24]
+    27be:	b510      	push	{r4, lr}
+    27c0:	4604      	mov	r4, r0
+    27c2:	bb33      	cbnz	r3, 2812 <__sinit+0x56>
+    27c4:	6483      	str	r3, [r0, #72]	; 0x48
+    27c6:	64c3      	str	r3, [r0, #76]	; 0x4c
+    27c8:	6503      	str	r3, [r0, #80]	; 0x50
+    27ca:	4b12      	ldr	r3, [pc, #72]	; (2814 <__sinit+0x58>)
+    27cc:	4a12      	ldr	r2, [pc, #72]	; (2818 <__sinit+0x5c>)
+    27ce:	681b      	ldr	r3, [r3, #0]
+    27d0:	6282      	str	r2, [r0, #40]	; 0x28
+    27d2:	4298      	cmp	r0, r3
+    27d4:	bf04      	itt	eq
+    27d6:	2301      	moveq	r3, #1
+    27d8:	6183      	streq	r3, [r0, #24]
+    27da:	f000 f81f 	bl	281c <__sfp>
+    27de:	6060      	str	r0, [r4, #4]
+    27e0:	4620      	mov	r0, r4
+    27e2:	f000 f81b 	bl	281c <__sfp>
+    27e6:	60a0      	str	r0, [r4, #8]
+    27e8:	4620      	mov	r0, r4
+    27ea:	f000 f817 	bl	281c <__sfp>
+    27ee:	2200      	movs	r2, #0
+    27f0:	60e0      	str	r0, [r4, #12]
+    27f2:	2104      	movs	r1, #4
+    27f4:	6860      	ldr	r0, [r4, #4]
+    27f6:	f7ff ffa7 	bl	2748 <std.isra.0>
+    27fa:	2201      	movs	r2, #1
+    27fc:	2109      	movs	r1, #9
+    27fe:	68a0      	ldr	r0, [r4, #8]
+    2800:	f7ff ffa2 	bl	2748 <std.isra.0>
+    2804:	2202      	movs	r2, #2
+    2806:	2112      	movs	r1, #18
+    2808:	68e0      	ldr	r0, [r4, #12]
+    280a:	f7ff ff9d 	bl	2748 <std.isra.0>
+    280e:	2301      	movs	r3, #1
+    2810:	61a3      	str	r3, [r4, #24]
+    2812:	bd10      	pop	{r4, pc}
+    2814:	00002e1c 	.word	0x00002e1c
+    2818:	0000273d 	.word	0x0000273d
+}}}
+
+It turns out that {{{__sinit()}}} is called from {{{__sfp()}}} and {{{_fflush_r()}}} at address 0x26d4. I decided to 
+ignore the {{{__sfp()}}} path for now and look at the {{{_fflush_r()}}} path instead to see where it would take me. The 
+main reason is that it seemed suspicious to me that one of the standard I/O file pointers was being flushed from such a 
+simple sample.
+
+{{{
+000026c4 <_fflush_r>:
+    26c4:	b538      	push	{r3, r4, r5, lr}
+    26c6:	690b      	ldr	r3, [r1, #16]
+    26c8:	4605      	mov	r5, r0
+    26ca:	460c      	mov	r4, r1
+    26cc:	b1db      	cbz	r3, 2706 <_fflush_r+0x42>
+    26ce:	b118      	cbz	r0, 26d8 <_fflush_r+0x14>
+    26d0:	6983      	ldr	r3, [r0, #24]
+    26d2:	b90b      	cbnz	r3, 26d8 <_fflush_r+0x14>
+    26d4:	f000 f872 	bl	27bc <__sinit>
+    26d8:	4b0c      	ldr	r3, [pc, #48]	; (270c <_fflush_r+0x48>)
+    26da:	429c      	cmp	r4, r3
+    26dc:	d109      	bne.n	26f2 <_fflush_r+0x2e>
+    26de:	686c      	ldr	r4, [r5, #4]
+    26e0:	f9b4 300c 	ldrsh.w	r3, [r4, #12]
+    26e4:	b17b      	cbz	r3, 2706 <_fflush_r+0x42>
+    26e6:	4621      	mov	r1, r4
+    26e8:	4628      	mov	r0, r5
+    26ea:	e8bd 4038 	ldmia.w	sp!, {r3, r4, r5, lr}
+    26ee:	f7ff bf61 	b.w	25b4 <__sflush_r>
+    26f2:	4b07      	ldr	r3, [pc, #28]	; (2710 <_fflush_r+0x4c>)
+    26f4:	429c      	cmp	r4, r3
+    26f6:	d101      	bne.n	26fc <_fflush_r+0x38>
+    26f8:	68ac      	ldr	r4, [r5, #8]
+    26fa:	e7f1      	b.n	26e0 <_fflush_r+0x1c>
+    26fc:	4b05      	ldr	r3, [pc, #20]	; (2714 <_fflush_r+0x50>)
+    26fe:	429c      	cmp	r4, r3
+    2700:	bf08      	it	eq
+    2702:	68ec      	ldreq	r4, [r5, #12]
+    2704:	e7ec      	b.n	26e0 <_fflush_r+0x1c>
+    2706:	2000      	movs	r0, #0
+    2708:	bd38      	pop	{r3, r4, r5, pc}
+    270a:	bf00      	nop
+    270c:	00002ddc 	.word	0x00002ddc
+    2710:	00002dfc 	.word	0x00002dfc
+    2714:	00002dbc 	.word	0x00002dbc
+}}}
+
+The {{{_fflush_r()}}} routine is only called from the {{{fflush()}}} routine at address 0x272a.
+{{{
+00002718 <fflush>:
+    2718:	4601      	mov	r1, r0
+    271a:	b920      	cbnz	r0, 2726 <fflush+0xe>
+    271c:	4b04      	ldr	r3, [pc, #16]	; (2730 <fflush+0x18>)
+    271e:	4905      	ldr	r1, [pc, #20]	; (2734 <fflush+0x1c>)
+    2720:	6818      	ldr	r0, [r3, #0]
+    2722:	f000 b8b7 	b.w	2894 <_fwalk_reent>
+    2726:	4b04      	ldr	r3, [pc, #16]	; (2738 <fflush+0x20>)
+    2728:	6818      	ldr	r0, [r3, #0]
+    272a:	f7ff bfcb 	b.w	26c4 <_fflush_r>
+    272e:	bf00      	nop
+    2730:	00002e1c 	.word	0x00002e1c
+    2734:	000026c5 	.word	0x000026c5
+    2738:	100000e8 	.word	0x100000e8
+}}}
+
+It turns out that {{{fflush()}}} is only called from one function, {{{_exit()}}} at addresses 0x23b6 and 0x23be. 
+{{{
+000023ac <_exit>:
+    23ac:	4c09      	ldr	r4, [pc, #36]	; (23d4 <_exit+0x28>)
+    23ae:	b508      	push	{r3, lr}
+    23b0:	6823      	ldr	r3, [r4, #0]
+    23b2:	4605      	mov	r5, r0
+    23b4:	6898      	ldr	r0, [r3, #8]
+    23b6:	f000 f9af 	bl	2718 <fflush>
+    23ba:	6823      	ldr	r3, [r4, #0]
+    23bc:	68d8      	ldr	r0, [r3, #12]
+    23be:	f000 f9ab 	bl	2718 <fflush>
+    23c2:	f7fd fffe 	bl	3c2 <mbed_interface_connected>
+    23c6:	b108      	cbz	r0, 23cc <_exit+0x20>
+    23c8:	f7fe f80c 	bl	3e4 <semihost_exit>
+    23cc:	b10d      	cbz	r5, 23d2 <_exit+0x26>
+    23ce:	f7fd ff9b 	bl	308 <mbed_die>
+    23d2:	e7fe      	b.n	23d2 <_exit+0x26>
+    23d4:	100000e8 	.word	0x100000e8
+}}}
+
+If we go back to the **HelloWorld.map** memory map, we will see that this {{{_exit()}}} implementation comes from the 
+{{{mbed_retarget.o}}} module in {{{mbedos.a}}}.
+
+{{{
+#if defined(TOOLCHAIN_GCC_ARM) || defined(TOOLCHAIN_GCC_CR)
+extern "C" void _exit(int return_code) {
+#else
+namespace std {
+extern "C" void exit(int return_code) {
+#endif
+
+#if DEVICE_STDIO_MESSAGES
+#if MBED_CONF_PLATFORM_STDIO_FLUSH_AT_EXIT
+    fflush(stdout);
+    fflush(stderr);
+#endif
+#endif
+
+#if DEVICE_SEMIHOST
+    if (mbed_interface_connected()) {
+        semihost_exit();
+    }
+#endif
+    if (return_code) {
+        mbed_die();
+    }
+
+    while (1);
+}
+}}}
+
+If we provided a simpler implementation of {{{_exit()}}} which just contained the while(1) infinite loop then we might 
+be able to trim out this unneeded UART/serial code. 
+
+All changes now made to **main.cpp**:
+{{{
+@@ -10,8 +10,17 @@ int main()
+     while(1) 
+     {
+         myled = 1;
+-        wait(0.2);
++        wait_ms(200);
+         myled = 0;
+-        wait(0.2);
++        wait_ms(200);
++    }
++}
++
++// Provide simple _exit() implementation so that file stream and mbed_die() code isn't pulled in by default
++// mbed implementation.
++extern "C" void _exit(int returnCode)
++{
++    while (1)
++    {
+     }
+ }
+}}}
+
+Build size summary after applying this change:
+{{{
+   text	   data	    bss	    dec	    hex	filename
+   7408	     40	   6952	  14400	   3840	LPC1768/HelloWorld.elf
+}}}
+
+Table comparing sizes:
+|= Description |= text |= data |= bss |
+| Original Build | 12600 | 144 | 7468	|
+| Patched Build | 7408 | 40 | 6952 |
+| Delta | 5192 | 104 | 516 |
+
+With both the {{{wait_ms()}}} and {{{_exit()}}} changes in **main.cpp**, we have saved 5192 + 104 = 5296 bytes of FLASH 
+and 104 + 516 = 620 bytes of RAM.
+
+==RTOS overhead
+After making the above changes, most of the large memory allocations left are related to the use of the RTX RTOS by 
+mbed-os. The one exception is {{{SystemInit()}}} which is the routine responsible for getting the LPC1768
+microcontroller initialized (setting clock to 96MHz, enabling FLASH accelerator, etc). This routine is required and 
+would be hard to make it any smaller so we will ignore it and just concentrate on the following RTOS related memory 
+usage:
+
+{{{
+ .text.rt_init_stack
+                0x00000000000002bc       0x94 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(HAL_CM.o)
+                0x00000000000002bc                rt_init_stack
+}}}
+{{{
+ .text.osKernelStart
+                0x0000000000000530       0x90 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_CMSIS.o)
+                0x0000000000000530                osKernelStart
+}}}
+{{{
+ .text.rt_mbx_wait
+                0x0000000000000d0c       0xac ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Mailbox.o)
+                0x0000000000000d0c                rt_mbx_wait
+}}}
+{{{
+ .text.rt_mbx_psh
+                0x0000000000000e20       0xe4 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Mailbox.o)
+                0x0000000000000e20                rt_mbx_psh
+}}}
+{{{
+ .text.rt_mut_release
+                0x0000000000000fa0       0xe0 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Mutex.o)
+                0x0000000000000fa0                rt_mut_release
+}}}
+{{{
+ .text.rt_tsk_create
+                0x00000000000013d8       0xac ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Task.o)
+                0x00000000000013d8                rt_tsk_create
+ .text.rt_tsk_delete
+                0x0000000000001484      0x154 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Task.o)
+                0x0000000000001484                rt_tsk_delete
+ .text.rt_sys_init
+                0x00000000000015d8       0xf4 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Task.o)
+                0x00000000000015d8                rt_sys_init
+ .text.rt_sys_start
+                0x00000000000016cc       0x8c ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(rt_Task.o)
+                0x00000000000016cc                rt_sys_start
+}}}
+{{{
+ .text          0x0000000000001a78      0x128 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(HAL_CM3.o)
+                0x0000000000001a78                rt_set_PSP
+                0x0000000000001a7e                rt_get_PSP
+                0x0000000000001a84                os_set_env
+                0x0000000000001a9c                _alloc_box
+                0x0000000000001ab8                _free_box
+                0x0000000000001ad4                SVC_Handler
+                0x0000000000001b3e                PendSV_Handler
+                0x0000000000001b42                Sys_Switch
+                0x0000000000001b74                SysTick_Handler
+                0x0000000000001b7c                OS_Tick_Handler
+}}}
+{{{
+ .bss.thread_stack_main
+                0x0000000010000190     0x1000 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(RTX_Conf_CM.o)
+}}}
+{{{
+ COMMON         0x00000000100011b8      0x9c8 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(RTX_Conf_CM.o)
+                0x00000000100011b8                mp_stk
+                0x00000000100013c8                os_active_TCB
+                0x0000000010001404                os_fifo
+                0x0000000010001488                osMessageQId_osTimerMessageQ
+                0x000000001000148c                singleton_mutex_id
+                0x0000000010001490                os_thread_def_stack_osTimerThread
+                0x00000000100017b0                mp_tcb
+                0x0000000010001b7c                osThreadId_osTimerThread
+}}}
+
+===Main Thread Usage in BSS
+The largest allocation in **HelloWorld.map** is currently {{{thread_stack_main}}}:
+{{{
+ .bss.thread_stack_main
+                0x0000000010000190     0x1000 ../../external/mbed-os/Release/mbedos/LPC1768/mbedos.a(RTX_Conf_CM.o)
+}}}
+
+This is the area of memory reserved by the RTOS for the main thread, the one that will run the infinite loop in 
+{{{main()}}}. 4096 bytes is a lot of memory to be allocated for such a simple bit of code.  GCC4MBED currently includes 
+a change to the RTOS which allows the size of this stack reserve to be changed through the setting of the 
+**MBED_RTOS_WORDS_STACK_SIZE** preprocessor macro. I copied {{{/src/mbed_config.h}}} into the {{{samples/HelloWorld}}}
+directory and modified it to look like this:
+{{{
+#ifndef __MBED_CONFIG_DATA__
+#define __MBED_CONFIG_DATA__
+
+// Configuration parameters
+#define MBED_CONF_LWIP_TCP_SERVER_MAX               4    // set by library:lwip
+#define MBED_CONF_LWIP_ADDR_TIMEOUT                 5    // set by library:lwip
+#define MBED_CONF_PLATFORM_DEFAULT_SERIAL_BAUD_RATE 9600 // set by library:platform
+#define MBED_CONF_LWIP_IPV4_ENABLED                 1    // set by library:lwip
+#define MBED_CONF_LWIP_TCP_SOCKET_MAX               4    // set by library:lwip
+#define MBED_CONF_EVENTS_PRESENT                    1    // set by library:events
+#define MBED_CONF_PLATFORM_STDIO_FLUSH_AT_EXIT      1    // set by library:platform
+#define MBED_CONF_LWIP_UDP_SOCKET_MAX               4    // set by library:lwip
+#define MBED_CONF_FILESYSTEM_PRESENT                1    // set by library:filesystem
+#define MBED_CONF_LWIP_IP_VER_PREF                  4    // set by library:lwip
+#define MBED_CONF_PLATFORM_STDIO_CONVERT_NEWLINES   0    // set by library:platform
+#define MBED_CONF_PLATFORM_STDIO_BAUD_RATE          9600 // set by library:platform
+#define MBED_CONF_LWIP_SOCKET_MAX                   4    // set by library:lwip
+#define MBED_CONF_LWIP_IPV6_ENABLED                 0    // set by library:lwip
+// Macros
+#define UNITY_INCLUDE_CONFIG_H                           // defined by library:utest
+
+// Define MBED_RTOS_WORDS_STACK_SIZE to override the size of the main thread's stack.
+// It is in units of words so the actual stack will be MBED_RTOS_WORDS_STACK_SIZE * 4.
+// It defaults to 512 words (4k) for GCC_ARM.
+#define MBED_RTOS_WORDS_STACK_SIZE                  32
+
+// Set MBED_RTOS_SINGLE_THREAD macro if you are using mbed-os with a single threaded application so that it can
+// reduce the task and timer counts accordingly to save RAM.
+//#define MBED_RTOS_SINGLE_THREAD                     1
+
+#endif
+}}}
+
+To make use of this new {{{mbed_config.h}}}, an additional change is required to {{{samples/HelloWorld/Makefile}}}:
+{{{
+@@ -18,6 +18,7 @@ DEVICES         := K64F \
+ GCC4MBED_DIR    := ../..
+ NO_FLOAT_SCANF  := 1
+ NO_FLOAT_PRINTF := 1
++MBED_CONFIG_H   := ./mbed_config.h
+ 
+ include $(GCC4MBED_DIR)/build/gcc4mbed.mk
+}}}
+
+This should set the reserved area for the main stack to 32 * 4 = 128 but it will actually be 256 since there is code in 
+RTX which bumps the desired allocation up by an additional factor of 2.
+
+Build size summary after applying this change:
+{{{
+   text	   data	    bss	    dec	    hex	filename
+   7408	     40	   3112	  10560	   2940	LPC1768/HelloWorld.elf
+}}}
+
+Table comparing sizes:
+|= Description |= text |= data |= bss |
+| Original Build | 12600 | 144 | 7468	|
+| Patched Build | 7408 | 40 | 3112 |
+| Delta | 5192 | 104 | 4356 |
+
+===Disable RTOS Usage
+This simple HelloWorld sample doesn't require the mbed-os 5.x RTOS support at all. GCC4MBED makes it easy to switch to 
+using the single threaded mbed 2.x library instead through the use of the **MBED_OS_ENABLE** macro in 
+{{{samples/HelloWorld/Makefile}}}:
+
+{{{
+@@ -19,6 +19,7 @@ GCC4MBED_DIR    := ../..
+ NO_FLOAT_SCANF  := 1
+ NO_FLOAT_PRINTF := 1
+ MBED_CONFIG_H   := ./mbed_config.h
++MBED_OS_ENABLE  := 0
+ 
+ include $(GCC4MBED_DIR)/build/gcc4mbed.mk
+ 
+}}}
+
+Build size summary after applying this change:
+{{{
+   text	   data	    bss	    dec	    hex	filename
+   1512	     16	     64	   1592	    638	LPC1768/HelloWorld.elf
+}}}
+
+Table comparing sizes:
+|= Description |= text |= data |= bss |
+| Original Build | 12600 | 144 | 7468	|
+| Patched Build | 1512 | 16 | 64 |
+| Delta | 11088 | 128 | 7404 |
+
+This sample will work pretty much the same without the RTOS support except that the CPU will no longer be placed in 
+sleep mode when the main loop is just waiting for 200 milliseconds. This means that the mbed-os 5.x version is probably 
+more energy efficient.
+
+==Conclusion
+That's it for now! Thanks for reading and if you have any more observations and/or optimizations related to the size of 
+this HelloWorld sample then please create an issue or pull request here on GitHub to share your insights with the rest 
+of the community.

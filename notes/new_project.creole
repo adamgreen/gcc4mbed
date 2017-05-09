@@ -1,0 +1,77 @@
+==Starting a New Project
+The main thing you need to know when creating your own new project in GCC4MBED is how to create and configure your
+project's Makefile. A good start to familiarize yourself with the process is to look at the existing sample makefiles
+such as [[https://github.com/adamgreen/gcc4mbed/blob/master/samples/HelloWorld/Makefile | HelloWorld]] or
+[[https://github.com/adamgreen/gcc4mbed/blob/master/samples/USBMouse/Makefile | USBMouse]]. If we look at one of these
+makefiles, we will see something like:
+
+{{{
+PROJECT         := HelloWorld
+DEVICES         := K64F \
+                   LPC1768 \
+                   NRF51_DK
+GCC4MBED_DIR    := ../..
+NO_FLOAT_SCANF  := 1
+NO_FLOAT_PRINTF := 1
+
+include $(GCC4MBED_DIR)/build/gcc4mbed.mk
+}}}
+
+Let's take a look at this sample to discuss what each line is doing:
+* The **PROJECT** variable is set to create the name of the project. The final output binaries (.elf, .bin, .hex) for
+  this project will have a base name of HelloWorld. You should change this to give your project its own cool name.
+* **DEVICES** is set to contain a list of target devices for which you want to build your project. The above example 
+  will produce binaries for K64F, LPC1768, and NRF51_DK targets. In many cases you will have a single device in mind for 
+  your project. For example if you were building your sample to just run on the mbed-LPC1768 then you would set DEVICES 
+  to that single target, {{{DEVICES := LPC1768}}}.
+* The **GCC4MBED_DIR** variable indicates where the root of the GCC4MBED project is in relation to this Makefile. In
+  this case, the Makefile is found in samples/HelloWorld so the root of the GCC4MBED project is two directory levels
+  above. This is represented by the {{{../..}}} relative path. I will have a bit more to say about this variable later.
+* **NO_FLOAT_SCANF** and **NO_FLOAT_PRINTF** are both set to 1, indicating that this HelloWorld sample doesn't require
+  floating point support for either of the Standard C Library's scanf() or printf() family of routines. When 
+  using **newlib-nano** as the Standard C Library, the linker will pull in smaller versions of these routines and thus 
+  produce smaller binaries.
+* The last line includes the main gcc4mbed.mk makefile from the GCC4MBED project. This takes the variables that you
+  have set above and uses them to build your project and its dependencies (mbed-os for example). All the real work for
+  getting your project built happens in gcc4mbed.mk and the makefiles it includes.
+
+There are other variables that you can set in your Makefile to further customize the way that GCC4MBED builds your
+project. You can find them fully documented 
+[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/makefile.creole#make-variables | here]].
+
+==Location, Location, Location
+Where should your put your project's source code? The **GCC4MBED_DIR** makefile variable gives you a lot of flexibility 
+for where your code can be located relative to the location of your GCC4MBED install.
+
+===Within GCC4MBED
+The existing samples are already stored within the GCC4MBED repository and you could place your project right alongside
+those samples. If you did place the source code for your project in GCC4MBED's sample/ folder as a sibling of the
+HelloWorld and other samples then you would use the same **GCC4MBED_DIR** setting as you currently see in the existing 
+samples:
+{{{
+GCC4MBED_DIR    := ../..
+}}}
+
+===GCC4MBED Repository as git Submodule
+I often use git's submodule functionality to add GCC4MBED as a folder directly within my project. My
+[[https://github.com/adamgreen/LedEyes | LedEyes port]] is an example of such GCC4MBED usage. GCC4MBED is located in
+the root of my project and the source code, along with makefile are located in the
+[[https://github.com/adamgreen/LedEyes/tree/master/firmware | firmware]] folder. This means that my source code
+folder and GCC4MBED folder are actually siblings in the root of my project's git repository. If we look at the makefile
+we will see the following **GCC4MBED_DIR** setting:
+{{{
+GCC4MBED_DIR    := ../gcc4mbed
+}}}
+
+**Note:** This is the file structure I typically use when I am making use of GCC4MBED and can be seen in a few of my
+[[https://github.com/adamgreen?tab=repositories | public GitHub repositories]].
+
+===GCC4MBED Repository as Sibling of Project Repository
+Sometimes I will just initialize a new git repository for a project's source in the same folder as I have my GCC4MBED
+repository located. For example if I have all of my git repositories in a folder named /git on my machine then I have a 
+folder named /git/gcc4mbed for GCC4MBED and another folder named something like /git/NewProject for my cool new project. 
+If /git/NewProject/Makefile was the location of the project's makefile then **GCC4MBED_DIR** would be
+set to:
+{{{
+GCC4MBED_DIR    := ../gcc4mbed
+}}}

@@ -1,139 +1,197 @@
 ==Parallel Build
-The GCC4MBED makefiles allow the use of the **-j** or **--jobs** makefile parameter when executing your project's makefile.  This will allow multiple processes to be utilized for building your code and its dependencies.  This will typically decrease the build time.
+The GCC4MBED makefiles allow the use of the **-j** or **--jobs** makefile parameter when executing your project's 
+makefile.  This will allow multiple processes to be utilized for building your code and its dependencies.  This will 
+typically decrease the build time.
 
-Example: {{{make -j 4 all}}}
+Example: {{{make -j4 all}}}
 
 ==Make Rules
 GCC4MBED supports the following rules when building your project makefile:
 * **help**: Lists all rules, including device specific ones, that are supported by this makefile.
 * **all**: The main rule for building your project and all of its official mbed dependencies.
-* **clean**: Will clean out all of the output files for your project.  This will cause a full rebuild when you next issue the **all** rule.
-* **clean-libs**: Will clean out all of the output files for your **USER_LIBS** folders.  This will cause a full rebuild of the user libraries when you next issue the **all** rule.
-* **clean-mbed**: Will clean out all of the output files for the mbed SDK libraries.  This will cause a full rebuild of the mbed SDK libraries when you next issue the **all** rule.
+* **clean**: Will clean out all of the output files for all targets listed in your makefile's DEVICE variable. This will 
+  cause a full rebuild when you next issue the **all** rule.
+* **clean-libs**: Will clean out all of the output files for your **USER_LIBS** folders.  This will cause a full rebuild 
+  of the user libraries when you next issue the **all** rule.
+* **clean-mbed**: Will clean out all of the output files for the mbed SDK libraries.  This will cause a full rebuild of 
+  the mbed SDK libraries when you next issue the **all** rule.
 * **clean-all**: Cleans out all output files.  Same as issuing **clean**, **clean-libs**, and **clean-mbed** rules.
 * **LPC1768-clean**: Will clean out the LPC1768 output files for your project.
-* **LPC11U24-clean**: Will clean out the LPC11U24 output files for your project.
-* **KL25Z-clean**: Will clean out the KL25Z output files for your project.
-* **deploy**: Deploys the LPC1768 output binary to your device.  Uses the **GCC4MBED_DEPLOY** environment variable to specify the commands for executing the copy operation.
+* **DEVICE-clean**: Will clean out the output files for the specified DEVICE (ie. KL25Z-clean, K64F-clean, 
+  NRF51_DK-clean, ...) from your project.
+* **deploy**: Deploys the LPC1768 output binary to your device.  Uses the **GCC4MBED_DEPLOY** environment variable to 
+  specify the commands for executing the copy operation. Refer to 
+  [[https://github.com/adamgreen/gcc4mbed/blob/master/notes/install.creole#deploy | this link]] for more information
+  about the **GCC4MBED_DEPLOY** variable.
 * **LPC1768-deploy**: Same as deploy rule.
-* **LPC11U24-deploy**: Deploys the LPC11U24 output binary to your device.
-* **KL25Z-deploy**: Deploys the KL25Z output binary to your device.
+* **DEVICE-deploy**: Deploys the specified DEVICE's (ie. KL25Z-deploy, K64F-deploy, NRF51_DK-deploy, ...) output binary 
+  to your device.
 
 
 ==Make Variables
-The GCC4MBED project uses various makefile variables to configure and customize the binaries being built.  This page describes these make variables.
+The GCC4MBED project uses various makefile variables to configure and customize the binaries being built.  This page 
+describes these make variables.
 
 ===PROJECT
-The **PROJECT** variable is used in an application's makefile to indicate the name of the project being built.  The output binaries with .elf, .bin, and .hex extensions will be given this as a name.  The application's makefile must specify a value for this variable.
+The **PROJECT** variable is used in an application's makefile to indicate the name of the project being built.  The 
+output binaries with .elf, .bin, and .hex extensions will be given this as a name.  The application's makefile must 
+specify a value for this variable.
 
 ===GCC4MBED_DIR
-The **GCC4MBED_DIR** variable is used in an application's makefile to specify the root directory location of the GCC4MBED project.  This directory will be the directory which contains the GCC4MBED install scripts such as win_install.cmd, linux_install, and mac_install.  The application's makefile must specify a value for this variable.
+The **GCC4MBED_DIR** variable is used in an application's makefile to specify the root directory location of the 
+GCC4MBED project.  This directory will be the directory which contains the GCC4MBED install scripts such as 
+win_install.cmd, linux_install, and mac_install.  The application's makefile must specify a value for this variable.
 
 ===DEVICES
-The **DEVICES** variable is used in an application's makefile to specify a space delimited list of target devices for which the code should be built.  The officially supported devices for this list include:
+The **DEVICES** variable is used in an application's makefile to specify a space delimited list of target devices for 
+which the code should be built.  Issuing a {{{make help}}} in your project's folder will list out all of the target
+devices that GCC4MBED currently knows about. This is a list of the targets mbed-os indicates have GCC_ARM 
+toolchain support and currently (April 2017) this is a list of almost 200 different target devices. It should be noted 
+that full test passes for GCC4MBED releases are restricted to the following targets:
 * LPC1768
-* LPC11U24
-* KL25Z
 * K64F
-* NRF51822
-
-These devices are currently in beta:
-* LPC4330_M4
-
-These devices were added by the community.  I make sure that they build during a release but I don't test on actual hardware:
-* B96B_F446VE (added by [[https://github.com/garyservin | garyservin]])
-* DISCO_F407VG (added by [[https://developer.mbed.org/users/svkatielee/ | Larry Littlefield]])
-* DISCO_F429ZI (added by [[https://github.com/JaredCJR | Chang,Jia-Rung]])
-* LPC11C24 (added by [[https://github.com/merkur2k | merkur2k]])
-* NUCLEO_F072RB (added by [[https://github.com/aftermathew | aftermathew]])
-* NUCLEO_F103RB (added by [[https://github.com/KenjutsuGH | KenjutsuGH]])
-* NUCLEO_F401RE (added by [[https://developer.mbed.org/users/svkatielee/ | Larry Littlefield]])
-* NUCLEO_F411RE (added by [[https://github.com/weyoui | weyoui]])
-* NUCLEO_F446RE (added by [[https://github.com/garyservin | garyservin]])
-* NUCLEO_L053R8 (added by [[https://github.com/ashier | Ashier de Leon]])
+* NRF51_DK
 
 The default target device is LPC1768.
 
 ===SRC
-The **SRC** variable is used in an application's makefile to specify the root directory of the sources for this project.  If not explicitly set by the application's makefile then it defaults to the directory in which the makefile is located.  However it can be set to a different directory name if it happens that the project's source code is found in a different directory than the makefile.
+The **SRC** variable is used in an application's makefile to specify the root directory of the sources for this project.  
+If not explicitly set by the application's makefile then it defaults to the directory in which the makefile is located.  
+However it can be set to a different directory name if it happens that the project's source code is found in a different 
+directory than the makefile.
 
 ===GCC4MBED_TYPE
-The **GCC4MBED_TYPE** variable is used to specify the type of build to produce.  It would typically be set as an environment variable but it can also be set in the application's makefile.  The allowed values are:
-* **Debug** - Build for debugging.  Disables optimizations, enables asserts and other debug code, and doesn't allow the RTOS to put CPU into sleep mode.  Best debugging experience but produces the largest code size.
-* **Release** - Build for release. Optimizes for space, sets NDEBUG macro to disable asserts and other debug code, and allows the RTOS to put the CPU into sleep mode. Produces the smallest code size.
-* **Develop** - The same as Release except that it doesn't set the NDEBUG macro and doesn't allow the RTOS to put the CPU into sleep mode. Produces code just a bit larger than Release because of additional debug/assert code.
+The **GCC4MBED_TYPE** variable is used to specify the type of build to produce.  It would typically be set as an 
+environment variable but it can also be set in the application's makefile.  The allowed values are:
+* **Debug** - Build for debugging.  Disables optimizations, enables asserts and other debug code, and doesn't allow the 
+  RTOS to put CPU into sleep mode.  Best debugging experience but produces the largest code size.
+* **Release** - Build for release. Optimizes for space, sets NDEBUG macro to disable asserts and other debug code, and 
+  allows the RTOS to put the CPU into sleep mode. Produces the smallest code size.
+* **Develop** - The same as Release except that it doesn't set the NDEBUG macro and doesn't allow the RTOS to put the 
+  CPU into sleep mode. Produces code just a bit larger than Release because of additional debug/assert code.
 \\The default value is Release.
 
 ===MBED_OS_ENABLE
-The **MBED_OS_ENABLE** variable is an optional variable that an application's makefile can set to 1 to cause the build to link with the full mbed-os library which includes RTOS support (mbed-os 5). Setting to 0 will link with the core mbed SDK library with no RTOS support (mbed 2). It defaults to 1 to support the full featured mbed-os 5.
+**MBED_OS_ENABLE** is an optional variable that an application's makefile can set to 1 to cause the build to link with 
+the full mbed-os library which includes RTOS support (mbed-os 5). Setting to 0 will link with the core mbed SDK library 
+with no RTOS support (mbed 2).
+
+It defaults to 1 to support the full featured mbed-os 5.
 
 ===NEWLIB_NANO
-**NEWLIB_NANO** is an optional variable that an applications' makefile can set to 0, indicating that the standard newlib C library should be used instead of the smaller newlib-nano library.  The user might want to do this if they need something like printf for 64-bit integers that isn't supported by newlib-nano. It defaults to 1 so that the smaller newlib-nano library is used.
+**NEWLIB_NANO** is an optional variable that an applications' makefile can set to 0, indicating that the standard newlib 
+C library should be used instead of the smaller newlib-nano library.  The user might want to do this if they need 
+something like printf() for for 64-bit integers which isn't supported by newlib-nano. 
+
+It defaults to 1 so that the smaller newlib-nano library is used.
 
 ===NO_FLOAT_SCANF
-The **NO_FLOAT_SCANF** variable is an optional variable that an application's makefile can set to 1, indicating that scanf() does not need to support floating point values which reduces code size.
+**NO_FLOAT_SCANF** is an optional variable that an application's makefile can set to 1 to indicate that scanf() does not 
+need to support floating point values. This reduces code size.
+
+It defaults to 0 so that floating point is supported in scanf().
 
 ===NO_FLOAT_PRINTF
-The **NO_FLOAT_PRINTF** variable is an optional variable that an application's makefile can set to 1, indicating that printf() does not need to support floating point values which reduces code size.
+**NO_FLOAT_PRINTF** is an optional variable that an application's makefile can set to 1 to indicate that printf() does 
+not need to support floating point values. This reduces code size.
+
+It defaults to 0 so that floating point is supported in printf().
 
 ===DEFINES
-The **DEFINES** variable is an optional variable that can be used by an application's makefile to explicitly define some preprocessor macros that should be set when compiling the files for the main application.  It doesn't get used for building the mbed SDK libraries.
+**DEFINES** is an optional variable that can be used by an application's makefile to explicitly define some preprocessor 
+macros that should be set when compiling the files for the main application.  It doesn't get used for building the mbed 
+SDK libraries.
 
 ===USER_LIBS
-The **USER_LIBS** variable is an optional variable that an application's makefile can use to provide a space delimited list of folders containing user libraries to be compiled and linked into the application.
+**USER_LIBS** is an optional variable that an application's makefile can use to provide a space delimited list of 
+folders containing user libraries to be compiled and linked into the application.
 
 ===MBED_CONFIG_H
-The **MBED_CONFIG_H** variable is an optional variable which allows the user to specify the pathname of a header file containing custom mbed configuration parameters. It defaults to using **src/mbed_config.h**
+The **MBED_CONFIG_H** variable is an optional variable which allows the user to specify the pathname of a header file 
+containing custom mbed configuration parameters. 
+
+It defaults to using **src/mbed_config.h**
 
 ===INCDIRS
-The **INCDIRS** variable is an optional variable which can be used by an application's makefile to prepend a list of directories to the INCLUDE path used by the compiler for finding #included header files.  This list should be space delimited.
+**INCDIRS** is an optional variable which can be used by an application's makefile to prepend a list of  directories to 
+the INCLUDE path used by the compiler for finding #included header files.  This list should be space delimited.
 
 ===Device_LSCRIPT
-The **Device_LSCRIPT** variable is an optional variable which can be used to provide an override for the linker script to be used for a particular device.  For example, setting {{{LPC1768_LSCRIPT := lpc1768custom.ld}}} will cause the linker to use {{{lpc1768custom.ld}}} instead of the one provided by the mbed SDK when building for the LPC1768 target.
+**Device_LSCRIPT** is an optional variable which can be used to provide an override for the linker script to be used for 
+a particular device.  For example, setting {{{LPC1768_LSCRIPT := lpc1768custom.ld}}} will cause the linker to use 
+{{{lpc1768custom.ld}}} instead of the one provided by the mbed SDK when building for the LPC1768 target.
 
 ===LIBS_PREFIX
-**LIBS_PREFIX** is an optional variable that an application's makefile can use to specify a list of libraries that should be linked into its final binary **before** it links in the mbed SDK libraries.
+**LIBS_PREFIX** is an optional variable that an application's makefile can use to specify a list of libraries that 
+should be linked into its final binary **before** it links in the mbed SDK libraries.
 
 ===LIBS_SUFFIX
-**LIBS_SUFFIX** is an optional variable that an application's makefile can use to specify a list of libraries that should be linked into its final binary **after** it links in the mbed SDK libraries.
+**LIBS_SUFFIX** is an optional variable that an application's makefile can use to specify a list of libraries that 
+should be linked into its final binary **after** it links in the mbed SDK libraries.
 
 ===GPFLAGS
-**GPFLAGS** is an optional variable that an application's makefile can use to specify additional flags for compiling C++ source files.
+**GPFLAGS** is an optional variable that an application's makefile can use to specify additional flags for compiling C++ 
+source files.
 
 ===GCFLAGS
-**GCFLAGS** is an optional variable that an application's makefile can use to specify additional flags for compiling C source files.
+**GCFLAGS** is an optional variable that an application's makefile can use to specify additional flags for compiling C 
+source files.
 
 ===GAFLAGS
-**GAFLAGS** is an optional variable that an application's makefile can use to specify additional flags for assembling .s assembly language source files.
+**GAFLAGS** is an optional variable that an application's makefile can use to specify additional flags for assembling .s 
+assembly language source files.
 
 ===OPTIMIZATION
-**OPTIMIZATION** is an optional variable that an application's makefile can set to s, g, 0, 1, 2, or 3 for overriding the compiler's optimization level.  It defaults to s (size optimization) for Develop and Release builds and is set to 0 (optimizations disabled) for Debug builds. This optimization is only used for the application's code itself and the mbed libraries are always built with the default for the specified GCC4MBED_TYPE.
+**OPTIMIZATION** is an optional variable that an application's makefile can set to s, g, 0, 1, 2, or 3 for overriding 
+the compiler's optimization level.  It defaults to s (size optimization) for Develop and Release builds and is set to 0 
+(optimizations disabled) for Debug builds. This optimization is only used for the application's code itself and the mbed 
+libraries are always built with the default for the specified GCC4MBED_TYPE.
 
 ===GCC4MBED_TOOLPATH
-The **GCC4MBED_TOOLPATH** is an optional path to where the GNU tools are located. It defaults to $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
+**GCC4MBED_TOOLPATH** is an optional path to where the GNU tools are located. 
+
+It defaults to $(GCC4MBED_DIR)/gcc-arm-none-eabi/bin
 
 ===EXCLUDE
-The **EXCLUDE** variable is an optional variable than an application's makefile can use to specify a pattern for excluding files from the **SRC** folder tree. This variable is a space-separated list of patterns to exclude from the build.
+**EXCLUDE** is an optional variable than an application's makefile can use to specify a pattern for excluding files 
+from the **SRC** folder tree. This variable is a space-separated list of patterns to exclude from the build.
 
 ===VERBOSE
-**VERBOSE** is an optional variable that an application's makefile can set to 1, indicating that all build tool commands should be displayed to the user.  For example this will cause the full GCC command line for each source file to be shown.
+**VERBOSE** is an optional variable that an application's makefile can set to 1, indicating that all build tool commands 
+should be displayed to the user.  For example this will cause the full GCC command line for each source file to be 
+shown.
 
 ===MRI Debugging Related Variables
-MRI is a library that can be linked into your application to provide debug monitoring capabilities.  This allows GDB, the GNU Debugger, to connect to your device via a serial port.  It allows for the use of breakpoints, data watchpoints, single-stepping, inspection/modification of variables, etc.
+MRI is a library that can be linked into your application to provide debug monitoring capabilities.  This allows GDB, 
+the GNU Debugger, to connect to your device via a serial port.  It allows for the use of breakpoints, data watchpoints, 
+single-stepping, inspection/modification of variables, etc.
 
-**Note:** Currently the MRI debug monitor is only supported on LPC1768 and LPC4330_M4 targets and will automatically be disabled for other device targets.
+**Note:** Currently the MRI debug monitor is only supported on LPC1768, LPC4330_M4, and NUCLEO_F429ZI targets. It will 
+automatically be disabled for other device targets.
 
 ====MRI_ENABLE
-The **MRI_ENABLE** variable is set to 1 to enable the MRI debug monitor to be linked into the executable for devices that MRI supports. Defaults to 0.
+The **MRI_ENABLE** variable is set to 1 to enable the MRI debug monitor to be linked into the executable for devices 
+that MRI supports. 
+
+Defaults to 0.
 
 ====MRI_BREAK_ON_INIT
-The **MRI_BREAK_ON_INIT** variable can be set in an application's makefile to a non-zero value to indicate that the MRI debugger should halt and wait for GDB to attach before executing the global constructors and the main() function.  This allows the developer to set breakpoints in areas of interest before the main code starts executing.  The default value for this variable is 1 and is ignored when MRI_ENABLE = 0.
+The **MRI_BREAK_ON_INIT** variable can be set in an application's makefile to a non-zero value to indicate that the MRI 
+debugger should halt and wait for GDB to attach before executing the global constructors and the main() function.  This 
+allows the developer to set breakpoints in areas of interest before the main code starts executing.  
+
+The default value for this variable is 1 and is ignored when MRI_ENABLE = 0.
 
 ====MRI_SEMIHOST_STDIO
-The **MRI_SEMIHOST_STDIO** variable can be set in an application's makefile to a non-zero value to allow the debug monitor to use semi-host calls to redirect stdin/stdout/stderr to GDB's console.  The default value for this variable is 1 when MRI_ENABLE is set to 1.
+The **MRI_SEMIHOST_STDIO** variable can be set in an application's makefile to a non-zero value to allow the debug 
+monitor to use semi-host calls to redirect stdin/stdout/stderr to GDB's console.  
+
+The default value for this variable is 1 when MRI_ENABLE is set to 1.
 
 ====MRI_UART
-The **MRI_UART** is an optional variable that can be set in an application's makefile to configure the device's UART being used for communicating between GDB and MRI.  You can select any of the 4 available UARTs on the mbed device:
+The **MRI_UART** is an optional variable that can be set in an application's makefile to configure the device's UART 
+being used for communicating between GDB and MRI.  The allowed values will depend on the target but the following
+are examples supported by the LPC1768 target:
 | MRI_UART_MBED_USB |
 | MRI_UART_MBED_P9_P10 |
 | MRI_UART_MBED_P13_P14 |
@@ -141,7 +199,9 @@ The **MRI_UART** is an optional variable that can be set in an application's mak
 
 It defaults to MRI_UART_MBED_USB if not explicitly set in the application's makefile.
 
-By default the auto-baud functionality is used to allow the device to automatically detect the baud rate used by GDB when it first connects.  However it is possible to configure a fixed baud rate by appending a MRI_UART_BAUD=baudRate specifier to the MRI_UART variable string.  An example:
+By default the auto-baud functionality is used to allow the device to automatically detect the baud rate used by GDB 
+when it first connects.  However it is possible to configure a fixed baud rate by appending a MRI_UART_BAUD=baudRate 
+specifier to the MRI_UART variable string.  An example:
 {{{
 MRI_UART := "MRI_UART_MBED_USB MRI_UART_BAUD=115200"
 }}}

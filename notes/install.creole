@@ -1,15 +1,23 @@
 ==Installation
 ===GNU Tools for ARM Embedded Processors
-You need to first install the GNU toolchain from [[https://launchpad.net/gcc-arm-embedded|launchpad.net site]].  You should select the version that matches the gcc4mbed project you are trying to use.  //NOTE: Using the install scripts in the root of the gcc4mbed project take care of these downloads for you and this is the supported method of acquiring the necessary GCC toolchain.//
+You need to first install the GNU toolchain from the
+[[https://developer.arm.com/open-source/gnu-toolchain/gnu-rm | developer.arm.com site]]. You should select the version
+that matches the gcc4mbed project you are trying to use. The installation directory containing the arm-none-eabi-* tools
+should be added to your operating system's PATH. //NOTE: Using the install scripts in the root of the gcc4mbed project 
+take care of these downloads for you and this is the supported method of acquiring the necessary GCC toolchain.//
 
 
 ===Where is GCC4MBED?
-The gcc4mbed code is available on github at [[https://github.com/adamgreen/gcc4mbed]].  You can click the Downloads button (found near the top on the right hand side) on this page to popup a dialog allowing you to download a compressed archive of the gcc4mbed source code to your computer.
+The gcc4mbed code is available on github at [[https://github.com/adamgreen/gcc4mbed]].  You can click the **Clone or 
+download** button (found at the top of the source file list on the right hand side) on this page to popup a dialog 
+allowing you to download a compressed archive of the gcc4mbed source code to your computer.
 
-Decompress this archive on your computer.  For the rest of the steps in this tutorial, we will assume that it was placed in /gcc4mbed on a *nix based system or c:\gcc4mbed on a Windows system.
+Decompress this archive on your computer.  For the rest of the steps in this tutorial, we will assume that it was placed 
+in /gcc4mbed on a *nix based system or c:\gcc4mbed on a Windows system.
 
 ==Build and deploy
 You are now ready to try building and deploying GCC built mbed samples.
+
 ===Build
 {{{
 *nix:
@@ -21,16 +29,25 @@ Windows:
 }}}
 This will have built various programs in the samples directory off of the root of the gcc4mbed project.
 {{{
+./gcc4mbed/samples/BLEHeartRate/
 ./gcc4mbed/samples/Blink/
-./gcc4mbed/samples/CTest/
 ./gcc4mbed/samples/FileTest/
 ./gcc4mbed/samples/HelloWorld/
-./gcc4mbed/samples/LocalFileSystem/
+./gcc4mbed/samples/SdPerf/
 ./gcc4mbed/samples/StdIO/
+./gcc4mbed/samples/TCPSocket_HelloWorld/
 ./gcc4mbed/samples/Ticker/
+./gcc4mbed/samples/USBMouse/
 }}}
+
 ===Deploy
-While we could manually copy the binary up to the mbed device, it would be nice if it could be done for us at the end of the build process.  The only issue is that different environments will require different deployment steps.  To abstract away this environment dependency, the makefiles use an environment variable called GCC4MBED_DEPLOY for specifying how the deployment should take place.  The user should set this GCC4MBED_DEPLOY environment variable to something appropriate for their environment.  On *nix it could be exported from something like the {{{~/.profile}}} shell script and on Windows it could be set in a batch file used for development environment configuration or added to the System Properties.
+While we could manually copy the binary up to the mbed device, it would be nice if it could be done for us at the end of 
+the build process. The only issue is that different environments will require different deployment steps.  To abstract 
+away this environment dependency, the makefiles use an environment variable called GCC4MBED_DEPLOY for specifying how 
+the deployment should take place.  The user should set this GCC4MBED_DEPLOY environment variable to something 
+appropriate for their environment.  On *nix it could be exported from something like the {{{~/.profile}}} shell script 
+and on Windows it could be set in a batch file used for development environment configuration or added to the 
+System Properties.
 
 ====GCC4MBED_DEPLOY Examples
 The author uses this in the {{{~/.profile}}} script on his Mac where the MBED device mounts as /Volumes/MBED:
@@ -45,12 +62,14 @@ The following example might be useful if you were deploying to a LPCXpresso usin
 {{{
 export GCC4MBED_DEPLOY='lpc21isp PROJECT.hex /dev/ttyUSB0 115200 14746'
 }}}
-It should be noted that the PROJECT identifier in the above examples has a special meaning.  This identifier will be replaced by the makefile to match the name of the program currently being built.
+It should be noted that the PROJECT identifier in the above examples has a special meaning.  This identifier will be 
+replaced by the makefile to match the name of the program currently being built.
 
 At this point, you want to set the GCC4MBED_DEPLOY variable to something appropriate for your environment.
 
 ====Deploy HelloWorld
-After all of the that work, wouldn't it be great to see something actually run on the mbed device?  Let's start with the HelloWorld sample which is probably the same program you first tried with the cloud compiler.
+After all of the that work, wouldn't it be great to see something actually run on the mbed device?  Let's start with 
+the HelloWorld sample which is probably the same program you first tried with the cloud compiler.
 {{{
 *nix:
     cd /gcc4mbed/samples/HelloWorld
@@ -59,10 +78,15 @@ Windows:
     cd c:\gcc4mbed\samples\HelloWorld
     external\win32\make clean all deploy
 }}}
-Those build rules (clean all deploy) will force all of the output files to be deleted, then rebuilt from a clean start, and then copied up to your mbed device.  Pressing the reset button on the mbed device should result in the blinking LED.
+Those build rules (clean all deploy) will force all of the output files to be deleted, then rebuilt from a clean start, 
+and finally copied up to your mbed-LPC1768 device.  Pressing the reset button on the mbed device should result in the 
+blinking LED.
 
 If you just want to deploy a binary that has already been built, you can just run "make deploy"
 
+**Note:** If you are using a device other than a mbed-LPC1768 then you need to use a deploy rule specific to that
+target. For example if you were using a K64F board, then you would want to run "make K64F-deploy" to have the K64F
+binaries built and deployed to the device.
 
 ==Uninstall
 All of the files required by gcc4mbed, including the GNU Tools for ARM Embedded Processors, are installed under the
