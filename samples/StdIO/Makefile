@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 PROJECT         := StdIO
-DEVICES         := K64F \
+DEVICES         := KL25Z \
+                   K64F \
                    LPC1768 \
                    NRF51_DK
 GCC4MBED_DIR    := ../..
