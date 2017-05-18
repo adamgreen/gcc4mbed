@@ -3,8 +3,8 @@
 **mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev142 | Revision 142]]\\
 
 ==Previous Versions
-[[https://github.com/adamgreen/gcc4mbed/tree/gcc5.0-2015-q4_mbed119|GCC ARM Embedded 5.0-2015-q4-update with mbed SDK revision 119]]\\
-[[https://github.com/adamgreen/gcc4mbed/tree/gcc5.0-2015-q4_mbed113|GCC ARM Embedded 5.0-2015-q4-update with mbed SDK revision 113]]\\
+[[https://github.com/adamgreen/gcc4mbed/tree/gcc5.0-2015-q4_mbed119|GCC ARM Embedded 5.0-2015-q4-major with mbed SDK revision 119]]\\
+[[https://github.com/adamgreen/gcc4mbed/tree/gcc5.0-2015-q4_mbed113|GCC ARM Embedded 5.0-2015-q4-major with mbed SDK revision 113]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.9-2015-q3_mbed108|GCC ARM Embedded 4.9-2015-q3-update with mbed SDK revision 108]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.9-2015-q1_mbed100|GCC ARM Embedded 4.9-2015-q1-update with mbed SDK revision 100]]\\
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc4.9-2014-q4_mbed94|GCC ARM Embedded 4.9-2014-q4-major with mbed SDK revision 94]]\\
@@ -21,7 +21,7 @@ These are the quick steps to get gcc4mbed installed on your computer:
   Embedded Processors to be installed.
 * Run the install script appropriate for your platform:
 ** Windows: win_install.cmd
-** OS X: mac_install
+** macOS: mac_install
 ** Linux: linux_install
 * You can then run the BuildShell script which will be created during the install to properly configure the PATH
   environment variable to run the GNU tools just installed within the gcc4mbed directory.  You may want to edit this
@@ -43,16 +43,16 @@ These are the quick steps to get gcc4mbed installed on your computer:
 When releasing GCC4MBED I test installing, building, and deploying from these operating systems:
 * macOS Sierra 10.12
 * Windows 10
-* Linux 16.04
+* Ubuntu 16.04
 
 I build, deploy, and run the samples on these target devices:
-* LPC1768
-* KL25Z
 * K64F
+* KL25Z
+* LPC1768
 * NRF51_DK
 
-Please feel free to open GitHub issues to let me and the community know if you hit any issues for a target that should
-be supported with the GCC_ARM toolchain so that we can investigate.
+Please feel free to open [[https://github.com/adamgreen/gcc4mbed/issues | GitHub issues]] to let me and the community 
+know if you hit any issues for a target that should be supported with the GCC_ARM toolchain so that we can investigate.
 
 ==More Information
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/install.creole#installation|Installation]]:**  For more information about how to install, uninstall, and use the GCC4MBED project.\\

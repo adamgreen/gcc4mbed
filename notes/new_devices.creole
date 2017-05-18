@@ -23,10 +23,10 @@ these 2 makefiles for each GCC4MBED release to make sure that the library code b
 target devices.
 
 I only build and run tests on the following target devices before releasing GCC4MBED:
-* LPC1768
-* KL25Z
 * K64F
+* KL25Z
+* LPC1768
 * NRF51_DK
 
-Please feel free to open GitHub issues to let me and the community know if you hit any issues for a target that should
-be supported with the GCC_ARM toolchain so that we can investigate.
+Please feel free to open [[https://github.com/adamgreen/gcc4mbed/issues | GitHub issues]] to let me and the community 
+know if you hit any issues for a target that should be supported with the GCC_ARM toolchain so that we can investigate.
