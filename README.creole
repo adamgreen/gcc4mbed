@@ -1,6 +1,6 @@
 ==Current Version
 **GCC Version:**  [[https://launchpad.net/gcc-arm-embedded/6.0/6-2017-q1-update | GCC ARM Embedded 6-2017-q1-update]]\\
-**mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev141 | Revision 141]]\\
+**mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev142 | Revision 142]]\\
 
 ==Previous Versions
 [[https://github.com/adamgreen/gcc4mbed/tree/gcc5.0-2015-q4_mbed119|GCC ARM Embedded 5.0-2015-q4-update with mbed SDK revision 119]]\\
