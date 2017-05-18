@@ -24,6 +24,7 @@ target devices.
 
 I only build and run tests on the following target devices before releasing GCC4MBED:
 * LPC1768
+* KL25Z
 * K64F
 * NRF51_DK
 

@@ -47,6 +47,7 @@ When releasing GCC4MBED I test installing, building, and deploying from these op
 
 I build, deploy, and run the samples on these target devices:
 * LPC1768
+* KL25Z
 * K64F
 * NRF51_DK
 
