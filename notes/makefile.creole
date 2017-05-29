@@ -162,9 +162,9 @@ should be displayed to the user.  For example this will cause the full GCC comma
 shown.
 
 ===MRI Debugging Related Variables
-MRI is a library that can be linked into your application to provide debug monitoring capabilities.  This allows GDB, 
-the GNU Debugger, to connect to your device via a serial port.  It allows for the use of breakpoints, data watchpoints, 
-single-stepping, inspection/modification of variables, etc.
+[[https://github.com/adamgreen/mri#readme | MRI]] is a library that can be linked into your application to provide debug 
+monitoring capabilities. This allows GDB, the GNU Debugger, to connect to your device via a serial port. It enables the
+use of breakpoints, data watchpoints, single-stepping, inspection/modification of variables, etc.
 
 **Note:** Currently the MRI debug monitor is only supported on LPC1768, LPC4330_M4, and NUCLEO_F429ZI targets. It will 
 automatically be disabled for other device targets.
