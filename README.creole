@@ -31,7 +31,7 @@ These are the quick steps to get gcc4mbed installed on your computer:
 * Builds can fail on **Windows** with weird errors when using a version of make other than the version of GNU make found
   in external/win32. You may need to make sure that Cygwin/MingW versions of the shell or make don't interfere as the
   gcc4mbed scripts/makefiles are built to work on stock Windows and not require such Posix compatibility environments.
-* **OS X** Mountain Lion and newer will fail to execute mac_install by simply clicking on it.  Instead right click on
+* **macOS** Mountain Lion and newer will fail to execute mac_install by simply clicking on it.  Instead right click on
   mac_install in the Finder, select the Open option, and then click the Open button in the resulting security warning
   dialog.
 * Files will fail to install to a FAT based file system.  Extract to a more appropriate file system (ie. NTFS on
