@@ -1,0 +1,235 @@
+=Newlib Thread Safety for mbed-os
+These are my rough notes on what I think needs to be done to make the [[https://sourceware.org/newlib/ | newlib]] Standard C library work better with the multithreaded [[https://github.com/ARMmbed/mbed-os | mbed-os]]. As I make progress on this thread safety project, I will try to keep this page updated with the lessons learned along the way.
+
+
+=GNU ARM Embedded Toolchain
+I have chosen to target the version of newlib which ships with the **GNU ARM Embedded Toolchain 6-2017-q1-update**. This page will occasionally make references to source code or documentation for this version of newlib. If the reader wants to follow along in the same source code and/or documentation then they should download the same version of the GNU ARM Embedded Toolchain binaries and source code from [[https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads]].
+
+I have chosen to target the version of newlib in this 6.0 revision of the GNU ARM Embedded Toolchain because it contains a few updates which make it the most thread safe capable version of the GNU ARM newlib to date:
+* The full (and larger) newlib library now ships with all of the thread safety hooks enabled. Previous to this version, some parts of the library contained hooks for enabling thread safety while others didn't since it wasn't built with the {{{--enable-newlib-retargetable-locking}}} option enabled.
+* The smaller newlib-nano library still doesn't have full locking support enabled but it does at least have the calls to {{{__malloc_lock()}}} and {{{__malloc_unlock()}}} no longer commented out.
+
+==Newlib Now! Newlib-Nano Later!
+My current plan is to start by concentrating my efforts on the full version of newlib and then I will come back to newlib-nano. I have a few different ideas on how to make headway with the newlib-nano version but I will have to run a few experiments first to see which path I want to take. Most of the work that I would do for the full version of newlib would still apply to newlib-nano, no matter which path I end up taking.
+
+
+=Syscall Reentrancy Support
+==Single and Multithreaded Syscalls
+When retargeting newlib to different environments there are low level system calls, syscalls, such as {{{_open()}}}, {{{_close()}}}, {{{_read()}}}, {{{_write()}}}, etc. which need to be implemented to provide the necessary functionality under that particular environment. When building binaries with gcc4mbed, these syscalls are provided by mbed-os via [[https://github.com/ARMmbed/mbed-os/blob/master/platform/mbed_retarget.cpp | mbed-os/platform/mbed_retarget.cpp]] and from the GNU ARM Embedded Toolchain's **libnosys.a**. The syscalls provided by these libraries are however the single threaded versions.  For example when they set {{{errno}}}, they are setting the global instance and not a per thread instance.  It turns out that newlib calls these single threaded versions of the routines through thread safe routines which end with a **_r** suffix.  For example {{{_open_r()}}} calls {{{_open()}}}.  These reentrant versions of the syscall routines take a pointer to a per-thread reentrant structure which contains amongst other things, a per thread {{{_errno}}} field. The default implementation of these **_r** syscalls in newlib act as a thunk to call the simpler single threaded versions of the routines which only know how to set the global {{{errno}}} variable and then copy that global state into the per-thread {{{_errno}}} field.  
+
+{{{
+int
+_DEFUN (_open_r, (ptr, file, flags, mode),
+     struct _reent *ptr _AND
+     _CONST char *file _AND
+     int flags _AND
+     int mode)
+{
+  int ret;
+
+  errno = 0;
+  if ((ret = _open (file, flags, mode)) == -1 && errno != 0)
+    ptr->_errno = errno;
+  return ret;
+}
+}}}
+
+This doesn't work in a multithreaded environment since multiple of these syscalls could be made at the same time from multiple threads and the setting of the global state by one thread could be overwritten by another before it gets copied into the correct per-thread structure.  It would therefore be better to implement the **_r** versions of the syscall routines to have them set the appropriate field in the per-thread reentrant structure instead. To determine which reentrant syscalls should be implemented by **mbed_retarget.cpp**, I pulled together lists of syscalls from a few different locations:
+
+===The Red Hat newlib C Library Documentation
+When you install the GNU ARM Embedded Toolchain 6-2017-q1-update on your development machine, a copy of **The Red Hat newlib C Library - libc 2.5.0 - December 2016** documentation will be installed as **/share/doc/gcc-arm-none-eabi/pdf/libc.pdf**.
+
+====Reentrant Syscalls
+On **page 319** of this newlib documentation is the beginning of section "12.2 Reentrant covers for OS subroutines" which lists the following reentrant syscalls to be implemented:
+
+|= Syscall |= Notes |
+| _close_r | |
+| _execve_r | Transfers execution to a new process. mbed-os version should just fail with errno = ENOSYS. |
+| _fork_r | Creates a new process. mbed-os version should just fail with errno = ENOSYS. |
+| _wait_r | Wait for child process. mbed-os version should just fail with errno = ENOSYS. |
+| _fstat_r | |
+| _link_r | mbed-os doesn't need to implement this since it implements the higher level rename() function which is the only thing in newlib which calls _link_r(). |
+| _lseek_r | |
+| _open_r | |
+| _read_r | |
+| _sbrk_r | |
+| _kill_r | Send a signal to a process. mbed-os version should just fail with errno = ENOSYS. |
+| _getpid_r | Get currently running process's ID. mbed-os version should just fail with errno = ENOSYS. |
+| _stat_r | |
+| _times_r | Get timing information for current process. mbed-os version should just fail with errno = ENOSYS. |
+| _unlink_r | mbed-os doesn't need to implement this since it implements the higher level rename() and remove() functions which are the only things in newlib which call _unlink_r().|
+| _write_r | |
+
+====Non-Reentrant Syscalls
+On **page 315** of the newlib documentation is the beginning of section "12.1 Definitions for OS interface" which lists the non-reentrant versions of the syscalls. The following table lists the functions listed in this section for which the previous table doesn't list a corresponding reentrant version:
+
+|= Syscall |= Notes |
+| _exit | There is no corresponding _exit_r() function referenced in newlib. No need to implement in mbed-os. |
+| environ | This is a list of pointers. Just use the default implementation in libnosys.a by not implementing in mbed-os. |
+| isatty | newlib does reference _isatty_r() so it was missing from the previous table and should be implemented by mbed-os. |
+
+===newlib Source Code
+The reentrant syscalls supported by newlib can be found in the **src/newlib/newlib/libc/include/reent.h** header file. Here is a snippet from the GNU ARM Embedded Toolchain 6-2017-q1-update revision:
+
+{{{
+#define _close_r(__reent, __fd)                   close(__fd)
+#define _execve_r(__reent, __f, __arg, __env)     execve(__f, __arg, __env)
+#define _fcntl_r(__reent, __fd, __cmd, __arg)     fcntl(__fd, __cmd, __arg)
+#define _fork_r(__reent)                          fork()
+#define _fstat_r(__reent, __fdes, __stat)         fstat(__fdes, __stat)
+#define _getpid_r(__reent)                        getpid()
+#define _isatty_r(__reent, __desc)                isatty(__desc)
+#define _kill_r(__reent, __pid, __signal)         kill(__pid, __signal)
+#define _link_r(__reent, __oldpath, __newpath)    link(__oldpath, __newpath)
+#define _lseek_r(__reent, __fdes, __off, __w)     lseek(__fdes, __off, __w)
+#define _mkdir_r(__reent, __path, __m)		  mkdir(__path, __m)
+#define _open_r(__reent, __path, __flag, __m)     open(__path, __flag, __m)
+#define _read_r(__reent, __fd, __buff, __cnt)     read(__fd, __buff, __cnt)
+#define _rename_r(__reent, __old, __new)	  rename(__old, __new)
+#define _sbrk_r(__reent, __incr)                  sbrk(__incr)
+#define _stat_r(__reent, __path, __buff)          stat(__path, __buff)
+#define _times_r(__reent, __time)                 times(__time)
+#define _unlink_r(__reent, __path)                unlink(__path)
+#define _wait_r(__reent, __status)                wait(__status)
+#define _write_r(__reent, __fd, __buff, __cnt)    write(__fd, __buff, __cnt)
+#define _gettimeofday_r(__reent, __tp, __tzp)     gettimeofday(__tp, __tzp)
+}}}
+
+The following table lists the functions found in this header which weren't covered by the documentation:
+|= Syscall |= Notes |
+| _fcntl_r | Leave this one out of mbed-os since HAVE_FCNTL wasn't set when newlib was built which means that no code in newlib attempts to use it. |
+| _mkdir_r | mbed-os doesn't need to implement this since it implements the higher level mkdir() function already. |
+| _rename_r | mbed-os doesn't need to implement this since it implements the higher level rename() function already. |
+| _gettimeofday_r | mbed-os doesn't need to implement this since it implements the higher level time() function already. |
+
+== mbed_retarget.cpp
+=== Currently Implemented Non-Reentrant Syscalls
+There are syscalls which are already implemented in [[https://github.com/ARMmbed/mbed-os/blob/master/platform/mbed_retarget.cpp | mbed-os/platform/mbed_retarget.cpp]] but they need to be made reentrant:
+
+|= Sycall |
+| _open |
+| _close |
+| _write |
+| _read |
+| _isatty | 
+| _lseek |
+| _fstat |
+| _sbrk |
+
+The reentrant versions of these functions will be renamed to include the **_r** suffix and insert a {{{struct _reent *}}} pointer as the first parameter. This parameter points to the per-thread structure which contains the thread safe {{{_errno}}} field to be used instead of the global {{{errno}}}. The GCC implementations of the above syscalls will need to be modified to use this {{{_errno}}} field.
+
+=== Currently Implemented C APIs
+The mbed-os retargeting layer also implements some other high level Standard C Library functions so that they will bypass any related implementations in newlib. These functions are listed in the following table:
+
+|= Function |
+| remove |
+| rename |
+| tmpname |
+| tmpfile |
+| opendir |
+| readdir |
+| closedir |
+| rewinddir |
+| telldir |
+| seekdir |
+| mkdir |
+| stat |
+| _exit |
+
+=== Missing Syscalls
+There are a few reentrant syscall handlers expected by newlib which are currently missing and will need to be added to **mbed_retarget.cpp**. It was previously ok that the single threaded version of **mbed_retarget.cpp** was missing these syscalls since there were default implementations of the single threaded versions in **libnosys.a**. Now we just need to implement the **_r** versions to fail the calls similarly to the **libnosys.a** implementations. The following table lists the reentrant syscall implementations to be added:
+
+|= Syscall |
+| _execve_r |
+| _fork_r |
+| _getpid_r |
+| _kill_r |
+| _times_r |
+| _wait_r |
+
+=== Changes Required
+Based on the above notes, the following table summarizes the changes that need to be made to the syscall implementations in **mbed_retarget.cpp**:
+|= Syscall        |= Notes |
+| _close_r        | Convert existing _close() to reentrant version. |
+| _execve_r       | Transfers execution to a new process. Add version which fails with errno = ENOSYS. |
+| _fork_r         | Creates a new process. Add version which fails with errno = ENOSYS. |
+| _fstat_r        | Convert existing _fstat() to reentrant version. |
+| _getpid_r       | Get currently running process's ID. Add version which fails with errno = ENOSYS. |
+| _isatty_r       | Convert existing _isatty() to reentrant version. |
+| _kill_r         | Send a signal to a process. Add version which fails with errno = ENOSYS. |
+| _lseek_r        | Convert existing _lseek() to reentrant version. |
+| _open_r         | Convert existing _open() to reentrant version. |
+| _read_r         | Convert existing _read() to reentrant version. |
+| _sbrk_r         | Convert existing _sbrk() to reentrant version. |
+| _stat_r         | Convert existing stat() to reentrant version. |
+| _times_r        | Get timing information for current process. Add version which fails with errno = ENOSYS. |
+| _wait_r         | Wait for child process. Add version which fails with errno = ENOSYS. |
+| _write_r        | Convert existing _write() to reentrant version. |
+
+A few things to keep in mind as updating the syscall implementations in mbed_retarget.cpp:
+* Remove any use of {{{#undef errno}}} as it was previously done to make sure that syscall implementations updated the global {{{errno}}} variable and not the reentrant ones as expected by the **_r()** wrappers in newlib. We will now explicitly set the {{{_errno}}} field directly.
+* Most of the **libnosys.a** syscall implementations just set {{{errno}}} to 0x58 (ENOSYS) and return -1. There are some syscalls to be added to **mbed_retarget.cpp** which should do the same (ie. syscalls related to processes).
+* It would also be good to remove code like the following snippet since it is best if Standard C Library routines only set {{{errno}}} when an error is detected and leave it unchanged otherwise. The current mbed-os implementation of {{{_write()}}} actually breaks {{{perror("string");}}} since the initial display of "string" will result in a call to {{{_write()}}} which overwrites {{{errno}}} before the original value of {{{errno}}} itself is fetched for display.
+{{{
+extern "C" FILEHANDLE PREFIX(_open)(const char* name, int openmode) {
+...
+
+    /* if something goes wrong and errno is not explicitly set, errno will be set to EBADF */
+    errno = EBADF;
+}}}
+
+
+=RTX Support for Reentrancy
+Multithreading support for mbed-os comes from the **RTX** rtos component. The reentrant functions described above will only work if each thread in RTX has its own reentrancy structure. By default newlib just uses the single global {{{impure_data}}} structure defined in newlib's **impure.c** source file. For the ARM Keil Standard C Library, the {{{__user_perthread_libspace()}}} function exists in the RTX operating system to be called by the C library whenever one of its functions needs access to its reentrant data. This function returns the structure which is appropriate for the currently running thread. The newlib libraries have a dynamic mode which can be enabled via the {{{__DYNAMIC_REENT__}}} macro to call a {{{__getreent()}}} function for a similar purpose but it isn't enabled in the versions which ships with the GNU ARM Embedded Toolchain. Instead the newlib libraries expect to have the global {{{_impure_ptr}}} always pointing to the reentrant data structure which is appropriate for the active thread. This means that I will need to:
+* Add a {{{struct _reent}}} to each of RTX's {{{OS_TCB}}} thread objects.
+* Modify RTX's context switching code to point {{{_impure_ptr}}} to the correct _reent structure when switching between threads.
+
+Previously when I tried making such changes to RTX, I noticed that the reentrancy structure being allocated for each thread was much larger than the approximately 100 bytes I expected for newlib-nano. This problem no longer occurs with the version of newlib nano in the GNU ARM Embedded Toolchain 6-2017-q1-update release. The {{{sizeof(struct _reent)}}} expression now returns a length of 1064 bytes when using newlib and only 96 bytes when using newlib-nano.
+
+=Synchronization
+The newlib Standard C Library has some globals which will end up being shared across threads and therefore require synchronization. The newlib library which ships with GNU ARM Embedded Toolchain 6-2017-q1-update contains a retargeting layer for all of the locks required. **Page 313** of **The Red Hat newlib C Library - libc 2.5.0 - December 2016** documentation gives an overview of the global lock objects and functions that need to be provided in **mbed_retarget.cpp**. Here is an overview:
+
+{{{
+#include <sys/lock.h>
+
+struct __lock {
+  char unused; // Use RTX mutex object here.
+};
+
+struct __lock __lock___sinit_recursive_mutex;
+struct __lock __lock___sfp_recursive_mutex;
+struct __lock __lock___atexit_recursive_mutex;
+struct __lock __lock___at_quick_exit_mutex;
+struct __lock __lock___malloc_recursive_mutex;
+struct __lock __lock___env_recursive_mutex;
+struct __lock __lock___tz_mutex;
+struct __lock __lock___dd_hash_mutex;
+struct __lock __lock___arc4random_mutex;
+
+void __retarget_lock_init (_LOCK_T *lock);
+void __retarget_lock_init_recursive(_LOCK_T *lock);
+void __retarget_lock_close(_LOCK_T lock);
+void __retarget_lock_close_recursive(_LOCK_T lock);
+void __retarget_lock_acquire (_LOCK_T lock);
+void __retarget_lock_acquire_recursive (_LOCK_T lock);
+int __retarget_lock_try_acquire(_LOCK_T lock);
+int __retarget_lock_try_acquire_recursive(_LOCK_T lock);
+void __retarget_lock_release (_LOCK_T lock);
+void __retarget_lock_release_recursive (_LOCK_T lock);
+}}}
+
+The full version of newlib is built in multithreaded mode to make use of this retargeting layer. Currently newlib-nano is not and the following sections documenting the locking requirements from before might still be pertinent for this size optimized version.
+
+
+=Old Synchronization Notes
+==Synchronizing Heap Accesses (malloc/free)
+The memory allocation routines implementation in newlib include references to **MALLOC_LOCK** and **MALLOC_UNLOCK** macros.  In the standard newlib library, these macros would be weak references to {{{__malloc_lock()}}} and {{{__malloc_unlock()}}} routines.  A project like mbed-os could then provide implementation of these routines to use a mutex to serialize access to the heap.  In previous versions of the GNU ARM Embedded Toolchain, the newlib-nano implementation of these macros were #define'ed to nothing so this wasn't possible but that is no longer the case.
+
+==Synchronizing File I/O Operations
+I see a set of locking routines used with respect to file operations in newlib:
+* {{{__sfp_lock_acquire() / __sfp_lock_release()}}}
+* {{{__sinit_lock_acquire() / __sinit_lock_release()}}}
+
+These lock routines are defined in **findfp.c** to be routines that just return without doing anything. From looking at the disassembly, I see routines like {{{fopen_r()}}} and {{{fclose_r()}}} actually making calls to the {{{__sfp_lock*}}} stubs.  However there are some important routines also defined in **findfp.c** such as {{{__sfp()}}} and {{{__sinit()}}} which should make similar calls to these locking routines but they are not found in the disassembly.  This appears to happen because the compiler can optimize within this module to know that those locking routines have no impact.
+
+I can't just use the linker to provide my own implementations of {{{__sfp_lock_acquire() / __sfp_lock_release()}}} since some have been optimized away.  This could lead to corruption in the **_GLOBAL_REENT** structure where the global list of open FILE* structures is maintained since its protection in {{{__sfp}}} has been optimized away. The easiest modification is to probably implement {{{__sfp_lock_acquire() / __sfp_lock_release()}}} routines to use a mutex to protect most file routines in newlib-nano since they still call these routines.  I would then wrap routines like {{{__sinit()}}} and {{{__sfp}}} and have them serialize on the correct mutex as well.
