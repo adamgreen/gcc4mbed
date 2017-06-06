@@ -1700,8 +1700,11 @@ static bool parseTargetAttribute(TargetObject* pTarget, const char* pRaw, jsmnto
     }
 
     // Handle cases where the attribute name was unknown.
-    fprintf(stderr, "error: Unrecognized attribute \"%.*s\".\n", name.m_length, name.m_pVal);
-    return false;
+    fprintf(stderr, "warning: Unrecognized attribute \"%.*s\".\n", name.m_length, name.m_pVal);
+    if (ignoreValue(pTarget, pRaw, &pCurr, pEnd) == false)
+        return false;
+    *ppCurr = pCurr;
+    return true;
 }
 
 static bool parseCoreAttribute(TargetObject* pTarget, const char* pRaw, jsmntok_t** ppCurr, jsmntok_t* pEnd)
