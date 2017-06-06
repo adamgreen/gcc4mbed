@@ -248,6 +248,11 @@ ifeq "$(GCC4MBED_TYPE)" "Release"
 MBED_DEFINES += -DNDEBUG
 endif
 
+# Define MBED_DEBUG macro for debug builds.
+ifeq "$(GCC4MBED_TYPE)" "Debug"
+MBED_DEFINES += -DMBED_DEBUG
+endif
+
 # mbed build tools always define these macros so we do too.
 MBED_DEFINES += -D__MBED__=1 -DTARGET_LIKE_MBED
 
