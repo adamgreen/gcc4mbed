@@ -55,7 +55,7 @@ On **page 319** of this newlib documentation is the beginning of section "12.2 R
 | _sbrk_r | |
 | _kill_r | Send a signal to a process. mbed-os version should just fail with errno = ENOSYS. |
 | _getpid_r | Get currently running process's ID. mbed-os version should just fail with errno = ENOSYS. |
-| _stat_r | |
+| _stat_r | mbed-os doesn't need to implement this since it implements the higher level stat() function. newlib only calls _stat_r directly from its implementaiton of stat() and mktemp(), which isn't required by ANSI C.|
 | _times_r | Get timing information for current process. mbed-os version should just fail with errno = ENOSYS. |
 | _unlink_r | mbed-os doesn't need to implement this since it implements the higher level rename() and remove() functions which are the only things in newlib which call _unlink_r().|
 | _write_r | |
@@ -161,7 +161,6 @@ Based on the above notes, the following table summarizes the changes that need t
 | _open_r         | Convert existing _open() to reentrant version. |
 | _read_r         | Convert existing _read() to reentrant version. |
 | _sbrk_r         | Convert existing _sbrk() to reentrant version. |
-| _stat_r         | Convert existing stat() to reentrant version. |
 | _times_r        | Get timing information for current process. Add version which fails with errno = ENOSYS. |
 | _wait_r         | Wait for child process. Add version which fails with errno = ENOSYS. |
 | _write_r        | Convert existing _write() to reentrant version. |
