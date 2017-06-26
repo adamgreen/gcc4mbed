@@ -186,7 +186,7 @@ Multithreading support for mbed-os comes from the **RTX** rtos component. The re
 Previously when I tried making such changes to RTX, I noticed that the reentrancy structure being allocated for each thread was much larger than the approximately 100 bytes I expected for newlib-nano. This problem no longer occurs with the version of newlib nano in the GNU ARM Embedded Toolchain 6-2017-q1-update release. The {{{sizeof(struct _reent)}}} expression now returns a length of 1064 bytes when using newlib and only 96 bytes when using newlib-nano.
 
 =Synchronization
-The newlib Standard C Library has some globals which will end up being shared across threads and therefore require synchronization. The newlib library which ships with GNU ARM Embedded Toolchain 6-2017-q1-update contains a retargeting layer for all of the locks required. **Page 313** of **The Red Hat newlib C Library - libc 2.5.0 - December 2016** documentation gives an overview of the global lock objects and functions that need to be provided in **mbed_retarget.cpp**. Here is an overview:
+The newlib Standard C Library has some globals which will end up being shared across threads and therefore require synchronization. The newlib library which ships with GNU ARM Embedded Toolchain 6-2017-q1-update contains a retargeting layer for all of the locks required. **Page 313** of **The Red Hat newlib C Library - libc 2.5.0 - December 2016** documentation gives an overview of the global lock objects and functions that need to be provided by mbed-os. Here is an overview:
 
 {{{
 #include <sys/lock.h>
@@ -217,7 +217,7 @@ void __retarget_lock_release (_LOCK_T lock);
 void __retarget_lock_release_recursive (_LOCK_T lock);
 }}}
 
-The full version of newlib is built in multithreaded mode to make use of this retargeting layer. Currently newlib-nano is not and the following sections documenting the locking requirements from before might still be pertinent for this size optimized version.
+The full version of newlib is built in multithreaded mode to make use of this retargeting layer. Currently newlib-nano is not and the following sections documenting the locking requirements from before might still be pertinent for this size optimized version. This is the portion of the thread safety project which will differ between newlib and newlib-nano as the other changes were effective for both versions.
 
 
 =Old Synchronization Notes
