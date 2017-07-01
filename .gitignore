@@ -11,6 +11,7 @@ mri.log
 pyocd.log
 deploy
 debug
+.gdbinit
 /BuildShell
 /BuildShellDebug
 /BuildShellDevelop
