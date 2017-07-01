@@ -61,7 +61,7 @@
 #if defined(TARGET_KL25Z)
     #define MALLOC_ALLOC_COUNT 64
 #else
-    #define MALLOC_ALLOC_COUNT 256
+    #define MALLOC_ALLOC_COUNT 246
 #endif
 #define MALLOC_ALLOC_SIZE  8
 
