@@ -1,7 +1,7 @@
 # GDB initialization script with commands to make debugging GCC4MBED applications more convenient.
 #
-# This gdbinit file is placed here in the root folder of the repository so that it can be included from the various
-# locations in the source tree from which a user might want to launch rake/make and GDB. The "source" command in GDB
+# This gdbinit file is placed here in the sample folder of the repository so that it can be included from the various
+# locations in the source tree from which a user might want to launch make and GDB. The "source" command in GDB
 # can be used to manually load this script when needed.
 #
 # Commands of Interest
@@ -10,7 +10,7 @@
 #   heapsize - Displays the current heap size.
 #   heapwalk - Walks the heap and dumps each chunk encountered.
 #   showfault - Dumps descriptive text about the cause of a hard fault.
-#   catchfaults - Sets Cortex-M device to halt in debugger on faults.
+#   catchfaults - Sets Cortex-M device (doesn't work for Cortex-M0/M0+ devices) to halt in debugger on faults.
 #
 # Issuing "help user-defined" command from within GDB will list the commands added by this script.
 #
@@ -97,9 +97,15 @@ define thread_display
     else
         printf "\n"
     end
-    printf "      priority: %u          priority base: %u\n", $thread_tcb->priority, $thread_tcb->priority_base
-    printf "     stack top: 0x%08X     stack size: %u     stack frame: 0x%02X\n", $thread_tcb->stack_mem + $thread_tcb->stack_size, $thread_tcb->stack_size, $thread_tcb->stack_frame
+    printf "      priority: %2u          priority base: %u\n", $thread_tcb->priority, $thread_tcb->priority_base
+    printf "     stack top: 0x%08X     stack size: %u\n", $thread_tcb->stack_mem + $thread_tcb->stack_size, $thread_tcb->stack_size
     printf " stack current: 0x%08X     stack free: %d\n", $thread_tcb->sp, $thread_tcb->sp - (unsigned int)$thread_tcb->stack_mem
+    printf "    exc_return: 0x%02X", $thread_tcb->stack_frame
+    if (($thread_tcb->stack_frame & 0x10) == 0)
+        printf " (FPU stacked)\n"
+    else
+        printf "\n"
+    end
     printf "         state: "
 
     # Some states are part of the osThreadState_t enumeration and others are specific to RTX.
@@ -322,9 +328,9 @@ end
 document thread
 Switches current thread context.
 
-If an argument is provided, the context will be switched to that thread
+If an argument is provided, the context will be switched to the thread
 with that thread pointer (thread pointers can be seen in "threads" command 
-output.  If no argument is provided, it will switch back to the original 
+output).  If no argument is provided, it will switch back to the original
 context at the time of the stop.
 end
 
@@ -387,8 +393,8 @@ define thread_restore
             set var $s30=$thread_s30
             set var $s31=$thread_s31
             set var $fpscr=$thread_fpscr
-            set var $thread_swapped=0
         end
+        set var $thread_swapped=0
     end
 end
 
@@ -398,7 +404,7 @@ end
 # Command to dump the current amount of space allocated to the heap.
 define heapsize
     set var $heap_base=(((unsigned int)&__bss_end__+7)&~7)
-    printf "heap size: %d bytes\n", ('_sbrk_r::heap' - $heap_base)
+    printf "heap size: %u bytes\n", ('_sbrk_r::heap' - $heap_base)
 end
 
 document heapsize
@@ -412,6 +418,8 @@ end
 define heapwalk
     set var $chunk_curr=(((unsigned int)&__bss_end__+7)&~7)
     set var $chunk_number=1
+    set var $used_bytes=(unsigned int)0
+    set var $free_bytes=(unsigned int)0
     if (sizeof(struct _reent) == 96)
         # newlib-nano library in use.
         set var $free_curr=(unsigned int)__malloc_free_list
@@ -430,13 +438,16 @@ define heapwalk
             printf "Chunk: %u  Address: 0x%08X  Size: %u  ", $chunk_number, $chunk_curr, $chunk_size
             if ($chunk_free)
                 printf "FREE CHUNK"
+                set var $free_bytes+=$chunk_size
+            else
+                set var $used_bytes+=$chunk_size
             end
             printf "\n"
             set var $chunk_curr=$chunk_next
             set var $chunk_number=$chunk_number+1
         end
     else
-        # full newlib Library in use.
+        # full newlib library in use.
         while ($chunk_curr < '_sbrk_r::heap')
             set var $chunk_size=*(unsigned int*)($chunk_curr + 4)
             set var $chunk_size&=~1
@@ -456,12 +467,17 @@ define heapwalk
             printf "Chunk: %u  Address: 0x%08X  Size: %u  ", $chunk_number, $chunk_orig, $chunk_size
             if ($chunk_inuse == 0)
                 printf "FREE CHUNK"
+                set var $free_bytes+=$chunk_size
+            else
+                set var $used_bytes+=$chunk_size
             end
             printf "\n"
             set var $chunk_curr=$chunk_next
             set var $chunk_number=$chunk_number+1
         end
     end
+    printf "  Used bytes: %u\n", $used_bytes
+    printf "  Free bytes: %u\n", $free_bytes
 end
 
 document heapwalk
@@ -485,7 +501,8 @@ end
 document catchfaults
 Instructs Cortex-M processor to stop in GDB if any fault is detected.
 
-User can pass in a parameter of 0 to disable this feature.
+User can pass in a parameter of 0 to disable this feature. It doesn't work
+for Cortex-M0 or Cortex-M0+ devices.
 end
 
 
@@ -638,12 +655,22 @@ end
 # Default to enabling fault catching when user issues the continue execution command.
 set var $catch_faults=1
 
-# These variable track whether we have swapped to a different thread's context.
+# These variables track whether we have swapped to a different thread's context.
 set var $thread_swapped=0
 set var $thread_ptr=0
 
-# Haven't determined if CPU has FPU state stored in thread context yet.
+# Haven't determined if CPU has FPU state that could be stored in thread context yet.
 set var $thread_has_fpu_isvalid=0
+
+# Settings that I just find work the best for embedded/remote target debugging:
+#   No need to ask if an invalid symbol name should be postponed until something gets loaded later...it won't!
+set breakpoint pending off
+#   Defaults to UTF-8 and some garbage strings cause GDB to hang when it attempts to walk the string.
+set target-charset ASCII
+#   Just makes structures look a bit nicer.
+set print pretty on
+#   Can't access peripheral registers and some regions of RAM without this turned off.
+set mem inaccessible-by-default off
 
 # UNDONE: Doing this because GDB goes off in the weeds due to how osThreadExit() is placed on thread stack.
 set backtrace limit 64
