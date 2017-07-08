@@ -1,17 +1,16 @@
-/* Copyright 2012 Adam Green (http://mbed.org/users/AdamGreen/)
+/* Copyright 2017 Adam Green (http://mbed.org/users/AdamGreen/)
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published
-   by the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-   You should have received a copy of the GNU Lesser General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.   
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 */
 /* Monitor for Remote Inspection. */
 #ifndef _MRI_H_
@@ -41,15 +40,63 @@ extern "C"
    used to initialize the debug monitor.  The supported options include:
    
    One of these options to indicate which UART to be used for the debugger connection:
-        MRI_UART_MBED_USB
-        MRI_UART_MBED_P9_P10
-        MRI_UART_MBED_P13_P14
-        MRI_UART_MBED_P28_P27
-        MRI_UART_0
-        MRI_UART_1
-        MRI_UART_2
-        MRI_UART_3
-        
+        Valid options for LPC1768:
+            MRI_UART_MBED_USB
+            MRI_UART_MBED_P9_P10
+            MRI_UART_MBED_P13_P14
+            MRI_UART_MBED_P28_P27
+            MRI_UART_0
+            MRI_UART_1
+            MRI_UART_2
+            MRI_UART_3
+        Valid options for STM32F429xx:
+            MRI_UART_1
+            MRI_UART_2
+            MRI_UART_3
+        Valid options for LPC43xx when specifying TX & RX pins separately:
+            One from this list:
+                MRI_UART_TX_P1_13
+                MRI_UART_TX_P1_15
+                MRI_UART_TX_P2_0
+                MRI_UART_TX_P2_3
+                MRI_UART_TX_P2_10
+                MRI_UART_TX_P3_4
+                MRI_UART_TX_P4_1
+                MRI_UART_TX_P5_6
+                MRI_UART_TX_P6_4
+                MRI_UART_TX_P7_1
+                MRI_UART_TX_P9_3
+                MRI_UART_TX_P9_5
+                MRI_UART_TX_PA_1
+                MRI_UART_TX_PC_13
+                MRI_UART_TX_PE_11
+                MRI_UART_TX_PF_2
+                MRI_UART_TX_PF_10
+            And another from this list:
+                MRI_UART_RX_P1_14
+                MRI_UART_RX_P1_16
+                MRI_UART_RX_P2_1
+                MRI_UART_RX_P2_4
+                MRI_UART_RX_P2_11
+                MRI_UART_RX_P3_5
+                MRI_UART_RX_P4_2
+                MRI_UART_RX_P5_7
+                MRI_UART_RX_P6_5
+                MRI_UART_RX_P7_2
+                MRI_UART_RX_P9_4
+                MRI_UART_RX_P9_6
+                MRI_UART_RX_PA_2
+                MRI_UART_RX_PC_14
+                MRI_UART_RX_PE_12
+                MRI_UART_RX_PF_3
+                MRI_UART_RX_PF_11
+        Valid options for LPC43xx on Bambino210E:
+            MRI_UART_MBED_USB
+            MRI_UART_0
+            MRI_UART_1
+            MRI_UART_2
+            MRI_UART_3
+
     By default the debug monitor expects to take full control of the UART to configure baud rate, etc.  However 
     including the following option will tell the monitor to assume that the user's firmware will configure and use the
     serial port until the first exception occurs:
@@ -93,11 +140,11 @@ int __mriPlatform_CommUartIndex(void);
 
 #ifndef MRI_VERSION_STRING
 
-#define MRI_BRANCH "https://github.com/adamgreen/mri/tree/version_0.9"
+#define MRI_BRANCH "https://github.com/adamgreen/mri/tree/version_1.0"
 
-#define MRI_VERSION_MAJOR       0
-#define MRI_VERSION_MINOR       9
-#define MRI_VERSION_BUILD       20160409
+#define MRI_VERSION_MAJOR       1
+#define MRI_VERSION_MINOR       0
+#define MRI_VERSION_BUILD       20170707
 #define MRI_VERSION_SUBBUILD    1
 
 #define MRI_STR(X) MRI_STR2(X)
