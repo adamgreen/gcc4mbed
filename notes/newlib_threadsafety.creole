@@ -186,6 +186,7 @@ Multithreading support for mbed-os comes from the **RTX** rtos component. The re
 Previously when I tried making such changes to RTX, I noticed that the reentrancy structure being allocated for each thread was much larger than the approximately 100 bytes I expected for newlib-nano. This problem no longer occurs with the version of newlib nano in the GNU ARM Embedded Toolchain 6-2017-q1-update release. The {{{sizeof(struct _reent)}}} expression now returns a length of 1064 bytes when using newlib and only 96 bytes when using newlib-nano.
 
 =Synchronization
+==Full Newlib
 The newlib Standard C Library has some globals which will end up being shared across threads and therefore require synchronization. The newlib library which ships with GNU ARM Embedded Toolchain 6-2017-q1-update contains a retargeting layer for all of the locks required. **Page 313** of **The Red Hat newlib C Library - libc 2.5.0 - December 2016** documentation gives an overview of the global lock objects and functions that need to be provided by mbed-os. Here is an overview:
 
 {{{
@@ -217,18 +218,57 @@ void __retarget_lock_release (_LOCK_T lock);
 void __retarget_lock_release_recursive (_LOCK_T lock);
 }}}
 
-The full version of newlib is built in multithreaded mode to make use of this retargeting layer. Currently newlib-nano is not and the following sections documenting the locking requirements from before might still be pertinent for this size optimized version. This is the portion of the thread safety project which will differ between newlib and newlib-nano as the other changes were effective for both versions.
+Here are a few notes that I made about this lock retargeting layer as I added the initial implementation to mbed-os:
+* I didn't implement two of the __lock___* mutex objects declared in newlib:
+** {{{__lock___atexit_recursive_mutex}}} since mbed-os makes sure that the atexit code path where this lock would be used isn't linked in.
+** {{{__lock___dd_hash_mutex}}} since mbed-os implements its own versions of telldir() and seekdir(). This means that the newlib versions of those functions which reference the hash mutex aren't used.
+* The {{{__retarget_lock_init_recursive()}}} is used from newlib to dynamically allocate and initialize new mutex objects for the per FILE* locks. {{{__retarget_lock_close_recursive()}}} is used to free them when the corresponding files are closed.
+* I didn't find great documentation for this lock retargeting layer in newlib. For most of the APIs, I just looked at how they were used by newlib to verify my assumptions about how they should be implemented. The {{{__retarget_lock_try_acquire*()}}} APIs were one area where I found no example usage yet in newlib so I just used the corresponding PThreads documentation for {{{pthread_mutex_trylock()}}} to mimic. I use a timeout value of 0 with the RTX mutex and then return a 0 if the lock was acquired successfully and a non-zero value if the acquisition failed.
 
 
-=Old Synchronization Notes
-==Synchronizing Heap Accesses (malloc/free)
-The memory allocation routines implementation in newlib include references to **MALLOC_LOCK** and **MALLOC_UNLOCK** macros.  In the standard newlib library, these macros would be weak references to {{{__malloc_lock()}}} and {{{__malloc_unlock()}}} routines.  A project like mbed-os could then provide implementation of these routines to use a mutex to serialize access to the heap.  In previous versions of the GNU ARM Embedded Toolchain, the newlib-nano implementation of these macros were #define'ed to nothing so this wasn't possible but that is no longer the case.
+==Newlib-Nano Sychronization
+The full version of newlib is built in multithreaded mode to make use of the above mentioned retargeting layer. Currently newlib-nano is not and the following sections document two different approaches to make it thread safe. This is the portion of the thread safety project which will differ between newlib and newlib-nano as the other changes were effective for both versions.
 
-==Synchronizing File I/O Operations
-I see a set of locking routines used with respect to file operations in newlib:
-* {{{__sfp_lock_acquire() / __sfp_lock_release()}}}
-* {{{__sinit_lock_acquire() / __sinit_lock_release()}}}
+===Multithreaded libc_nano.a
+One solution for making newlib-nano thread safe is to build the library itself with the {{{--enable-newlib-retargetable-locking}}} option passed into its configure script. This is easily done but how much does it increase memory usage? To get a feel for the impact on memory usage, I rebuilt the library with that option and measured the size of a few binaries:
+* **libc_nano.a**: First I compared the size of the libc_nano.a Standard C Library itself, when symbolic information was still left intact.\\
+* **libc_nano.a (stripped)**: The newlib libraries are actually distributed with the symbols stripped. The second comparison was made to actually compare the size of the libraries as they would ship. It should be noted though that the **GNU Tools for ARM Embedded** toolchain actually ships with 21 versions of this library as part of its multilib support.\\
+* **newlibTest .text**: The [[https://github.com/adamgreen/gcc4mbed/tree/feature/newlibThreadSafety/samples/newlibTest | newlibTest sample]] exercises many of the newlib syscalls and key thread impacted areas like the dynamic heap. I compared the size of the {{{.text}}} section of this sample when built with the single and multithreaded versions of the library. The {{{.data}}} and {{{.bss}}} sections were the same for both versions.
+* **HelloWorld .text**: The [[https://github.com/adamgreen/gcc4mbed/tree/feature/newlibThreadSafety/samples/HelloWorld | HelloWorld sample]] was also compared as a baseline since it is a very basic sample that just blinks a LED.
 
-These lock routines are defined in **findfp.c** to be routines that just return without doing anything. From looking at the disassembly, I see routines like {{{fopen_r()}}} and {{{fclose_r()}}} actually making calls to the {{{__sfp_lock*}}} stubs.  However there are some important routines also defined in **findfp.c** such as {{{__sfp()}}} and {{{__sinit()}}} which should make similar calls to these locking routines but they are not found in the disassembly.  This appears to happen because the compiler can optimize within this module to know that those locking routines have no impact.
+The following table compares the sizes for ARMv7-M builds created for the LPC1768:
+|=                       |= Original |= Multithreaded |= Difference |
+| libc_nano.a            | 5,865,978 | 5,932,984      | 67,006 |
+| libc_nano.a (stripped) | 910,090   | 924,108        | 14,018 |
+| newlibTest .text       | 70,656    | 71,480         | 824 |
+| HelloWorld .text       | 14,640    | 15,448         | 808 |
 
-I can't just use the linker to provide my own implementations of {{{__sfp_lock_acquire() / __sfp_lock_release()}}} since some have been optimized away.  This could lead to corruption in the **_GLOBAL_REENT** structure where the global list of open FILE* structures is maintained since its protection in {{{__sfp}}} has been optimized away. The easiest modification is to probably implement {{{__sfp_lock_acquire() / __sfp_lock_release()}}} routines to use a mutex to protect most file routines in newlib-nano since they still call these routines.  I would then wrap routines like {{{__sinit()}}} and {{{__sfp}}} and have them serialize on the correct mutex as well.
+The following table compares the sizes for ARMv6-M builds created for the KL25Z:
+|=                       |= Original |= Multithreaded |= Difference |
+| libc_nano.a            | 5,910,346 | 5,978,784      | 68,438 |
+| libc_nano.a (stripped) | 913,966   | 928,336        | 14,370 |
+| newlibTest .text       | 34,128    | 34,904         | 776 |
+| HelloWorld .text       | 15,232    | 16,088         | 856 |
+
+The summary appears to be that a multithreaded version of libc_nano.a would actually increase the size of a user's final binary by around 800 bytes.
+
+
+===Single Threaded libc_nano.a Hacks
+Since the **GNU Tools for ARM Embedded** toolchain ships the single threaded version of newlib-nano, I have decided to use this version and apply hacks to make it almost as thread safe as the multithreaded version. The only functionality that can't be made thread safe using this method are the per FILE* locks. I will just document this fact.
+
+Even though newlib-nano was built single threaded, there are still many areas of the code which call locking routines that can be overridden to synchronize key areas. We just need to add implementations of these locking routines to mbed-os when linking with newlib-nano and those areas will be properly synchronized. These will just be copies of the routines as they already exist in the thread safe full version of newlib.
+
+|= Locking Hook to Implement                       |= Mutex to Use |
+| __env_lock() \\ __env_unlock()                   | __lock___env_recursive_mutex |
+| __sfp_lock_acquire() \\ __sfp_lock_release()     | __lock___sfp_recursive_mutex |
+| __sinit_lock_acquire() \\ __sinit_lock_release() | __lock___sinit_recursive_mutex |
+| __malloc_lock() \\ __malloc_unlock()             | __lock___malloc_recursive_mutex |
+| __tz_lock() \\ __tz_unlock()                     | __lock___tz_mutex |
+
+There are some functions in newlib-nano which should call locking routines but they were actually optimized out by the compiler. We will need to use the GNU linker to wrap these functions to acquire the appropriate mutex before calling the real functions and then release the mutex after the function returns.
+
+|= Function to Wrap                |= Mutex to Use |
+| arc4random() \\ arc4random_buf() | __lock___arc4random_mutex |
+| __sfp()                          | __sfp_lock_acquire() \\ __sfp_lock_release() |
+| __sinit()                        | __sinit_lock_acquire() \\ __sinit_lock_release() |
+| at_quick_exit()                  | __lock___at_quick_exit_mutex |
