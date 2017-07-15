@@ -757,7 +757,30 @@ static void runSysCallTests()
     assert ( -1 == _wait_r(_REENT, &status) );
     assert ( errno == ENOSYS );
 
+
+    // Call a few extra newlib routines to make sure that lock paths are covered.
+    {
+        uint8_t buffer[32];
+        arc4random();
+        arc4random_buf(buffer, sizeof(buffer));
+    }
+
+    assert ( 0 == at_quick_exit(validateHeap) );
+
+
+
     printf("SysCall Tests completed successfully!\n\n");
+}
+
+// Required for arc4random tests to link successfully.
+extern "C" int getentropy(void *buf, size_t buflen)
+{
+    uint8_t* p = (uint8_t*)buf;
+    while (buflen-- > 0)
+    {
+        *p++ = (uint8_t)us_ticker_read();
+    }
+    return 0;
 }
 
 
