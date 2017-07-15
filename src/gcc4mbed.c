@@ -13,6 +13,8 @@
    limitations under the License.
 */
 /* Provide routines which hook the MRI debug monitor into GCC4MBED projects. */
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -88,6 +90,20 @@ int __wrap_semihost_disabledebug(void)
     /* MRI has already disabled mbed interface so do nothing and just return -1. */
     return -1;
 }
+
+
+/* MRI wants error text redirected to stderr and not directly sent to serial port since MRI wants exclusive
+   control of the serial port. */
+#if (MRI_ENABLE && MRI_SEMIHOST_STDIO && !defined(NDEBUG))
+    void error(const char* format, ...)
+    {
+        va_list arg;
+        va_start(arg, format);
+        vfprintf(stderr, format, arg);
+        va_end(arg);
+        exit(1);
+    }
+#endif // MRI_ENABLE
 
 
 void abort(void)
