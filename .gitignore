@@ -12,6 +12,7 @@ pyocd.log
 deploy
 debug
 .gdbinit
+.gdb_history
 /BuildShell
 /BuildShellDebug
 /BuildShellDevelop
