@@ -148,16 +148,21 @@ $(MBED_DEVICE): ALL_DEFINES := $(ALL_DEFINES)
 
 # Setup wraps for newlib read/writes to redirect to MRI debugger.
 ifeq "$(DEVICE_MRI_ENABLE)" "1"
-MRI_WRAPS := ,--wrap=_read,--wrap=_write,--wrap=semihost_connected,--wrap=semihost_disabledebug
+MRI_WRAPS := ,--wrap=_read_r,--wrap=_write_r,--wrap=semihost_connected,--wrap=semihost_disabledebug
 else
 MRI_WRAPS :=
 endif
 
 # Setup wraps for newlib provided by src/gcc4mbed.c
-GCC4MBED_WRAPS := ,--wrap=_isatty
+GCC4MBED_WRAPS :=
 
 # Setup wraps for newlib provided by mbed.
 MBED_WRAPS := ,--wrap=_malloc_r,--wrap=_free_r,--wrap=_realloc_r,--wrap=_calloc_r,--wrap=main,--wrap=exit
+
+# Setup synchronization wraps for newlib-nano provided by mbed.
+ifeq "$(NEWLIB_NANO)" "1"
+MBED_WRAPS := $(MBED_WRAPS),--wrap=arc4random,--wrap=arc4random_buf,--wrap=__sfp,--wrap=__sinit,--wrap=at_quick_exit
+endif
 
 
 # Linker Options.
