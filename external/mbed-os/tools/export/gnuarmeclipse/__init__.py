@@ -33,7 +33,7 @@ from os.path import splitext, basename, relpath, dirname, exists, join, dirname
 from random import randint
 from json import load
 
-from tools.export.exporters import Exporter, filter_supported
+from tools.export.exporters import Exporter, apply_supported_whitelist
 from tools.options import list_profiles
 from tools.targets import TARGET_MAP
 from tools.utils import NotSupportedException
@@ -61,14 +61,19 @@ u = UID()
 POST_BINARY_WHITELIST = set([
     "TEENSY3_1Code.binary_hook",
     "MCU_NRF51Code.binary_hook",
-    "LPCTargetCode.lpc_patch"
+    "LPCTargetCode.lpc_patch",
+    "LPC4088Code.binary_hook"
 ])
 
 class GNUARMEclipse(Exporter):
     NAME = 'GNU ARM Eclipse'
     TOOLCHAIN = 'GCC_ARM'
 
-    TARGETS = filter_supported("GCC_ARM", POST_BINARY_WHITELIST)
+    @classmethod
+    def is_target_supported(cls, target_name):
+        target = TARGET_MAP[target_name]
+        return apply_supported_whitelist(
+            cls.TOOLCHAIN, POST_BINARY_WHITELIST, target)
 
     # override
     @property
@@ -201,14 +206,13 @@ class GNUARMEclipse(Exporter):
             print 'Build configuration: {0}'.format(opts['name'])
 
             profile = profiles[id]
-            profile_toolchain = profile[self.TOOLCHAIN]
 
             # A small hack, do not bother with src_path again,
             # pass an empty string to avoid crashing.
             src_paths = ['']
             target_name = self.toolchain.target.name
             toolchain = prepare_toolchain(
-                src_paths, "", target_name, self.TOOLCHAIN, build_profile=profile_toolchain)
+                src_paths, "", target_name, self.TOOLCHAIN, build_profile=[profile])
 
             # Hack to fill in build_dir
             toolchain.build_dir = self.toolchain.build_dir

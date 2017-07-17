@@ -86,18 +86,21 @@ void equeue_mutex_unlock(equeue_mutex_t *m) {
 #ifdef MBED_CONF_RTOS_PRESENT
 
 int equeue_sema_create(equeue_sema_t *s) {
-    MBED_STATIC_ASSERT(sizeof(equeue_sema_t) >= sizeof(Semaphore),
-            "The equeue_sema_t must fit the class Semaphore");
-    new (s) Semaphore(0);
-    return 0;
+    osEventFlagsAttr_t attr;
+    memset(&attr, 0, sizeof(attr));
+    attr.cb_mem = &s->mem;
+    attr.cb_size = sizeof(s->mem);
+
+    s->id = osEventFlagsNew(&attr);
+    return !s->id ? -1 : 0;
 }
 
 void equeue_sema_destroy(equeue_sema_t *s) {
-    reinterpret_cast<Semaphore*>(s)->~Semaphore();
+    osEventFlagsDelete(s->id);
 }
 
 void equeue_sema_signal(equeue_sema_t *s) {
-    reinterpret_cast<Semaphore*>(s)->release();
+    osEventFlagsSet(s->id, 1);
 }
 
 bool equeue_sema_wait(equeue_sema_t *s, int ms) {
@@ -105,7 +108,7 @@ bool equeue_sema_wait(equeue_sema_t *s, int ms) {
         ms = osWaitForever;
     }
 
-    return (reinterpret_cast<Semaphore*>(s)->wait(ms) > 0);
+    return (osEventFlagsWait(s->id, 1, osFlagsWaitAny, ms) == 1);
 }
 
 #else
@@ -130,7 +133,9 @@ static void equeue_sema_timeout(equeue_sema_t *s) {
 bool equeue_sema_wait(equeue_sema_t *s, int ms) {
     int signal = 0;
     Timeout timeout;
-    if (ms > 0) {
+    if (ms == 0) {
+        return false;
+    } else if (ms > 0) {
         timeout.attach_us(callback(equeue_sema_timeout, s), ms*1000);
     }
 

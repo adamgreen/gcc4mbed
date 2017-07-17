@@ -137,6 +137,27 @@
 #endif
 #endif
 
+/** MBED_NOINLINE
+ *  Declare a function that must not be inlined.
+ *
+ *  @code
+ *  #include "mbed_toolchain.h"
+ *  
+ *  MBED_NOINLINE void foo() {
+ *  
+ *  }
+ *  @endcode
+ */
+#ifndef MBED_NOINLINE
+#if defined(__GNUC__) || defined(__clang__) || defined(__CC_ARM)
+#define MBED_NOINLINE __attribute__((noinline))
+#elif defined(__ICCARM__)
+#define MBED_NOINLINE _Pragma("inline=never")
+#else
+#define MBED_NOINLINE
+#endif
+#endif
+
 /** MBED_FORCEINLINE
  *  Declare a function that must always be inlined. Failure to inline
  *  such a function will result in an error.
@@ -275,6 +296,38 @@
 #define MBED_SECTION(name) _Pragma(MBED_STRINGIFY(location=name))
 #else
 #error "Missing MBED_SECTION directive"
+#endif
+#endif
+
+#ifndef MBED_PRINTF
+#if defined(__GNUC__) || defined(__CC_ARM)
+#define MBED_PRINTF(format_idx, first_param_idx) __attribute__ ((__format__(__printf__, format_idx, first_param_idx)))
+#else
+#define MBED_PRINTF(format_idx, first_param_idx)
+#endif
+#endif
+
+#ifndef MBED_PRINTF_METHOD
+#if defined(__GNUC__) || defined(__CC_ARM)
+#define MBED_PRINTF_METHOD(format_idx, first_param_idx) __attribute__ ((__format__(__printf__, format_idx+1, first_param_idx+1)))
+#else
+#define MBED_PRINTF_METHOD(format_idx, first_param_idx)
+#endif
+#endif
+
+#ifndef MBED_SCANF
+#if defined(__GNUC__) || defined(__CC_ARM)
+#define MBED_SCANF(format_idx, first_param_idx) __attribute__ ((__format__(__scanf__, format_idx, first_param_idx)))
+#else
+#define MBED_SCANF(format_idx, first_param_idx)
+#endif
+#endif
+
+#ifndef MBED_SCANF_METHOD
+#if defined(__GNUC__) || defined(__CC_ARM)
+#define MBED_SCANF_METHOD(format_idx, first_param_idx) __attribute__ ((__format__(__scanf__, format_idx+1, first_param_idx+1)))
+#else
+#define MBED_SCANF_METHOD(format_idx, first_param_idx)
 #endif
 #endif
 

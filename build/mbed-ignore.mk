@@ -20,19 +20,21 @@ MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_COMMON_PAL/nanostack-libservice
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/lwip-interface/lwip/doc/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/lwip-interface/lwip/test/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/lwip-interface/lwip/src/apps/%
-MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/lwip-interface/lwip/src/netif/ppp/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/lwip-interface/lwip/src/netif/lwip_slipif.c
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/lwip-interface/lwip/src/include/lwip/apps/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/lwip-interface/lwip/src/include/posix/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/TESTS/mbedmicro-net/host_tests/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/nanostack/FEATURE_NANOSTACK/coap-service/test/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/nanostack/FEATURE_NANOSTACK/mbed-mesh-api/test/%
+MBED_IGNORE += $(MBED_SRC_ROOT)/features/storage/FEATURE_STORAGE/TESTS/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/features/unsupported/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/targets/TARGET_Silicon_Labs/TARGET_EFM32/TESTS/%
+MBED_IGNORE += $(MBED_SRC_ROOT)/TESTS/storage_abstraction/%
 MBED_IGNORE += $(MBED_SRC_ROOT)/tools/%
 
 # Ignore a few more folders when building the single threaded mbed 2 library.
 MBED2_IGNORE := $(MBED_IGNORE)
+MBED2_IGNORE += $(MBED_SRC_ROOT)/events/%
 MBED2_IGNORE += $(MBED_SRC_ROOT)/rtos/%
 MBED2_IGNORE += $(MBED_SRC_ROOT)/features/FEATURE_LWIP/%
 MBED2_IGNORE += $(MBED_SRC_ROOT)/features/netsocket/%
