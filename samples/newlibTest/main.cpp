@@ -517,7 +517,7 @@ static void runSysCallTests()
     errno = 0;
     int renameResult = rename(filename, "/foo/bar.txt");
     assert ( renameResult == -1 );
-    assert ( errno == EINVAL );
+    assert ( errno == EXDEV );
 
     // Attempt to rename a file from a non-existing file system to this SD one. Should fail.
     errno = 0;
@@ -669,7 +669,7 @@ static void runSysCallTests()
     // isatty() should fail too.
     errno = 0;
     isattyResult = isatty(fileno(pFile));
-    assert ( isattyResult == -1 );
+    assert ( isattyResult == 0 );
     assert ( errno == EBADF );
 
     // fseek() should fail too.
