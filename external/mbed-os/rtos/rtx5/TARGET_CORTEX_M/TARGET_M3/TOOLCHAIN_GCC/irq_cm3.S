@@ -24,7 +24,6 @@
  */
 
 
-        .file    "irq_cm3.S"
         .syntax  unified
 
         .equ     I_T_RUN_OFS, 28        // osRtxInfo.thread.run offset
@@ -49,11 +48,11 @@ irqRtxLib:
 SVC_Handler:
 
         MRS      R0,PSP                 // Get PSP
+        PUSH     {R0,LR}                // Save PSP and EXC_RETURN
         LDR      R1,[R0,#24]            // Load saved PC from stack
         LDRB     R1,[R1,#-2]            // Load SVC number
         CBNZ     R1,SVC_User            // Branch if not SVC 0
 
-        PUSH     {R0,LR}                // Save PSP and EXC_RETURN
         LDM      R0,{R0-R3,R12}         // Load function parameters and address from stack
         BLX      R12                    // Call service function
         POP      {R12,LR}               // Restore PSP and EXC_RETURN
@@ -94,27 +93,32 @@ SVC_ContextRestore:
 #ifdef FEATURE_UVISOR
         CPSIE I                         // The PSP has been set. Re-enable interrupts.
 #endif
-        MVN      LR,#~0xFFFFFFFD        // Set EXC_RETURN value
+
+SVC_ContextForNewlib:
+        MOV      R0,R2                  // Pass in current thread id
+        BL       __user_perthread_libspace // Fetch _reent structure for this thread
+        LDR      R1,=_impure_ptr        // Place it in _impure_ptr for newlib
+        STR      R0,[R1]
 
 SVC_Exit:
+        MVN      LR,#~0xFFFFFFFD        // Set EXC_RETURN value
         BX       LR                     // Exit from handler
 
 SVC_User:
-        PUSH     {R4,LR}                // Save registers
         LDR      R2,=osRtxUserSVC       // Load address of SVC table
         LDR      R3,[R2]                // Load SVC maximum number
         CMP      R1,R3                  // Check SVC number range
         BHI      SVC_Done               // Branch if out of range
 
-        LDR      R4,[R2,R1,LSL #2]      // Load address of SVC function
+        LDR      R12,[R2,R1,LSL #2]     // Load address of SVC function
 
         LDM      R0,{R0-R3}             // Load function parameters from stack
-        BLX      R4                     // Call service function
-        MRS      R4,PSP                 // Get PSP
-        STR      R0,[R4]                // Store function return value
+        BLX      R12                    // Call service function
+        MRS      R12,PSP                // Get PSP
+        STR      R0,[R12]               // Store function return value
 
 SVC_Done:
-        POP      {R4,PC}                // Return from handler
+        POP      {R12,PC}               // Return from handler
 
         .fnend
         .size    SVC_Handler, .-SVC_Handler

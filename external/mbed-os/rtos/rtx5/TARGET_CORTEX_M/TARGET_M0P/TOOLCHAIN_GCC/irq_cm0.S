@@ -24,7 +24,6 @@
  */
 
 
-        .file    "irq_cm0.S"
         .syntax  unified
 
         .equ     I_T_RUN_OFS, 28        // osRtxInfo.thread.run offset
@@ -49,13 +48,13 @@ irqRtxLib:
 SVC_Handler:
 
         MRS      R0,PSP                 // Get PSP
+        PUSH     {R0,LR}                // Save PSP and EXC_RETURN
         LDR      R1,[R0,#24]            // Load saved PC from stack
         SUBS     R1,R1,#2               // Point to SVC instruction
         LDRB     R1,[R1]                // Load SVC number
         CMP      R1,#0
         BNE      SVC_User               // Branch if not SVC 0
 
-        PUSH     {R0,LR}                // Save PSP and EXC_RETURN
         LDMIA    R0,{R0-R3}             // Load function parameters from stack
         BLX      R7                     // Call service function
         POP      {R2,R3}                // Restore PSP and EXC_RETURN
@@ -98,6 +97,12 @@ SVC_ContextRestore:
         SUBS     R0,R0,#32              // Adjust address
         LDMIA    R0!,{R4-R7}            // Restore R4..R7
 
+SVC_ContextForNewlib:
+        MOV      R0,R2                  // Pass in current thread id
+        BL       __user_perthread_libspace // Fetch _reent structure for this thread
+        LDR      R1,=_impure_ptr        // Place it in _impure_ptr for newlib
+        STR      R0,[R1]
+
         MOVS     R0,#~0xFFFFFFFD
         MVNS     R0,R0                  // Set EXC_RETURN value
         BX       R0                     // Exit from handler
@@ -106,22 +111,22 @@ SVC_Exit:
         BX       LR                     // Exit from handler
 
 SVC_User:
-        PUSH     {R4,LR}                // Save registers
         LDR      R2,=osRtxUserSVC       // Load address of SVC table
         LDR      R3,[R2]                // Load SVC maximum number
         CMP      R1,R3                  // Check SVC number range
         BHI      SVC_Done               // Branch if out of range
 
         LSLS     R1,R1,#2
-        LDR      R4,[R2,R1]             // Load address of SVC function
+        LDR      R3,[R2,R1]             // Load address of SVC function
+        MOV      R12,R3
 
         LDMIA    R0,{R0-R3}             // Load function parameters from stack
-        BLX      R4                     // Call service function
-        MRS      R4,PSP                 // Get PSP
-        STMIA    R4!,{R0-R3}            // Store function return values
+        BLX      R12                    // Call service function
+        MRS      R2,PSP                 // Get PSP
+        STMIA    R2!,{R0}               // Store function return value
 
 SVC_Done:
-        POP      {R4,PC}                // Return from handler
+        POP      {R0,PC}                // Return from handler
 
         .fnend
         .size    SVC_Handler, .-SVC_Handler
