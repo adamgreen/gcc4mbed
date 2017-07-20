@@ -15,12 +15,12 @@ PROJECT         := newlibTest
 DEVICES         := LPC1768 KL25Z K64F
 GCC4MBED_DIR    := ../..
 
-GCC4MBED_TYPE   := Release
+GCC4MBED_TYPE   := Develop
 MRI_ENABLE      := 1
 MRI_UART        := MRI_UART_MBED_USB MRI_UART_BAUD=230400
 MBED_CONFIG_H   := mbed_config.h
 
-NEWLIB_NANO     := 0
+NEWLIB_NANO     := 1
 NO_FLOAT_SCANF  := 1
 NO_FLOAT_PRINTF := 1
 

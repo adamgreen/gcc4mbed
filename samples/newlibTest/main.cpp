@@ -60,6 +60,8 @@
 // in length before it frees them and does it all over again.
 #if defined(TARGET_KL25Z)
     #define MALLOC_ALLOC_COUNT 64
+#elif defined(TARGET_LPC1768) && !defined(_REENT_SMALL)
+    #define MALLOC_ALLOC_COUNT 164
 #else
     #define MALLOC_ALLOC_COUNT 246
 #endif
@@ -466,6 +468,11 @@ static void runSysCallTests()
     long fileSize = ftell(pFile);
     assert ( fileSize = sizeof(testBuffer) );
 
+    // Calling fseek on a stdio handle should return ESPIPE error.
+    seekResult = fseek(stdout, 0, SEEK_SET);
+    assert ( seekResult == -1 );
+    assert ( errno == ESPIPE );
+
     // Calling fstat on this file should set errno to EBADF.
     errno = 0;
     int fstatResult = fstat(fileno(pFile), &stats);
@@ -592,7 +599,13 @@ static void runSysCallTests()
     removeResult = remove("/sd/delete");
     assert ( removeResult == 0 );
 
-    
+    // Give the file a new name and then rename it back.
+    renameResult = rename(filename, "/sd/bar.foo");
+    assert ( renameResult == 0 );
+    renameResult = rename("/sd/bar.foo", filename);
+    assert ( renameResult == 0 );
+
+
     // Can delete the file now that we are done with it.
     removeResult = remove(filename);
     assert ( removeResult == 0 );
