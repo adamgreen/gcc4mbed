@@ -428,7 +428,7 @@ extern "C" int             _isatty_r(struct _reent *preent, FILEHANDLE fh)
 
 // The isatty() implemented in newlib is the only high level API which appears to not call the reentrant
 // version of its syscall.
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION)
 extern "C" int isatty(FILEHANDLE fh)
 {
     return _isatty_r(_REENT, fh);
@@ -675,7 +675,7 @@ extern "C" int stat(const char *path, struct stat *st) {
     }
 }
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION)
 /* prevents the exception handling name demangling code getting pulled in */
 #include "mbed_error.h"
 namespace __gnu_cxx {
@@ -734,11 +734,11 @@ extern "C" caddr_t _sbrk_r(struct _reent *preent, int incr) {
 #endif
 #endif // __GNUC__
 
-#if defined(__GNUC__)
-extern "C" void _exit(int return_code) {
-#else
+#if defined(__ARMCC_VERSION) || defined(__ICCARM__)
 namespace std {
 extern "C" void exit(int return_code) {
+#else
+extern "C" void _exit(int return_code) {
 #endif
 
 #if DEVICE_STDIO_MESSAGES
@@ -760,11 +760,11 @@ extern "C" void exit(int return_code) {
     while (1);
 }
 
-#if !defined(__GNUC__)
+#if defined(__ARMCC_VERSION) || defined(__ICCARM__)
 } //namespace std
 #endif
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION)
 
 // This series of function disable the registration of global destructors
 // in a dynamic table which will be called when the application exit.
