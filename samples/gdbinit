@@ -672,7 +672,7 @@ set print pretty on
 #   Can't access peripheral registers and some regions of RAM without this turned off.
 set mem inaccessible-by-default off
 #   Show disassembly on each stop. Makes it easier to switch to using stepi/nexti when debugging optimized code.
-set disassemble-next-line on
+# set disassemble-next-line on
 #   Never just set ambiguous breakpoint at multiple locations. Ask which to actually use. We have limited breakpoints
 #   on embedded targets.
 set multiple-symbols ask
