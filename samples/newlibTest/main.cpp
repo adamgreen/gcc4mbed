@@ -466,7 +466,7 @@ static void runSysCallTests()
     assert ( seekResult == 0 );
     
     long fileSize = ftell(pFile);
-    assert ( fileSize = sizeof(testBuffer) );
+    assert ( fileSize == sizeof(testBuffer) );
 
     // Calling fseek on a stdio handle should return ESPIPE error.
     seekResult = fseek(stdout, 0, SEEK_SET);
@@ -503,7 +503,7 @@ static void runSysCallTests()
     errno = 0;
     bytesWritten = _write_r(_REENT, fileno(pFile), testBuffer, sizeof(testBuffer));
     assert ( bytesWritten < 0 );
-    assert ( errno = EACCES );
+    assert ( errno == EACCES );
 
     closeResult = fclose(pFile);
     assert ( closeResult == 0 );
@@ -515,7 +515,7 @@ static void runSysCallTests()
     errno = 0;
     bytesRead = _read_r(_REENT, fileno(pFile), testBuffer, sizeof(testBuffer));
     assert ( bytesRead < 0 );
-    assert ( errno = EACCES );
+    assert ( errno == EACCES );
 
     closeResult = fclose(pFile);
     assert ( closeResult == 0 );
@@ -614,7 +614,7 @@ static void runSysCallTests()
     errno = 0;
     pFile = fopen("/sd/bar.txt", "r");
     assert ( pFile == NULL );
-    assert ( errno = ENOENT );
+    assert ( errno == ENOENT );
 
     // Attempt to remove a file in the SD file system which we know doesn't exist.
     errno = 0;
@@ -702,19 +702,19 @@ static void runSysCallTests()
     errno = 0;
     pFile = fopen("/foo/bar.txt", "w");
     assert ( pFile == NULL );
-    assert ( errno = ENOENT );
+    assert ( errno == ENOENT );
 
     // Attempt to remove a file where the root file system name is invalid. Should fail.
     errno = 0;
     removeResult = remove("/foo/bar.txt");
     assert ( removeResult == -1 );
-    assert ( errno = ENOENT );
+    assert ( errno == ENOENT );
 
     // Attempt to stat a file where the root file system name is invalid. Should fail.
     errno = 0;
     statResult = stat("/foo/bar.txt", &stats);
     assert ( statResult == -1 );
-    assert ( errno = ENOENT );
+    assert ( errno == ENOENT );
 
     // Attempt to allocate a really large allocation to make sure that it fails. Should fail.
     errno = 0;
