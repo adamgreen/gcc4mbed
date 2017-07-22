@@ -401,11 +401,11 @@ extern "C" int PREFIX_SUFFIX(_read)(REENT_PARAM FILEHANDLE fh, unsigned char *bu
 
 
 #ifdef __ARMCC_VERSION
-extern "C" int            _sys_istty(                       FILEHANDLE fh)
+extern "C" int _sys_istty(                       FILEHANDLE fh)
 #elif defined(__ICCARM__)
-extern "C" int               _isatty(                       FILEHANDLE fh)
+extern "C" int    _isatty(                       FILEHANDLE fh)
 #else
-extern "C" int             _isatty_r(struct _reent *preent, FILEHANDLE fh)
+extern "C" int  _isatty_r(struct _reent *preent, FILEHANDLE fh)
 #endif
 {
     /* stdin, stdout and stderr should be tty */
