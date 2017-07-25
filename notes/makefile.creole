@@ -104,13 +104,26 @@ SDK libraries.
 
 ===USER_LIBS
 **USER_LIBS** is an optional variable that an application's makefile can use to provide a space delimited list of 
-folders containing user libraries to be compiled and linked into the application.
+folders containing user libraries to be compiled and linked into the application. Normally GCC4MBED will recurse into 
+all subfolders within a user library folder to generate the include path for the library. If you proceed a folder name 
+in the list with a '!' character then it will only add the root library folder to the include path. For example:
+{{{
+USER_LIBS := !../ros_lib_kinetic ../BufferedSerial ../Buffer
+}}}
+That example would just add the ../ros_lib_kinetic folder to the include path for the ROS library but it would recurse 
+and add all subfolders found within ../BufferedSerial and ../Buffer. The makefile will always recurse and build any
+C/C++/ASM code found within a library folder, no matter if it has the '!' prefix or not.
 
 ===MBED_CONFIG_H
 The **MBED_CONFIG_H** variable is an optional variable which allows the user to specify the pathname of a header file 
 containing custom mbed configuration parameters. 
 
 It defaults to using **src/mbed_config.h**
+
+**Note:** Be careful when using this variable. If you are building multiple projects against the same instance of
+          GCC4MBED, they must all use the same mbed_config.h since they will all share a single copy of the mbed 
+          library. It is also best to issue a {{{make clean-all}}} when changing this variable to make sure that the 
+          mbed library updates its header dependencies.
 
 ===INCDIRS
 **INCDIRS** is an optional variable which can be used by an application's makefile to prepend a list of  directories to 

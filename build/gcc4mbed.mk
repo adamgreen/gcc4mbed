@@ -62,7 +62,11 @@
 #            application.  Each macro should start with "-D" as required by
 #            GCC.
 #   USER_LIBS: A space delimited list of folders containing user libraries to
-#              be compiled and linked into the application.
+#              be compiled and linked into the application. Normally it will
+#              recurse into all subfolders within a user library to generate
+#              the include path for the library. If you preceed a folder in the
+#              list with a '!' character then it will only add the root library
+#              folder to the include path.
 #   MBED_CONFIG_H: Allows the user to specify the pathname of a header file 
 #                  containing custom mbed configuration parameters. It defaults
 #                  to using src/mbed_config.h
@@ -362,8 +366,8 @@ endef
 
 # Utility macros to help build user libraries.
 define build_user_lib #,lib_dir
-    # Make sure that library directory doesn't have trailing slash.
-    LIB_DIR := $(patsubst %/,%,$1)
+    # Make sure that library directory doesn't have trailing slash and remove any '!' prefix.
+    LIB_DIR := $(patsubst !%,%,$(patsubst %/,%,$1))
 
     # Library name is based on the directory name.
     LIB_NAME := $$(notdir $$(LIB_DIR))
@@ -377,7 +381,7 @@ define build_user_lib #,lib_dir
     RELEASE_LIB     := $$(LIB_RELEASE_DIR)/lib$$(LIB_NAME).a
 
     # Find all of the library source directories appropriate for this target device.
-    LIB_SRC_DIRS := $(call filter_dirs,$(call recurse_dir,$1),$(TARGETS_FOR_DEVICE),$(FEATURES_FOR_DEVICE))
+    LIB_SRC_DIRS := $(call filter_dirs,$(call recurse_dir,$(patsubst !%,%,$1)),$(TARGETS_FOR_DEVICE),$(FEATURES_FOR_DEVICE))
 
     # Convert list of source files to corresponding list of object files to be generated.
     OBJECTS         := $$(call srcs2objs,$$(LIB_SRC_DIRS),$$(LIB_DIR),__Output__)
@@ -391,7 +395,8 @@ define build_user_lib #,lib_dir
     DEPFILES += $$(patsubst %.o,%.d,$$(RELEASE_OBJECTS))
 
     # Append to main project's include path.
-    LIB_INCLUDES += $$(LIB_SRC_DIRS)
+    # If the LIB_DIR starts with a '!' character then don't recurse for the include path.
+    LIB_INCLUDES += $(if $(filter-out !%,$1),$$(LIB_SRC_DIRS),$$(LIB_DIR))
 
     # Customize C/C++/ASM flags for Debug and Release builds.
     $$(DEBUG_LIB): C_FLAGS   := $(C_FLAGS) -O$(DEBUG_OPTIMIZATION)
@@ -496,8 +501,8 @@ define clean_user_lib #,lib_dir
 
 endef
 define add_user_lib #,lib_dir
-    # Make sure that library directory doesn't have trailing slash.
-    LIB_DIR := $(patsubst %/,%,$1)
+    # Make sure that library directory doesn't have trailing slash and remove any '!' prefix.
+    LIB_DIR := $(patsubst !%,%,$(patsubst %/,%,$1))
 
     # Library name is based on the directory name.
     LIB_NAME := $$(notdir $$(LIB_DIR))
@@ -534,7 +539,7 @@ RAW_MAIN_DIRS := $(call recurse_dir,$(SRC))
 all: $(DEVICES)
 clean: $(addsuffix -clean,$(DEVICES))
 clean-libs:
-	$(foreach i,$(USER_LIBS),$(call clean_user_lib,$i))
+	$(foreach i,$(patsubst !%,%,$(USER_LIBS)),$(call clean_user_lib,$i))
 clean-mbed:
 	@echo Cleaning $(MBED_SRC_ROOT)/Debug
 	$(Q) $(REMOVE_DIR) $(call convert-slash,$(MBED_SRC_ROOT)/Debug) $(QUIET)
