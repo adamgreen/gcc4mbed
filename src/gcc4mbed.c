@@ -30,16 +30,16 @@ void _start(void)
 {
     int bssSize = (int)&__bss_end__ - (int)&__bss_start__;
     int mainReturnValue;
-    
+
     memset(&__bss_start__, 0, bssSize);
-    
+
     if (MRI_ENABLE)
     {
-        __mriInit(MRI_INIT_PARAMETERS);
+        mriInit(MRI_INIT_PARAMETERS);
         if (MRI_BREAK_ON_INIT)
             __debugbreak();
     }
-    
+
     software_init_hook();
     __libc_init_array();
     mainReturnValue = main();
@@ -51,7 +51,7 @@ int __real__read(int file, char *ptr, int len);
 int __wrap__read(int file, char *ptr, int len)
 {
     if (MRI_SEMIHOST_STDIO && file < 3)
-        return __mriNewlib_SemihostRead(file, ptr, len);
+        return mriNewlib_SemihostRead(file, ptr, len);
      return __real__read(file, ptr, len);
 }
 
@@ -60,7 +60,7 @@ int __real__write(int file, char *ptr, int len);
 int __wrap__write(int file, char *ptr, int len)
 {
     if (MRI_SEMIHOST_STDIO && file < 3)
-        return __mriNewlib_SemihostWrite(file, ptr, len);
+        return mriNewlib_SemihostWrite(file, ptr, len);
     return __real__write(file, ptr, len);
 }
 
@@ -94,7 +94,7 @@ void abort(void)
 {
     if (MRI_ENABLE)
         __debugbreak();
-        
+
     exit(1);
 }
 
