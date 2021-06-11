@@ -1,3 +1,11 @@
+==Archived - June 10th, 2021
+This project is no longer under active development.
+
+Please refer to officially supported methods for building Mbed projects offline:
+* [[https://os.mbed.com/studio/ | Mbed Studio]]
+* [[https://os.mbed.com/docs/mbed-os/v6.11/quick-start/build-with-mbed-cli.html | Mbed CLI]]
+* [[https://os.mbed.com/docs/mbed-os/v6.11/build-tools/third-party-build-tools.html#exporting-from-the-arm-mbed-online-compiler | Online Mbed Compiler Export]]
+
 ==Current Version
 **GCC Version:**  [[https://launchpad.net/gcc-arm-embedded/6.0/6-2017-q1-update | GCC ARM Embedded 6-2017-q1-update]]\\
 **mbed SDK Version:** [[https://github.com/mbedmicro/mbed/releases/tag/mbed_lib_rev142 | Revision 142]]\\
@@ -51,7 +59,7 @@ I build, deploy, and run the samples on these target devices:
 * LPC1768
 * NRF51_DK
 
-Please feel free to open [[https://github.com/adamgreen/gcc4mbed/issues | GitHub issues]] to let me and the community 
+Please feel free to open [[https://github.com/adamgreen/gcc4mbed/issues | GitHub issues]] to let me and the community
 know if you hit any issues for a target that should be supported with the GCC_ARM toolchain so that we can investigate.
 
 ==More Information
@@ -66,13 +74,13 @@ know if you hit any issues for a target that should be supported with the GCC_AR
 **[[https://github.com/adamgreen/gcc4mbed/blob/master/notes/new_devices.creole#adding-new-devices-to-gcc4mbed|Adding Devices]]:**  Notes on how to add new device support to GCC4MBED.\\
 
 ==Thanks
-The author wants to thank Arthur Wolf for the [[http://developer.mbed.org/forum/mbed/topic/2336/|posting]] he made back 
+The author wants to thank Arthur Wolf for the [[http://developer.mbed.org/forum/mbed/topic/2336/|posting]] he made back
 in May 2011 which kicked off this whole gcc4mbed project and for all of the testing and feedback he has given since.
 
-Thanks to Felyza Wishbringer for writing the first Windows install script which provided the inspiration for the 
+Thanks to Felyza Wishbringer for writing the first Windows install script which provided the inspiration for the
 Windows, Mac, and Linux scripts that are now included in the gcc4mbed project.
 
-Thanks for all of the others who have provided valuable feedback since this project was first released.  Much of that 
+Thanks for all of the others who have provided valuable feedback since this project was first released.  Much of that
 feedback can be found in this [[http://developer.mbed.org/forum/mbed/topic/2701/|mbed forum thread]]
 
 ==Have fun!!
