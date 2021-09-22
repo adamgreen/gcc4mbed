@@ -1,4 +1,4 @@
-/* Copyright 2013 Adam Green (http://mbed.org/users/AdamGreen/)
+/* Copyright 2021 Adam Green (http://mbed.org/users/AdamGreen/)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -89,6 +89,12 @@ int __wrap_semihost_disabledebug(void)
     return -1;
 }
 
+#if MRI_ENABLE
+void mbed_die(void)
+{
+    __debugbreak();
+}
+#endif // MRI_ENABLE
 
 void abort(void)
 {
