@@ -17,9 +17,8 @@
 
 #if DEVICE_LOCALFILESYSTEM
 
+#include <sys/errno.h>
 #include "platform/mbed_semihost_api.h"
-#include <string.h>
-#include <stdio.h>
 
 namespace mbed {
 
@@ -93,19 +92,34 @@ int posix_to_semihost_open_flags(int flags) {
     return openmode;
 }
 
-FILEHANDLE local_file_open(const char* name, int flags) {
-    int openmode = posix_to_semihost_open_flags(flags);
-    if (openmode == OPEN_INVALID) {
-        return (FILEHANDLE)NULL;
-    }
 
-    FILEHANDLE fh = semihost_open(name, openmode);
-    if (fh == -1) {
-        return (FILEHANDLE)NULL;
-    }
+class LocalFileHandle {
 
-    return fh;
-}
+public:
+    LocalFileHandle(FILEHANDLE fh);
+
+    int close();
+
+    ssize_t write(const void *buffer, size_t length);
+
+    ssize_t read(void *buffer, size_t length);
+
+    int isatty();
+
+    off_t lseek(off_t position, int whence);
+
+    int fsync();
+
+    off_t flen();
+
+protected:
+    void lock();
+    void unlock();
+    FILEHANDLE _fh;
+    int pos;
+    PlatformMutex _mutex;
+};
+
 
 LocalFileHandle::LocalFileHandle(FILEHANDLE fh) : _fh(fh), pos(0) {
     // No lock needed in constructor
@@ -179,22 +193,25 @@ void LocalFileHandle::unlock() {
     _mutex.unlock();
 }
 
-class LocalDirHandle : public DirHandle {
+
+class LocalDirHandle {
 
 public:
     struct dirent cur_entry;
     XFINFO info;
 
-    LocalDirHandle() : cur_entry(), info() {
+    LocalDirHandle() {
+        memset(&cur_entry, 0, sizeof(cur_entry));
+        memset(&info, 0, sizeof(info));
     }
 
-    virtual int closedir() {
+    int closedir() {
         // No lock can be used in destructor
         delete this;
         return 0;
     }
 
-    virtual struct dirent *readdir() {
+    struct dirent *readdir() {
         lock();
         if (xffind("*", &info)!=0) {
             unlock();
@@ -205,20 +222,20 @@ public:
         return &cur_entry;
     }
 
-    virtual void rewinddir() {
+    void rewinddir() {
         lock();
         info.fileID = 0;
         unlock();
     }
 
-    virtual off_t telldir() {
+    off_t telldir() {
         lock();
         int fileId = info.fileID;
         unlock();
         return fileId;
     }
 
-    virtual void seekdir(off_t offset) {
+    void seekdir(off_t offset) {
         lock();
         info.fileID = offset;
         unlock();
@@ -227,47 +244,173 @@ public:
 protected:
     PlatformMutex _mutex;
 
-    virtual void lock() {
+    void lock() {
         _mutex.lock();
     }
 
-    virtual void unlock() {
+    void unlock() {
         _mutex.unlock();
     }
 };
 
-FileHandle *LocalFileSystem::open(const char* name, int flags) {
+
+LocalFileSystem::LocalFileSystem(const char* pName) : FileSystem(pName)
+{
+}
+
+
+int LocalFileSystem::mount(BlockDevice *bd)
+{
+    return ENOTSUP;
+}
+
+int LocalFileSystem::mount(BlockDevice *bd, bool force)
+{
+    return ENOTSUP;
+}
+
+int LocalFileSystem::unmount()
+{
+    return ENOTSUP;
+}
+
+int LocalFileSystem::remove(const char *path)
+{
+    // No global state modified so function is thread safe
+
+    return semihost_remove(path);
+}
+
+int LocalFileSystem::rename(const char *path, const char *newpath)
+{
+    return ENOTSUP;
+}
+
+int LocalFileSystem::stat(const char *path, struct stat *st)
+{
+    return ENOTSUP;
+}
+
+int LocalFileSystem::mkdir(const char *path, mode_t mode)
+{
+    return ENOTSUP;
+}
+
+
+
+int LocalFileSystem::file_open(fs_file_t* ppFile, const char *pFilename, int flags)
+{
     // No global state modified so function is thread safe
 
     /* reject filenames with / in them */
-    for (const char *tmp = name; *tmp; tmp++) {
+    for (const char *tmp = pFilename; *tmp; tmp++) {
         if (*tmp == '/') {
-            return NULL;
+            return ENOENT;
         }
     }
 
     int openmode = posix_to_semihost_open_flags(flags);
     if (openmode == OPEN_INVALID) {
-        return NULL;
+        return EACCES;
     }
 
-    FILEHANDLE fh = semihost_open(name, openmode);
+    FILEHANDLE fh = semihost_open(pFilename, openmode);
     if (fh == -1) {
-        return NULL;
+        return ENOENT;
     }
-    return new LocalFileHandle(fh);
+
+    *ppFile = new LocalFileHandle(fh);
+    return 0;
 }
 
-int LocalFileSystem::remove(const char *filename) {
-    // No global state modified so function is thread safe
-
-    return semihost_remove(filename);
+int LocalFileSystem::file_close(fs_file_t file)
+{
+    LocalFileHandle* pFile = (LocalFileHandle*)file;
+    return pFile->close();
 }
 
-DirHandle *LocalFileSystem::opendir(const char *name) {
+ssize_t LocalFileSystem::file_read(fs_file_t file, void *buffer, size_t len)
+{
+    LocalFileHandle* pFile = (LocalFileHandle*)file;
+    return pFile->read(buffer, len);
+}
+
+ssize_t LocalFileSystem::file_write(fs_file_t file, const void *buffer, size_t len)
+{
+    LocalFileHandle* pFile = (LocalFileHandle*)file;
+    return pFile->write(buffer, len);
+}
+
+int LocalFileSystem::file_sync(fs_file_t file)
+{
+    LocalFileHandle* pFile = (LocalFileHandle*)file;
+    return pFile->fsync();
+}
+
+off_t LocalFileSystem::file_seek(fs_file_t file, off_t offset, int whence)
+{
+    LocalFileHandle* pFile = (LocalFileHandle*)file;
+    return pFile->lseek(offset, whence);
+}
+
+off_t LocalFileSystem::file_tell(fs_file_t file)
+{
+    LocalFileHandle* pFile = (LocalFileHandle*)file;
+    return pFile->lseek(0, SEEK_CUR);
+}
+
+size_t LocalFileSystem::file_size(fs_file_t file)
+{
+    LocalFileHandle* pFile = (LocalFileHandle*)file;
+    return pFile->flen();
+}
+
+
+int LocalFileSystem::dir_open(fs_dir_t* ppDir, const char* pDirectoryName)
+{
     // No global state modified so function is thread safe
 
-    return new LocalDirHandle();
+    *ppDir = new LocalDirHandle();
+    return 0;
+}
+
+int LocalFileSystem::dir_close(fs_dir_t dir)
+{
+    LocalDirHandle* pDirHandle = (LocalDirHandle*)dir;
+    return pDirHandle->closedir();
+}
+
+ssize_t LocalFileSystem::dir_read(fs_dir_t dir, struct dirent *ent)
+{
+    LocalDirHandle* pDirHandle = (LocalDirHandle*)dir;
+    struct dirent* pEntry = pDirHandle->readdir();
+    if (pEntry == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        *ent = *pEntry;
+        return 1;
+    }
+}
+
+void LocalFileSystem::dir_seek(fs_dir_t dir, off_t offset)
+{
+    LocalDirHandle* pDirHandle = (LocalDirHandle*)dir;
+    pDirHandle->seekdir(offset);
+}
+
+off_t LocalFileSystem::dir_tell(fs_dir_t dir)
+{
+    LocalDirHandle* pDirHandle = (LocalDirHandle*)dir;
+    return pDirHandle->telldir();
+}
+
+void LocalFileSystem::dir_rewind(fs_dir_t dir)
+{
+    LocalDirHandle* pDirHandle = (LocalDirHandle*)dir;
+    pDirHandle->rewinddir();
 }
 
 } // namespace mbed
